@@ -16,6 +16,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 import scala.xml.Node
 import XmlRep._
+import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Dao.Id
 import org.scalajs.dom.console
 
@@ -110,6 +111,14 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
     Daos.keyWordDao.readAll().map(kws => {
       propose.addAll(kws)
       propose.createEvent()
+      val htmlI = propose.ioHtml.html
+      val eventAdd = htmlI.e
+      eventAdd.onkeyup{
+        _ =>
+          console.log(htmlI.value)
+
+          propose.doFilter(!htmlI.value.trim.isEmpty && _.value.contains(htmlI.value))
+      }
 
     }).onComplete {
       case Failure(exception) => throw (exception)
