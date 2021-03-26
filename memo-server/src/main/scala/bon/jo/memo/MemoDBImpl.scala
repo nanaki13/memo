@@ -15,7 +15,7 @@ trait MemoDBImpl {
   class Memos(tag: Tag) extends Table[Memo](tag, "MEMO") {
     def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
 
-    def content = column[String]("CONTENT")
+    def content = column[String]("CONTENT",O.Length(1024*10))
 
     def title = column[String]("TITLE")
 

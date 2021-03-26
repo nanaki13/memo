@@ -1,19 +1,19 @@
 package bon.jo.test
-import bon.jo.html.DomShell.$
+import bon.jo.html.DomShell.{$, $c}
 import bon.jo.html.HtmlEventDef._
-import bon.jo.memo.Dao.Id
-import bon.jo.test.XmlRep._
-import bon.jo.test.XmlRep.ListRep
-import org.scalajs.dom.html.{Div, Select}
-import org.scalajs.dom.{console, raw}
+import bon.jo.test.XmlRep.{ListRep, _}
+import org.scalajs.dom.html.{Button, Div, Select}
 import org.scalajs.dom.raw.{HTMLElement, Node}
+import org.scalajs.dom.{console, document, raw}
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
+import scala.concurrent.{ExecutionContext, Future}
 import scala.xml.Elem
 trait HtmlExtract[A,B<: raw.Element]{
     def extract(html : B) : A
 }
-trait HtmlExtractAny[A] extends HtmlExtract[A, raw.Element]
+
 
 class IOHtml[A <: raw.Element,E](xmlf :String  => Elem,extractF: A => E) extends DomCpnt[A] with HtmlExtract[E,A] {
   override def xml: Elem = xmlf(id)
@@ -22,12 +22,18 @@ class IOHtml[A <: raw.Element,E](xmlf :String  => Elem,extractF: A => E) extends
   def toValue: E = extract(html)
 }
 object HtmlExtract{
+  trait HtmlExtractAny[A] extends HtmlExtract[A, raw.Element]
   implicit class HtmlValue[A <: raw.Element,B : HtmlExtractAny](a : A){
-      def toValue(): B = implicitly[HtmlExtractAny[B]].extract(a)
+      def toValue: B = implicitly[HtmlExtractAny[B]].extract(a)
   }
 }
 
-class Propose[A :IdXmlRep,B <:raw.HTMLElement]( list: mutable.ListBuffer[A],val ioHtml: IOHtml[B,A]) extends DomCpnt[Div] {
+
+class Propose[A :IdXmlRep,B <:raw.HTMLElement]( list: mutable.ListBuffer[A]
+                                                ,val ioHtml: IOHtml[B,A]
+                                              ,save : A => Future[Option[A]],
+                                                sel : A => Unit
+                                              )(implicit executionContext: ExecutionContext) extends DomCpnt[Div] {
 
 
 
@@ -38,7 +44,7 @@ class Propose[A :IdXmlRep,B <:raw.HTMLElement]( list: mutable.ListBuffer[A],val 
       val h  = b.newHtml
       h.asInstanceOf[HTMLElement].style.display = "none"
       seleO.appendChild(h)
-      h.asInstanceOf[HTMLElement].e.onclick {_ => console.log(b)}
+      h.asInstanceOf[HTMLElement].e.onclick {_ => sel(b)}
     })
     list.addAll(a)
   }
@@ -55,13 +61,19 @@ class Propose[A :IdXmlRep,B <:raw.HTMLElement]( list: mutable.ListBuffer[A],val 
     list += b
     val h  = b.newHtml
     seleO.appendChild(h)
-    h.asInstanceOf[HTMLElement].e.onclick {_ => console.log(b)}
+    h.asInstanceOf[HTMLElement].e.onclick {_ => sel(b)}
     h
   }
   def createEvent(): Unit = {
     btn.html.e.onclick{
       c =>
-        += (ioHtml.toValue)
+        save(ioHtml.toValue).recover{
+          case _ => None
+        }.foreach{
+          case None => PopUp("Marche pas...")
+          case Some(value) => +=(value)
+        }
+
     }
   }
 
@@ -76,6 +88,4 @@ class Propose[A :IdXmlRep,B <:raw.HTMLElement]( list: mutable.ListBuffer[A],val 
     })
   }
 }
-object Propose{
 
-}

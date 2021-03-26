@@ -18,6 +18,7 @@ import scala.io.StdIn
 
 
 object WebServer extends App {
+  println(new File(".").getAbsolutePath)
   implicit val profile: DBProfile.DB = DBProfile.value
   private implicit val system: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "my-system")
   // needed for the future flatMap/onComplete in the end
@@ -34,15 +35,18 @@ object WebServer extends App {
   private val memoRoute = RestRoutes[Entities.Memo](BaseRoute.memoRoute)
   private val keywordRoute = RestRoutes[Entities.KeyWord](BaseRoute.keywordRoute)
   private val memoKeywWordRoute = RestRoutes[Entities.MemoKeywords](BaseRoute.memoKeyWordRoute)
-  println(new File(".").getAbsolutePath)
+
   profile.create.onComplete {
     {
       _ => {
         println(new File(".").getAbsolutePath)
-        val uiRoute = pathPrefix("ui") {
+        val staticFile = pathPrefix("ui") {
           getFromDirectory("memo-ui")
         }
-        val routes = concat(memoRoute.routes, keywordRoute.routes, memoKeywWordRoute.routes, uiRoute)
+        val uiEndPoint = pathPrefix("app") {
+          getFromFile("memo-ui/index.html")
+        }
+        val routes = concat(memoRoute.routes, keywordRoute.routes, memoKeywWordRoute.routes, staticFile,uiEndPoint)
 
         val bindingFuture = Http().newServerAt("0.0.0.0", 8080).bind(routes)
         println(s"Server online at http://localhost:8080/\nPress RETURN to stop...")

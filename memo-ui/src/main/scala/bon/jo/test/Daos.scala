@@ -2,8 +2,10 @@ package bon.jo.test
 
 import bon.jo.memo.Entities.MemoKeywords
 import bon.jo.memo.{BaseRoute, Entities}
+import org.scalajs.dom.console
 
 import scala.scalajs.js
+import scala.scalajs.js.JSConverters._
 import scala.language.dynamics
 object Daos {
 
@@ -34,10 +36,14 @@ object Daos {
     val value: String
   }
   object MemoKeywordsJs{
-    def apply(m: Entities.MemoKeywords): MemoKeywordsJs = js.Dynamic.literal(
-      memo = MemoJs(m.memo),
-      keyWords = m.keyWords.map(KeyWordJs.apply),
-    ).asInstanceOf[MemoKeywordsJs]
+    def apply(m: Entities.MemoKeywords): MemoKeywordsJs = {
+     val ret =  js.Dynamic.literal(
+        memo = MemoJs(m.memo),
+        keyWords = m.keyWords.map(KeyWordJs.apply).toJSArray,
+      ).asInstanceOf[MemoKeywordsJs]
+      console.log(ret)
+      ret
+    }
   }
   object KeyWordJs{
     def apply(m: Entities.KeyWord): KeyWordJs = js.Dynamic.literal(

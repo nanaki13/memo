@@ -2,6 +2,8 @@ package bon.jo.memo
 
 
 
+import bon.jo.memo.Entities.MemoKeywordRel
+
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 
@@ -34,9 +36,15 @@ class MemoKeyWordsDaoImpl(implicit val profile: DBProfile.DB,
             case Some(_) => keyWordDaoImpl.update(keyW)
             case None => keyWordDaoImpl.create(keyW)
           }
-        }).map(e => {
+        }).flatMap(e => {
           val keys = e.flatten
-          Some(Entities.MemoKeywords(nMemo, keys))
+          val cRel = keys.toSeq.map(k => MemoKeywordRel(nMemo.id.get,k.id.get)).map(memoKeywords += _)
+          val ret = DBIO.seq(cRel : _ *)
+          val createRelRun = db.run(ret)
+          createRelRun.map{ _ =>
+            Some(Entities.MemoKeywords(nMemo, keys))
+          }
+
         })
       case None => Future.successful(None)
     }

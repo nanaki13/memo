@@ -7,6 +7,8 @@ import scala.collection.mutable.ListBuffer
 import scala.xml.Node
 import XmlRep._
 import SimpleView._
+
+import scala.concurrent.Future
 object SimpleView{
   type dc = DomCpnt[_ <: HTMLElement]
   type dci = DomCpnt[Input]
@@ -17,9 +19,9 @@ object SimpleView{
     {title}
   </button>)
 }
-case class SimpleView[A: IdXmlRep](creationHtml: () => Node) {
+abstract case class SimpleView[A: IdXmlRep](creationHtml: () => Node) {
 
-
+  def fillFromService: Future[Unit]
   val as: ListBuffer[A] = ListBuffer()
   val asHtml: dc = DomCpnt[Div](id => <div id={id}>
     {as.xml}

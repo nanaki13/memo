@@ -1,130 +1,122 @@
 package bon.jo.test
 
-import java.util.UUID
-
 import bon.jo.app.User
 import bon.jo.game.html.Template
+import bon.jo.html.DomShell._
 import bon.jo.game.html.Template.XmlTemplate
-import bon.jo.memo.Entities
-import bon.jo.memo.Entities.KeyWord
-import bon.jo.test.SimpleView.{dci, i}
+import bon.jo.html.HtmlEventDef.ExH
+import bon.jo.memo.Entities.{KeyWord, MemoKeywords}
+import bon.jo.test.XmlRep.{IdXmlRep, PrXmlId}
 import org.scalajs.dom.html.{Div, Input}
-import org.scalajs.dom.raw.{Element, HTMLElement}
+import org.scalajs.dom.raw.HTMLElement
+import org.scalajs.dom.{URL, console, raw, window}
 
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 import scala.xml.Node
-import XmlRep._
-import bon.jo.html.HtmlEventDef.ExH
-import bon.jo.memo.Dao.Id
-import org.scalajs.dom.console
+
+
+import scalajs.js
+
+sealed trait Target
+
+case object MemoCreation extends Target
+
+case object _404 extends Target
 
 case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Template with XmlTemplate {
 
 
-  val tInput: dci = i
-  val contentInput: dci = i
-  implicit val idMemo: Id[Entities.Memo] =m => "m" + m.id.getOrElse(m.title)
-  implicit val idK: Id[KeyWord] = m => "k" + m.id.getOrElse(m.value)
-  implicit val idMemoKw: Id[Entities.MemoKeywords] =m => "mk" + m.memo.id.getOrElse(m.memo.title)
-  console.log(idMemo,idK,idMemoKw)
-  val viewsDef: ViewsDef =  ViewsDef.apply
+  console.log(window.location.pathname)
 
-  import viewsDef._
 
-  object memoView extends SimpleView[Entities.Memo](() => <div>titre :
-    {tInput.xml}
-    contenu :
-    {contentInput.xml}
-  </div>) {
-    def fillFromService = Daos.memoDao.readAll()
-      .map(m => {
-        m.foreach(+=)
-      })
+  case class P(str: List[String]) {
+    def /(s: String) = copy(str = str :+ s)
   }
 
-  val keywWordI: dci = i
+  object P {
+    def apply(str: String): P = new P(str.split("/").toList.filter(_.nonEmpty))
+    implicit class PFromStr(str: String) {
+      def /(o: String): P = P(List(str, o))
+    }
+  }
 
-  object keyWordView extends SimpleView[Entities.KeyWord](() => <div>keyWord :
-    {keywWordI.xml}
-  </div>) {
-    def fillFromService = Daos.keyWordDao.readAll()
-      .map(m => {
-        m.foreach(+=)
-      })
+  import P._
+
+  val view = new ViewsImpl()
+  val urlPath = P(scalajs.js.URIUtils.decodeURI(window.location.pathname))
+
+  console.log(urlPath.toString)
+
+  object Paths {
+    val pCreation: P = "app" / "memo"
   }
 
 
-  val memoObj: dci = i
+  val target: Target = urlPath match {
+    case Paths.pCreation => MemoCreation
+    case _ => _404
+  }
 
-  object memoKeywWord extends SimpleView[Entities.MemoKeywords](() => <div>content :
-    {memoObj.xml}
-  </div>) {
-    def fillFromService = Daos.memoKeyWord.readAll()
-      .map(m => {
-        m.foreach(+=)
-      })
+
+  val currentKeyWord = scala.collection.mutable.ListBuffer[KeyWord]()
+
+  def addToCurrentKW(keyWord: KeyWord, listView: DomCpnt[Div])(implicit v: IdXmlRep[KeyWord]): raw.Node = {
+    currentKeyWord.addOne(keyWord)
+    listView.html.appendChild(keyWord.newHtml)
+  }
+
+  type ProposeView = (Propose[KeyWord, Input], SimpleView[MemoKeywords])
+  private val (propose, memoKeywWord): ProposeView = view.viewsDef.keyWord.other("pr") {
+    implicit other =>
+      val propose = new Propose[KeyWord, Input](ListBuffer(),
+        new IOHtml[Input, KeyWord](id => {
+          <input id={id}></input>
+        }, input => KeyWord(None, input.value)), Daos.keyWordDao.create, addToCurrentKW(_, view.listView))
+
+      (propose, view.memoKeywWord(propose))
   }
 
 
   override def xml: Node = <div id="root">
-    {memoKeywWord.xml}{propose.xml}
+    {memoKeywWord.xml}
   </div>
 
-  def addMemoLisner =
-    memoView.btnInput.html.onclick = _ => {
-      val m = new Entities.Memo(tInput.html.value, contentInput.html.value)
-      val req: Future[Unit] = Daos.memoDao.create(m).map(o => o.foreach(memoView.+=))
-      req.onComplete {
-        case Failure(exception) => throw (exception)
-        case Success(value) =>
-      }
-
-
-    }
-
-  def addKw =
-    keyWordView.btnInput.html.onclick = _ => {
-      val m = Entities.KeyWord(None, keywWordI.html.value)
-      val req: Future[Unit] = Daos.keyWordDao.create(m).map(o => o.foreach(keyWordView.+=))
-      req.onComplete {
-        case Failure(exception) => throw (exception)
-        case Success(value) =>
-      }
-
-    }
-
-
-  val propose = new Propose[KeyWord, Input](ListBuffer(),
-    new IOHtml[Input, KeyWord](id => {
-      <input id={id}></input>
-    }, input => KeyWord(None, input.value)))
 
   override def init(p: HTMLElement): Unit = {
-
-
-    //    memoKeywWord.fillFromService.onComplete {
-    //      case Failure(exception) => throw(exception)
-    //      case Success(value) =>
-    //    }
-    Daos.keyWordDao.readAll().map(kws => {
-      propose.addAll(kws)
-      propose.createEvent()
-      val htmlI = propose.ioHtml.html
-      val eventAdd = htmlI.e
-      eventAdd.onkeyup{
-        _ =>
-          console.log(htmlI.value)
-
-          propose.doFilter(!htmlI.value.trim.isEmpty && _.value.contains(htmlI.value))
-      }
-
-    }).onComplete {
-      case Failure(exception) => throw (exception)
-      case Success(value) =>
+    target match {
+      case MemoCreation => memoCreationLoad()
+      case _404 => _404Load()
     }
-    //   keyWordView.fillFromService
 
+    def _404Load() = {
+      p.clear()
+      p.addChild[raw.HTMLHeadingElement](<h1>page non trouvé</h1>)
+    }
+
+    def memoCreationLoad() = {
+      memoKeywWord.fillFromService.onComplete {
+        case Failure(exception) => throw (exception)
+        case Success(value) =>
+      }
+      Daos.keyWordDao.readAll().map(kws => {
+        propose.addAll(kws)
+        propose.createEvent()
+        val htmlI = propose.ioHtml.html
+        val eventAdd = htmlI.e
+        eventAdd.onkeyup {
+          _ =>
+            console.log(htmlI.value)
+
+            propose.doFilter(!htmlI.value.trim.isEmpty && _.value.contains(htmlI.value))
+        }
+
+      }).onComplete {
+        case Failure(exception) => throw (exception)
+        case Success(value) =>
+      }
+      view.addMKw(memoKeywWord, currentKeyWord)
+    }
   }
 }
