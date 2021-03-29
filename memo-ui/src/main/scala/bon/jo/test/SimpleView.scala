@@ -20,9 +20,9 @@ object SimpleView{
   type dci = DomCpnt[Input]
   type dcta = DomCpnt[TextArea]
   type dcselect = DomCpnt[Select] with DSelect
-  def i: dci = DomCpnt[Input](id => <input id={id}></input>)
-  def ta: dcta = DomCpnt[TextArea](id => <textarea  cols="150"  rows="50" id={id}></textarea>)
-  def b(title: String): dc = DomCpnt[Button](id => <button id={id}>
+  def i: dci = DomCpnt[Input](<input></input>)
+  def ta: dcta = DomCpnt[TextArea](<textarea  cols="150"  rows="51" ></textarea>)
+  def b(title: String): dc = DomCpnt[Button]( <button >
     {title}
   </button>)
   def s[A](elemnts : Iterable[A])(implicit kv : (A => String,A => String)): dcselect =
@@ -41,11 +41,11 @@ abstract  class SimpleView[A: IdXmlRep](creationHtml: () => Node) {
 
   def fillFromService: Future[Unit]
   val as: ListBuffer[A] = ListBuffer()
-  val asHtml: dc = DomCpnt[Div](id => <div id={id}>
+  val asHtml: dc = DomCpnt[Div](<div>
     {as.xml}
   </div>)
   val btnInput: dc = b("ajouter")
-  val cpnt: DomCpnt[Div] = DomCpnt[Div](id => <div id={id}>
+  val cpnt: DomCpnt[Div] = DomCpnt[Div](<div>
     {asHtml.xml}{creationHtml()}{btnInput.xml}
   </div>)
 

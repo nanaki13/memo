@@ -1,36 +1,64 @@
 package bon.jo.test
 
+import bon.jo.html.DomShell.{$, ExtendedHTMLCollection, ExtendedNode}
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Dao.Id
 import bon.jo.memo.Entities
 import bon.jo.memo.Entities.{KeyWord, MemoKeywords, MemoType}
 import bon.jo.test.SimpleView.{dci, dcselect, dcta, i, s, ta}
-import org.scalajs.dom.html.{Div, Input}
+import bon.jo.test.XmlRep._
+import org.scalajs.dom.console
+import org.scalajs.dom.experimental.URLSearchParams
+import org.scalajs.dom.html.{Div, Input, Span}
+import org.scalajs.dom.raw.{HTMLElement, HTMLUListElement}
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.scalajs.js.JSConverters.JSRichIterableOnce
+import scala.scalajs.js.JSON
 import scala.util.{Failure, Success, Try}
-import scala.xml.{Elem, Node}
-import bon.jo.test.XmlRep._
-import org.scalajs.dom.experimental.URLSearchParams
+object MemoListIpnutR{
 
+
+  def apply() = new MemoListIpnutR}
+class MemoListIpnutR( val data :MemoListJS = new MemoList(Nil.toJSArray  )) extends DomCpnt[Div] {
+  val tInput: dci = i
+
+  implicit val listElementidXmlRep: IdXmlRep[ListElementJS] = XmlRepImpl[ListElementJS](li => <li>
+    {
+    if(li.checked){
+      <input  id={li.content+"i"} type="checkbox" checked="1"></input>
+    }else{
+      <input  id={li.content+"i"} type="checkbox" ></input>
+    }
+    }
+    <span id={li.content+"c"}>{li.content}</span><button id={li.content+"d"}>x</button></li>,_.content)
+  implicit val idXmlRep: IdXmlRep[MemoListJS] = XmlRepImpl[MemoListJS](m => <ul id={id+"l"}>{m.elements.toList.xml}</ul>, m => "l")
+  lazy val list = $[HTMLUListElement](id+"l")
+  def xml = <div id={id}>
+    {tInput.xml}
+    {data.xml}
+  </div>
+
+  def addEvent() = {
+    tInput.html.e.onAction{
+      val el :ListElementJS = new ListElement(tInput.html.value,true)
+      list.appendChild(el.newHtml)
+      $[HTMLElement](el.content+"d").e.onclick{ _ => el.html.removeFromDom()}
+
+    }
+  }
+  def read():MemoList = {
+    new MemoList(list.children.map(l =>  new ListElement ($[Span](l.getAttribute("id")+"c").innerText,$[Input](l.getAttribute("id")+"i").checked) ).map(_.asInstanceOf[ListElementJS]).toJSArray)
+  }
+}
 class MemoCtxView {
 
-  implicit val idXmlRep: IdXmlRep[MemoList] = XmlRepImpl[MemoList](m => <div>
-  </div>, m => "l")
 
 
-  object memoListIpnutR{def apply() = new memoListIpnutR}
-  class memoListIpnutR extends DomCpnt[Div] {
-    val tInput: dci = i
-    val data = new MemoList(Nil)
-    def xml = <div id={id}>
-      {new MemoList(Nil).xml}
-      tInput
-    </div>
 
-  }
 
-  val memoList: DomCpnt[Div] = memoListIpnutR()
+
+  val memoList: MemoListIpnutR = MemoListIpnutR()
 
   val tInput: dci = i
   val contentInput: dcta = ta
@@ -39,7 +67,16 @@ class MemoCtxView {
 
 
 
-  def newMemo = new Entities.Memo(tInput.html.value, contentInput.html.value, MemoType(memoType.html.value))
+  def newMemo = {
+    val mt = MemoType(memoType.html.value)
+    val ret =  mt match {
+      case MemoType.Text =>  new Entities.Memo(tInput.html.value, contentInput.html.value, MemoType(memoType.html.value))
+      case MemoType.Json =>  new Entities.Memo(tInput.html.value, JSON.stringify(memoList.read().pure()) , MemoType(memoType.html.value))
+    }
+
+    ret
+
+  }
 }
 
 class ViewsImpl(implicit executionContext: ExecutionContext) {

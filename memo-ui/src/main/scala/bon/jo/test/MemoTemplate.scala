@@ -38,11 +38,7 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
 
 
 
-  object listView extends DomCpnt[Div] {
-    override def xml: Elem = <div id={id}></div>
-
-
-  }
+  val listView: DomCpnt[Div] = DomCpnt[Div](<div></div>)
   val view = new ViewsImpl()
 
 
@@ -56,7 +52,7 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
   import view.viewsDef.memoKeyWordXml
   private val  memoKeywWord : MemoKeyWordViewListCreate = view.viewsDef.keyWord.other("pr") {
     implicit other =>
-      val lView = DomCpnt[Div](id => <div id={id}></div>)
+      val lView = DomCpnt[Div](<div></div>)
       val propose = new Propose[KeyWord, Input](ListBuffer(),
         new IOHtml[Input, KeyWord](id => {
           <input id={id}></input>
@@ -121,6 +117,7 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
 
 
     def memoCreationLoad() = {
+      memoKeywWord.memoKeywWordtx.memoList.addEvent()
       memoKeywWord.memoKeywWordtx.memoType.selectFirst
       memoKeywWord.memoKeywWordtx.memoType.html.onchange={_ => {
         MemoType(memoKeywWord.memoKeywWordtx.memoType.html.value) match {
