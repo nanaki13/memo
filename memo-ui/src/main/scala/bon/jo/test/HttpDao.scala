@@ -38,7 +38,7 @@ trait HttpDao[A, ID,JS <:  js.Any] extends Dao[A, ID] {
 
   override def read(a: ID): FO = GET.send(url(a), headers = hearders).map(_.bodyAsJson.map(_.asInstanceOf[JS]).map(readerOne))
 
-  override def readAll(): FL = GET.send(url, headers = hearders).map(_.bodyAsJson.map(readerMany).getOrElse(Nil))
+  override def readAll(limit : Int,offset : Int): FL = GET.send(s"$url?limit=$limit&offset=$offset", headers = hearders).map(_.bodyAsJson.map(readerMany).getOrElse(Nil))
 
   override def delete(a: ID): FB = DELETE.sendAndMapStatus(url(a), headers = hearders) {
     case 204 => true

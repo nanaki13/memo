@@ -1,30 +1,56 @@
 package bon.jo.test
 
+import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Dao.Id
 import bon.jo.memo.Entities
-import bon.jo.memo.Entities.{KeyWord, MemoKeywords}
-import bon.jo.test.SimpleView.{dci, i}
+import bon.jo.memo.Entities.{KeyWord, MemoKeywords, MemoType}
+import bon.jo.test.SimpleView.{dci, dcselect, dcta, i, s, ta}
 import org.scalajs.dom.html.{Div, Input}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
-import scala.xml.Elem
-import bon.jo.test.XmlRep.IdXmlRep
+import scala.util.{Failure, Success, Try}
+import scala.xml.{Elem, Node}
+import bon.jo.test.XmlRep._
+import org.scalajs.dom.experimental.URLSearchParams
+
+class MemoCtxView {
+
+  implicit val idXmlRep: IdXmlRep[MemoList] = XmlRepImpl[MemoList](m => <div>
+  </div>, m => "l")
+
+
+  object memoListIpnutR{def apply() = new memoListIpnutR}
+  class memoListIpnutR extends DomCpnt[Div] {
+    val tInput: dci = i
+    val data = new MemoList(Nil)
+    def xml = <div id={id}>
+      {new MemoList(Nil).xml}
+      tInput
+    </div>
+
+  }
+
+  val memoList: DomCpnt[Div] = memoListIpnutR()
+
+  val tInput: dci = i
+  val contentInput: dcta = ta
+  val memoType: dcselect = s[MemoType]
+
+
+
+
+  def newMemo = new Entities.Memo(tInput.html.value, contentInput.html.value, MemoType(memoType.html.value))
+}
+
 class ViewsImpl(implicit executionContext: ExecutionContext) {
   implicit val idMemo: Id[Entities.Memo] = m => "m" + m.id.getOrElse(m.title)
   implicit val idK: Id[KeyWord] = m => "k" + m.id.getOrElse(m.value)
   implicit val idMemoKw: Id[Entities.MemoKeywords] = m => "mk" + m.memo.id.getOrElse(m.memo.title)
 
-  val viewsDef:ViewsDef = ViewsDef.apply
+  val viewsDef: ViewsDef = ViewsDef.apply
 
   import viewsDef._
 
-  class MemoCtxView {
-    val tInput: dci = i
-    val contentInput: dci = i
-
-    def newMemo = new Entities.Memo(tInput.html.value, contentInput.html.value)
-  }
 
   object mCtx extends MemoCtxView
 
@@ -50,30 +76,6 @@ class ViewsImpl(implicit executionContext: ExecutionContext) {
       })
   }
 
-
-  object memoKeywWordtx extends MemoCtxView
-
-  object listView extends DomCpnt[Div] {
-    override def xml: Elem = <div id={id}></div>
-
-
-  }
-
-  def memoKeywWord(proposep: Propose[KeyWord, Input]) = new SimpleView[Entities.MemoKeywords](() =>
-    <div>titre :
-      {memoKeywWordtx.tInput.xml}<div>Content :</div>
-      <div>
-        {memoKeywWordtx.contentInput.xml}
-      </div>{listView.xml}<div>KeyWord :</div>{proposep.xml}
-    </div>) {
-    def fillFromService: Future[Unit] = Daos.memoKeyWord.readAll()
-      .map(m => {
-        m.foreach(+=)
-      })
-
-  }
-
-
   def addMemoLisner =
     memoView.btnInput.html.onclick = _ => {
       val m = mCtx.newMemo
@@ -96,18 +98,48 @@ class ViewsImpl(implicit executionContext: ExecutionContext) {
       }
 
     }
+}
 
-  def addMKw(memoKeywWord: SimpleView[MemoKeywords],iterable: Iterable[KeyWord]) =
-    memoKeywWord.btnInput.html.onclick = _ => {
 
-      val m = Entities.MemoKeywords(memoKeywWordtx.newMemo, iterable.toSet)
-      val req: Future[Unit] = Daos.memoKeyWord.create(m).map(o => o.foreach(memoKeywWord.+=))
-      req.onComplete {
-        case Failure(exception) => throw (exception)
-        case Success(value) =>
+class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: DomCpnt[Div], val memoKeywWordtx: MemoCtxView)
+                               (implicit idXmlRep: IdXmlRep[MemoKeywords], executionContext: ExecutionContext)
+  extends SimpleView[Entities.MemoKeywords](() =>
+    <div>titre
+      {memoKeywWordtx.tInput.xml}<div>type :
+      {memoKeywWordtx.memoType.xml}
+    </div>
+      <div>Content :</div>
+      <div>
+        {memoKeywWordtx.contentInput.xml}{memoKeywWordtx.memoList.xml}
+      </div>{listView.xml}<div>KeyWord :</div>{propose.xml}
+    </div>) {
+
+
+  val searchParams = new URLSearchParams(org.scalajs.dom.window.location.search)
+  val (limit, offset) = Try {
+    (Option(searchParams.get("limit")).map(_.toInt).getOrElse(-1)
+      , Option(searchParams.get("from")).map(_.toInt).getOrElse(-1))
+  } match {
+    case Failure(exception) => (-1, -1)
+    case Success(value) => value
+  }
+
+  def fillFromService: Future[Unit] = Daos.memoKeyWord.readAll(limit = limit, offset = offset)
+    .map(m => {
+      m.foreach(+=)
+    })
+
+  def addMKw(iterable: Iterable[KeyWord]) =
+
+
+    btnInput.html.e.onclick {
+      _ => {
+        val m = Entities.MemoKeywords(memoKeywWordtx.newMemo, iterable.toSet)
+        val req: Future[Unit] = Daos.memoKeyWord.create(m).map(o => o.foreach(+=))
+        req.onComplete {
+          case Failure(exception) => throw (exception)
+          case Success(value) =>
+        }
       }
-
-
     }
-
 }

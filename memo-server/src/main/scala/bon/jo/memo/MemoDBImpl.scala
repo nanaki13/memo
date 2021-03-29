@@ -1,7 +1,8 @@
 package bon.jo.memo
 
 import bon.jo.memo.Entities._
-
+import slick.ast.{BaseTypedType, TypedType}
+import slick.jdbc.JdbcType
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -11,7 +12,8 @@ trait MemoDBImpl {
 
   import self.profile.api._
 
-
+  //implicit val memotTypreCv : TypedType[MemoType]
+  implicit val memoTypeCol: JdbcType[MemoType] with BaseTypedType[MemoType] = MappedColumnType.base[MemoType,String](_.toString,MemoType(_))
   class Memos(tag: Tag) extends Table[Memo](tag, "MEMO") {
     def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
 
@@ -19,7 +21,9 @@ trait MemoDBImpl {
 
     def title = column[String]("TITLE")
 
-    def * = (id.?, title, content) <> (Memo.tupled, Memo.unapply)
+    def memoType = column[MemoType]("MEMO_TYPE")
+
+    def * = (id.?, title, content,memoType) <> (Memo.tupled, Memo.unapply)
 
     def idx = index("idx_content", content, unique = true)
   }

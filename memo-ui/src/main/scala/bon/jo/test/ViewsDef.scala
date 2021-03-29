@@ -16,13 +16,16 @@ class ViewsDef(
   implicit val idK: Id[KeyWord] = idKp
   implicit val idMemoKw: Id[MemoKeywords] = idMemoKwp
 
-  console.log(idMemo, idK, idMemoKw)
+
   implicit val memoXml: IdXmlRep[Memo] = XmlRep[bon.jo.memo.Entities.Memo] {
     memo =>
       <div>
         <h1>
           {memo.title}
-        </h1>{memo.content}
+        </h1>
+        <div>type :
+          {memo.memoType}</div>
+        <h2>content</h2><div>{memo.content}</div>
       </div>
   }
   implicit val keyWord: IdXmlRep[KeyWord] = XmlRep[bon.jo.memo.Entities.KeyWord] {
@@ -34,7 +37,8 @@ class ViewsDef(
   implicit val memoKeyWordXml: IdXmlRep[MemoKeywords] = XmlRep[bon.jo.memo.Entities.MemoKeywords] {
     memo =>
       <div>
-        {memo.memo.xml}{memo.keyWords.xml}
+        {memo.memo.xml}
+        <h3>tags</h3>{memo.keyWords.xml}
       </div>
   }
 

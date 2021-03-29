@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
-import org.json4s.DefaultFormats
+import org.json4s.{DefaultFormats, Formats}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -37,30 +37,31 @@ trait RestRoutes[A] extends ReqResConv[A] with CORSHandler {
   }
 
   val routes: Route = corsHandler {
-
-    path(name) {
-      concat(path(IntNumber) { id =>
-        concat(get {
-          resolve {
-            dao.read(id)
-          }
-        }, delete {
-          resolve {
-            dao.delete(id)
-          }
-        }, patch {
-          decodeRequest {
-            entity(as[A]) { order =>
-              resolve {
-                dao.update(order,Option(id))
-              }
+    concat( path(name / IntNumber){ id =>
+      concat(get {
+        resolve {
+          dao.read(id)
+        }
+      }, delete {
+        resolve {
+          dao.delete(id)
+        }
+      }, patch {
+        decodeRequest {
+          entity(as[A]) { order =>
+            resolve {
+              dao.update(order,Option(id))
             }
           }
-        })
-      }
-        , get {
-          resolve {
-            dao.readAll()
+        }
+      })
+    },
+    path(name) {concat( get {
+          parameters("limit".as[Int].?,"offset".as[Int].?){
+            (limit,offset)=>
+              resolve {
+                dao.readAll(limit.getOrElse(-1),offset.getOrElse(-1))
+              }
           }
         },patch {
           decodeRequest {
@@ -80,7 +81,7 @@ trait RestRoutes[A] extends ReqResConv[A] with CORSHandler {
             }
           }
         })
-    }
+    })
   }
 }
 
@@ -88,10 +89,10 @@ object RestRoutes {
 
   case class RestRoutesImpl[A](name: String)(
                                              implicit val dao: Dao[A, Int],
-                                             val formats: DefaultFormats,
+                                             val formats: Formats,
                                              val materializer: Materializer, val manifest: Manifest[A]
   ) extends RestRoutes[A]
 
-  def apply[A](name: String)(implicit  dao: Dao[A, Int], formats: DefaultFormats, materializer: Materializer, manifest: Manifest[A]): RestRoutes[A] = RestRoutesImpl(name)
+  def apply[A](name: String)(implicit  dao: Dao[A, Int], formats: Formats, materializer: Materializer, manifest: Manifest[A]): RestRoutes[A] = RestRoutesImpl(name)
 }
 

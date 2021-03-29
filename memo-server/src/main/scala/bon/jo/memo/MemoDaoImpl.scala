@@ -49,7 +49,7 @@ class MemoDaoImpl(implicit val profile: DBProfile.DB) extends  DaoImpl with Dao[
     db.run(memos.filter(_.content === query.content).result.headOption)
   }
 
-  override def readAll(): FL =  db.run(memos.result)
+  override def readAll(limit : Int,offset : Int): FL =  db.run(applyLimit(memos,limit,offset).result)
 }
 
 

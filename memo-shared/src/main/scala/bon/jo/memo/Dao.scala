@@ -13,7 +13,7 @@ trait Dao[A,ID] {
   def update(a: A,idOpt : Option[ID] = None): FO
 
   def read(a: ID): FO
-  def readAll(): FL
+  def readAll(limit : Int = -1,offset : Int = -1): FL
 
   def delete(a: ID): FB
 
@@ -58,7 +58,7 @@ object Dao {
 
 
 
-    override def readAll(): FL = dao.readAll()
+    override def readAll(limit : Int,offset : Int): FL = dao.readAll(limit : Int,offset : Int)
   }
 
   def okFuture[A](a : A): Future[A] = Future.successful(a)
@@ -90,7 +90,7 @@ object Dao {
 
     override def read(a: ID): FO = okFuture(listBuffer.find(_.idGeneric == a))
 
-    override def readAll(): FL = okFuture(listBuffer.toSeq)
+    override def readAll(limit : Int,offset : Int): FL = okFuture(listBuffer.toSeq.slice(offset,offset+limit))
 
     override def delete(a: ID): FB = okFuture(listBuffer.zipWithIndex.find(_._1.idGeneric == a).map(e => {
       listBuffer.remove(e._2)

@@ -11,9 +11,9 @@ object test extends App {
 
     db.create
 
-    val fut = dao create Entities.Memo(None, "toto", "toto") flatMap {
+    val fut = dao create new Entities.Memo( "toto", "toto") flatMap {
       case None => Future.failed(new IllegalStateException())
-      case Some(value) => dao create Entities.Memo(None, "toto", "toto") map {
+      case Some(value) => dao create new Entities.Memo( "toto", "toto") map {
         case None =>
         case Some(value) => println(value)
       }

@@ -13,9 +13,9 @@ class MemoKeyWordsDaoImpl(implicit val profile: DBProfile.DB,
   import profile._
   import profile.profile.api._
 
-  override def readAll(): FL = {
+  override def readAll(limit : Int, offset : Int): FL = {
     (for (a <- (for {
-      memos <- memoDaoImpl.readAll()
+      memos <- memoDaoImpl.readAll(limit,offset)
     } yield {
       for {
         m <- memos

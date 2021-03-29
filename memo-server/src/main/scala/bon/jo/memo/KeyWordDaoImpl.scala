@@ -2,6 +2,8 @@ package bon.jo.memo
 
 
 
+import slick.lifted.AbstractTable
+
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 
@@ -19,7 +21,12 @@ class KeyWordDaoImpl(implicit val profile: DBProfile.DB) extends DaoImpl with Da
         }
     }
   }
-  override def readAll(): FL =  db.run(keyswords.result)
+
+  override def readAll(limit : Int,offset : Int): FL =  {
+
+    db.run(applyLimit(keyswords,limit,offset).result)
+
+  }
 
    def findExact(query: Entities.KeyWord): FO = {
     db.run(keyswords.filter(_.value === query.value).result.headOption)

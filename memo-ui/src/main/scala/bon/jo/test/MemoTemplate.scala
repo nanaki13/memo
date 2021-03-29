@@ -5,59 +5,45 @@ import bon.jo.game.html.Template
 import bon.jo.html.DomShell._
 import bon.jo.game.html.Template.XmlTemplate
 import bon.jo.html.HtmlEventDef.ExH
-import bon.jo.memo.Entities.{KeyWord, MemoKeywords}
+import bon.jo.memo.Entities.{KeyWord, MemoKeywords, MemoType}
+import bon.jo.test.Routing.IntPath
 import bon.jo.test.XmlRep.{IdXmlRep, PrXmlId}
-import org.scalajs.dom.html.{Div, Input}
+import org.scalajs.dom.html.{Div, Input, Select}
 import org.scalajs.dom.raw.HTMLElement
 import org.scalajs.dom.{URL, console, raw, window}
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext
-import scala.util.{Failure, Success}
-import scala.xml.Node
-
-
+import scala.scalajs.js.JSON
+import scala.util.{Failure, Success, Try}
+import scala.xml.{Elem, Node}
 import scalajs.js
 
-sealed trait Target
+sealed trait Target extends Product
 
-case object MemoCreation extends Target
+object Target {
 
-case object _404 extends Target
+  case object MemoCreation extends Target
+
+  case class ReadMemo(id : Int) extends Target
+  case object KeyWordK extends Target
+
+  case object _404 extends Target
+
+}
+
 
 case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Template with XmlTemplate {
 
 
-  console.log(window.location.pathname)
 
 
-  case class P(str: List[String]) {
-    def /(s: String) = copy(str = str :+ s)
+  object listView extends DomCpnt[Div] {
+    override def xml: Elem = <div id={id}></div>
+
+
   }
-
-  object P {
-    def apply(str: String): P = new P(str.split("/").toList.filter(_.nonEmpty))
-    implicit class PFromStr(str: String) {
-      def /(o: String): P = P(List(str, o))
-    }
-  }
-
-  import P._
-
   val view = new ViewsImpl()
-  val urlPath = P(scalajs.js.URIUtils.decodeURI(window.location.pathname))
-
-  console.log(urlPath.toString)
-
-  object Paths {
-    val pCreation: P = "app" / "memo"
-  }
-
-
-  val target: Target = urlPath match {
-    case Paths.pCreation => MemoCreation
-    case _ => _404
-  }
 
 
   val currentKeyWord = scala.collection.mutable.ListBuffer[KeyWord]()
@@ -67,27 +53,65 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
     listView.html.appendChild(keyWord.newHtml)
   }
 
-  type ProposeView = (Propose[KeyWord, Input], SimpleView[MemoKeywords])
-  private val (propose, memoKeywWord): ProposeView = view.viewsDef.keyWord.other("pr") {
+  import view.viewsDef.memoKeyWordXml
+  private val  memoKeywWord : MemoKeyWordViewListCreate = view.viewsDef.keyWord.other("pr") {
     implicit other =>
+      val lView = DomCpnt[Div](id => <div id={id}></div>)
       val propose = new Propose[KeyWord, Input](ListBuffer(),
         new IOHtml[Input, KeyWord](id => {
           <input id={id}></input>
-        }, input => KeyWord(None, input.value)), Daos.keyWordDao.create, addToCurrentKW(_, view.listView))
+        }, input => KeyWord(None, input.value)), Daos.keyWordDao.create, addToCurrentKW(_, lView))
 
-      (propose, view.memoKeywWord(propose))
+       new MemoKeyWordViewListCreate(propose,lView,new MemoCtxView)
   }
 
 
   override def xml: Node = <div id="root">
-    {memoKeywWord.xml}
+    {target match {
+      case Target.MemoCreation => memoKeywWord.xml
+      case Target.KeyWordK => view.keyWordView.xml
+      case Target._404 =>
+      case Target.ReadMemo(id) => <div>On veut lire {id}</div>
+    }}
   </div>
 
 
+  implicit val _404: Target = Target._404
+  implicit val tp : List[Any] => Option[Int] = {
+    case Nil => None
+    case a => Some(a.head.asInstanceOf[Int])
+  }
+  val pathToTarget: Routing.Path => Target = Routing.create {
+    case Paths.pCreationMemo => Target.MemoCreation
+    case Paths.pCreationKW => Target.KeyWordK
+    case  o @ _  => o.matches(Paths.pCreationMemo / IntPath) match {
+      case Some(int) => Target.ReadMemo(int)
+      case _ => Target._404
+    }
+  }
+
+  def target: Target = pathToTarget(Routing.urlPath)
+
   override def init(p: HTMLElement): Unit = {
+
     target match {
-      case MemoCreation => memoCreationLoad()
-      case _404 => _404Load()
+      case Target.MemoCreation => memoCreationLoad()
+      case Target.KeyWordK => {
+        view.keyWordView.fillFromService.foreach(_ => view.addKw)
+
+
+      }
+      case Target.ReadMemo(id) => {
+       Daos.memoKeyWord.read(id).foreach {
+         case Some(value) => {
+           import view.viewsDef.memoKeyWordXml
+            me.addChild( value.xml)
+           ()
+         }
+         case None =>
+       }
+      }
+      case Target._404 => _404Load()
     }
 
     def _404Load() = {
@@ -95,28 +119,114 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
       p.addChild[raw.HTMLHeadingElement](<h1>page non trouvé</h1>)
     }
 
+
     def memoCreationLoad() = {
+      memoKeywWord.memoKeywWordtx.memoType.selectFirst
+      memoKeywWord.memoKeywWordtx.memoType.html.onchange={_ => {
+        MemoType(memoKeywWord.memoKeywWordtx.memoType.html.value) match {
+          case MemoType.Text =>
+            memoKeywWord.memoKeywWordtx.contentInput.html.style.display="block"
+            memoKeywWord.memoKeywWordtx.memoList.html.style.display = "none"
+
+          case MemoType.Json =>
+            memoKeywWord.memoKeywWordtx.memoList.html.style.display="block"
+            memoKeywWord.memoKeywWordtx.contentInput.html.style.display = "none"
+        }
+      }}
       memoKeywWord.fillFromService.onComplete {
         case Failure(exception) => throw (exception)
         case Success(value) =>
       }
       Daos.keyWordDao.readAll().map(kws => {
-        propose.addAll(kws)
-        propose.createEvent()
-        val htmlI = propose.ioHtml.html
+        memoKeywWord.propose.addAll(kws)
+        memoKeywWord.propose.createEvent()
+        val htmlI =  memoKeywWord.propose.ioHtml.html
         val eventAdd = htmlI.e
         eventAdd.onkeyup {
           _ =>
-            console.log(htmlI.value)
-
-            propose.doFilter(!htmlI.value.trim.isEmpty && _.value.contains(htmlI.value))
+            memoKeywWord.propose.doFilter(htmlI.value.trim.nonEmpty && _.value.contains(htmlI.value))
         }
 
       }).onComplete {
         case Failure(exception) => throw (exception)
         case Success(value) =>
       }
-      view.addMKw(memoKeywWord, currentKeyWord)
+      memoKeywWord.addMKw( currentKeyWord)
     }
   }
+}
+
+object Paths {
+
+  import Routing._
+
+  val pCreationMemo: Path = "app" / "memo"
+  val pCreationKW: Path = "app" / "keyword"
+}
+
+
+object Routing {
+
+  type PF[A] = PartialFunction[Routing.Path, A]
+
+
+
+  def create[A](partialFunction: PartialFunction[Routing.Path, A])(implicit _404 : A): Routing.Path => A = {
+    partialFunction orElse {case _ => _404}
+  }
+
+  case class Path(str: List[String]) {
+    def matches[R](list: PathMatchList[R]): Option[R] = {
+      if(str.size != list.str.size){
+        None
+      }else{
+        list.tr(str.zip(list.str).filter(e => e._2.variable && e._2.matches(e._1)).map(e =>e._2.extract(e._1)))
+      }
+    }
+
+    def /(s: String) = copy(str = str :+ s)
+    def /[A](s: PathMatcher[_])(implicit tp :List[Any] => Option[A] ) : PathMatchList[A] = PathMatchList(str.map(StrictMatch.apply) :+ s)(tp)
+  }
+  case class PathMatchList[R](str: List[PathMatcher[_]])(tp :List[Any] => Option[R] ) {
+    def tr(value: List[Any]): Option[R] = tp(value)
+
+  }
+  trait PathMatcher[A]{
+    def matches(str : String) : Boolean
+    def extract(str: String) : A
+    def variable : Boolean
+  }
+  trait PathMatcherString extends PathMatcher[String]{
+    override def extract(str: String): String =str
+  }
+
+  case class StrictMatch(strRef : String) extends PathMatcherString {
+    override def matches(str: String): Boolean = strRef == str
+
+    override def variable: Boolean = false
+  }
+  object IntPath extends PathMatcher[Int]{
+    override def matches(str: String): Boolean = {
+      Try(str.toInt) match {
+        case Failure(exception) => false
+        case Success(value) =>true
+      }
+    }
+
+
+    override def variable: Boolean = true
+
+    override def extract(str: String): Int = str.toInt
+  }
+
+  implicit class PFromStr(str: String) {
+    def /(o: String): Path = Path(List(str, o))
+  }
+
+  object Path {
+    def apply(str: String): Path = Path(str.split("/").toList.filter(_.nonEmpty))
+
+  }
+
+  def urlPath: Routing.Path = Path(scalajs.js.URIUtils.decodeURI(window.location.pathname))
 }

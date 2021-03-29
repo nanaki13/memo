@@ -1,19 +1,20 @@
 package bon.jo.memo
 
-import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller, ToResponseMarshaller}
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpRequest, HttpResponse, RequestEntity}
-import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, FromRequestUnmarshaller, FromResponseUnmarshaller, Unmarshaller}
+import akka.http.scaladsl.marshalling.{Marshaller, ToEntityMarshaller}
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity, RequestEntity}
+import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshaller}
 import akka.stream.Materializer
-import org.json4s.DefaultFormats
+import org.json4s.Formats
 
 import scala.concurrent.{ExecutionContext, Future}
 
 trait ReqResConv[A] {
-  implicit val formats: DefaultFormats
+
   implicit val materializer: Materializer
   implicit val manifest: Manifest[A]
 
 
+  implicit val formats: Formats
   def entityConv[B](a : B)(implicit  manifest: Manifest[B]): HttpEntity.Strict = {
     HttpEntity(contentType = ContentTypes.`application/json`, string = org.json4s.native.Serialization.write(a))
   }

@@ -1,13 +1,14 @@
 package bon.jo.memo
 
 import java.io.File
-
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
+import bon.jo.memo.Entities.MemoType
 import com.typesafe.config.ConfigFactory
-import org.json4s.DefaultFormats
+import org.json4s
+import org.json4s.{CustomSerializer, DefaultFormats, Formats, JString}
 import slick.jdbc.JdbcProfile
 
 import scala.util.{Failure, Success}
@@ -30,8 +31,16 @@ object WebServer extends App {
   private implicit object keyWordDao extends KeyWordDaoImpl()
 
   private implicit object memoKeyWordDao extends MemoKeyWordsDaoImpl()
+  implicit object Custom extends CustomSerializer[MemoType](
+    formar => ( {
+      case JString(v) => MemoType(v)
+    }, {
+      case s  : MemoType=> JString(s.name)
+    }
+    )
+  )
 
-  private implicit val df: DefaultFormats = DefaultFormats
+  private implicit val df: Formats = DefaultFormats + Custom
   private val memoRoute = RestRoutes[Entities.Memo](BaseRoute.memoRoute)
   private val keywordRoute = RestRoutes[Entities.KeyWord](BaseRoute.keywordRoute)
   private val memoKeywWordRoute = RestRoutes[Entities.MemoKeywords](BaseRoute.memoKeyWordRoute)

@@ -1,6 +1,6 @@
 package bon.jo.test
 
-import bon.jo.memo.Entities.MemoKeywords
+import bon.jo.memo.Entities.{MemoKeywords, MemoType}
 import bon.jo.memo.{BaseRoute, Entities}
 import org.scalajs.dom.console
 
@@ -13,6 +13,7 @@ object Daos {
     val id: Int
     val title: String
     val content: String
+    val memoType: String
   }
   def o[A](option: Option[A])( f: A => js.Any): js.Any = option match {
     case Some(value) => f(value)
@@ -22,7 +23,8 @@ object Daos {
     def apply(m: Entities.Memo): MemoJs = js.Dynamic.literal(
       id =o(m.id)(a => a),
       content = m.content,
-      title = m.title
+      title = m.title,
+      memoType = m.memoType.toString
     ).asInstanceOf[MemoJs]
   }
   trait KeyWordJs extends js.Object{
@@ -54,7 +56,7 @@ object Daos {
 
   object memoDao extends HttpDao[Entities.Memo, Int,MemoJs] {
     override val writer: Entities.Memo => MemoJs =  MemoJs.apply
-    override val readerOne: MemoJs => Entities.Memo =js => Entities.Memo(Some(js.id),js.title,js.content)
+    override val readerOne: MemoJs => Entities.Memo =js => Entities.Memo(Some(js.id),js.title,js.content,MemoType(js.memoType))
     override val url: String = s"http://localhost:8080/${BaseRoute.memoRoute}"
   }
   object keyWordDao extends HttpDao[Entities.KeyWord, Int,KeyWordJs] {
