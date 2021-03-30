@@ -57,18 +57,18 @@ object Daos {
   object memoDao extends HttpDao[Entities.Memo, Int,MemoJs] {
     override val writer: Entities.Memo => MemoJs =  MemoJs.apply
     override val readerOne: MemoJs => Entities.Memo =js => Entities.Memo(Some(js.id),js.title,js.content,MemoType(js.memoType))
-    override val url: String = s"http://localhost:8080/${BaseRoute.memoRoute}"
+    override val url: String = s"/${BaseRoute.memoRoute}"
   }
   object keyWordDao extends HttpDao[Entities.KeyWord, Int,KeyWordJs] {
     override val writer: Entities.KeyWord => KeyWordJs =  KeyWordJs.apply
     override val readerOne: KeyWordJs => Entities.KeyWord =js => Entities.KeyWord(Some(js.id),js.value)
-    override val url: String = s"http://localhost:8080/${BaseRoute.keywordRoute}"
+    override val url: String = s"/${BaseRoute.keywordRoute}"
   }
 
   object memoKeyWord extends HttpDao[Entities.MemoKeywords, Int,MemoKeywordsJs] {
     override val writer: Entities.MemoKeywords => MemoKeywordsJs =  MemoKeywordsJs.apply
     override val readerOne: MemoKeywordsJs => Entities.MemoKeywords =js => Entities.MemoKeywords(memoDao.readerOne(js.memo),keyWordDao.readerMany(js.keyWords).toSet)
-    override val url: String = s"http://localhost:8080/${BaseRoute.memoKeyWordRoute}"
+    override val url: String = s"/${BaseRoute.memoKeyWordRoute}"
   }
 
 

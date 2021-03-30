@@ -1,57 +1,50 @@
 package bon.jo.test
 
-import bon.jo.html.DomShell.{$, $c, clearAndAdd}
+import bon.jo.html.DomShell.{$, $c}
 import bon.jo.memo.Dao.Id
-import bon.jo.test.XmlRep.{IdXmlRep, XmlRepImpl}
-import org.scalajs.dom.{console, raw}
+import org.scalajs.dom.raw
 
 import scala.xml.Node
 
 object XmlRep {
 
 
-  implicit class ListRep[A: IdXmlRep](seq: Iterable[A]) {
+  implicit class ListRep[A: XmlRep](seq: Iterable[A]) {
     def xml: Iterable[Node] = seq.map(_.xml)
   }
 
-  implicit class PrXmlId[B: IdXmlRep](b: B) {
-    def newHtml: raw.Element = {
+  implicit class PrXmlId[B: XmlRep](b: B) {
+    def newHtml(implicit id : Id[B]): raw.Element = {
       val ret = $c[raw.Element](xml)
-      ret.setAttribute("id", implicitly[IdXmlRep[B]].idtr.id(b).toString)
+      ret.setAttribute("id", id.apply(b).toString)
       ret
     }
 
-    def html: raw.Element = $(implicitly[IdXmlRep[B]].idtr.id(b).toString)
+    def html(implicit id : Id[B]): raw.Element = $(id.apply(b).toString)
 
-    def xml: Node = implicitly[IdXmlRep[B]].xml(b)
+    def xml: Node = implicitly[XmlRep[B]].xml(b)
   }
 
 
-  def apply[A](a: A => Node)(implicit idp: Id[A]): IdXmlRep[A] = XmlRepImpl(a,idp)
+  //def apply[A](a: A => Node)(implicit idp: Id[A]): IdXmlRep[A] = XmlRepImpl(a,idp)
 
-  case class XmlRepImpl[A](xmlF : A => Node,id: Id[A]) extends IdXmlRep[A] {
-    override def idtr: Id[A] = id
+  case class XmlRepImpl[A](xmlF : A => Node) extends XmlRep[A] {
+
     override def xml(memo: A): Node = xmlF(memo)
 
-    override def other[B](prefixId: String)(function: IdXmlRep[A] => B): B  = {
-      def nId : Id[A] = a => {
-        val f = id.id _ andThen(v => s"$prefixId-$v")
-        f(a)
-      }
-      function(copy(id = nId))
-    }
+
   }
 
-  trait IdXmlRep[A] extends XmlRep[A] {
-
-
-    def idtr: Id[A]
-  }
+//  trait IdXmlRep[A] extends XmlRep[A] {
+//
+//
+//    def idtr: Id[A]
+//  }
 
 }
 
-sealed trait XmlRep[A] {
+trait XmlRep[A] {
   def xml(memo: A): Node
-  def other[B](prefixId: String)(function: IdXmlRep[A] => B): B
+ // def other[B](prefixId: String)(function: IdXmlRep[A] => B): B
 }
 

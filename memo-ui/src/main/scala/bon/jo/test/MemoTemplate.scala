@@ -2,22 +2,21 @@ package bon.jo.test
 
 import bon.jo.app.User
 import bon.jo.game.html.Template
-import bon.jo.html.DomShell._
 import bon.jo.game.html.Template.XmlTemplate
+import bon.jo.html.DomShell._
 import bon.jo.html.HtmlEventDef.ExH
-import bon.jo.memo.Entities.{KeyWord, MemoKeywords, MemoType}
+import bon.jo.memo.Dao.Id
+import bon.jo.memo.Entities.{KeyWord, MemoType}
 import bon.jo.test.Routing.IntPath
-import bon.jo.test.XmlRep.{IdXmlRep, PrXmlId}
-import org.scalajs.dom.html.{Div, Input, Select}
+import bon.jo.test.XmlRep._
+import org.scalajs.dom.html.{Div, Input}
 import org.scalajs.dom.raw.HTMLElement
-import org.scalajs.dom.{URL, console, raw, window}
+import org.scalajs.dom.{raw, window}
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext
-import scala.scalajs.js.JSON
 import scala.util.{Failure, Success, Try}
-import scala.xml.{Elem, Node}
-import scalajs.js
+import scala.xml.Node
 
 sealed trait Target extends Product
 
@@ -43,15 +42,17 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
 
 
   val currentKeyWord = scala.collection.mutable.ListBuffer[KeyWord]()
-
-  def addToCurrentKW(keyWord: KeyWord, listView: DomCpnt[Div])(implicit v: IdXmlRep[KeyWord]): raw.Node = {
+  val idForCurrent : Id[KeyWord] = view.idK.prefix("curr")
+  def addToCurrentKW(keyWord: KeyWord, listView: DomCpnt[Div])(implicit v: XmlRep[KeyWord]): raw.Node = {
     currentKeyWord.addOne(keyWord)
-    listView.html.appendChild(keyWord.newHtml)
+
+    listView.html.appendChild(keyWord.newHtml(idForCurrent))
   }
 
-  import view.viewsDef.memoKeyWordXml
-  private val  memoKeywWord : MemoKeyWordViewListCreate = view.viewsDef.keyWord.other("pr") {
-    implicit other =>
+  import view.{idK, idMemoKw}
+
+  private val  memoKeywWord : MemoKeyWordViewListCreate =  {
+    import view.viewsDef._
       val lView = DomCpnt[Div](<div></div>)
       val propose = new Propose[KeyWord, Input](ListBuffer(),
         new IOHtml[Input, KeyWord](id => {

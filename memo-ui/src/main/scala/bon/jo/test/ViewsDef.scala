@@ -9,18 +9,14 @@ import scala.scalajs.js.JSON
 import scala.util.{Failure, Success, Try}
 
 object ViewsDef {
-  def apply(implicit idMemop: Id[Memo], idKp: Id[KeyWord], idMemoKwp: Id[MemoKeywords]): ViewsDef = new ViewsDef(idMemop, idKp, idMemoKwp)
+  def apply(): ViewsDef = new ViewsDef
 }
 
-class ViewsDef(
-                idMemop: Id[Memo],
-                idKp: Id[KeyWord], idMemoKwp: Id[MemoKeywords]) {
-  implicit val idMemo: Id[Memo] = idMemop
-  implicit val idK: Id[KeyWord] = idKp
-  implicit val idMemoKw: Id[MemoKeywords] = idMemoKwp
+class ViewsDef() {
 
 
-  implicit val memoXml: IdXmlRep[Memo] = XmlRep[bon.jo.memo.Entities.Memo] {
+
+  implicit val memoXml: XmlRep[Memo] ={
     memo =>
       <div>
         <h1>
@@ -41,13 +37,13 @@ class ViewsDef(
         }</div>
       </div>
   }
-  implicit val keyWord: IdXmlRep[KeyWord] = XmlRep[bon.jo.memo.Entities.KeyWord] {
+  implicit val keyWord: XmlRep[KeyWord] = {
     memo => <div>
       {memo.value}
     </div>
   }
 
-  implicit val memoKeyWordXml: IdXmlRep[MemoKeywords] = XmlRep[bon.jo.memo.Entities.MemoKeywords] {
+  implicit val memoKeyWordXml: XmlRep[MemoKeywords] ={
     memo =>
       <div>
         {memo.memo.xml}

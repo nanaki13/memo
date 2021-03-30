@@ -7,6 +7,7 @@ import scala.collection.mutable.ListBuffer
 import scala.xml.{Elem, Node}
 import XmlRep._
 import SimpleView._
+import bon.jo.memo.Dao.Id
 import bon.jo.memo.Entities
 import org.scalajs.dom.raw
 
@@ -37,7 +38,8 @@ object SimpleView{
   def sv[A](implicit elemnts : Entities.EnumComp[A],  v : A => String):dcselect = s(elemnts.values)( (k =>k.toString,a => v(a)) )
   def s[A](implicit elemnts : Entities.EnumComp[A]): dcselect = s(elemnts.values)( (k =>k.toString, a => a.toString) )
 }
-abstract  class SimpleView[A: IdXmlRep](creationHtml: () => Node) {
+
+abstract  class SimpleView[A: XmlRep](creationHtml: () => Node)(implicit ida : Id[A]) {
 
   def fillFromService: Future[Unit]
   val as: ListBuffer[A] = ListBuffer()
@@ -49,11 +51,12 @@ abstract  class SimpleView[A: IdXmlRep](creationHtml: () => Node) {
     {asHtml.xml}{creationHtml()}{btnInput.xml}
   </div>)
 
+  val idaPr : Id[A] = ida.prefix(cpnt.id)
   def xml: Node = cpnt.xml
 
   def +=(p: A) = {
 
-    asHtml.html.appendChild(p.newHtml)
+    asHtml.html.appendChild(p.newHtml(idaPr))
     as += p
   }
 }

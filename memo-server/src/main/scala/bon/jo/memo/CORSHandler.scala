@@ -10,10 +10,9 @@ trait CORSHandler {
 
   private val corsResponseHeaders = List(
 
-    //`Access-Control-Allow-Origin`.apply("http://localhost:4200"),
+    `Access-Control-Allow-Origin`.apply("http://192.168.0.34:8080"),
     `Access-Control-Allow-Credentials`(true),
-    `Access-Control-Allow-Headers`("Authorization",
-      "Content-Type", "X-Requested-With")
+    `Access-Control-Allow-Headers`.apply("*")
   )
 
   //this directive adds access control headers to normal responses

@@ -1,6 +1,7 @@
 package bon.jo.test
 import bon.jo.html.DomShell.{$, $c}
 import bon.jo.html.HtmlEventDef._
+import bon.jo.memo.Dao.Id
 import bon.jo.test.XmlRep.{ListRep, _}
 import org.scalajs.dom.html.{Button, Div, Select}
 import org.scalajs.dom.raw.{HTMLElement, Node}
@@ -29,19 +30,20 @@ object HtmlExtract{
 }
 
 
-class Propose[A :IdXmlRep,B <:raw.HTMLElement]( list: mutable.ListBuffer[A]
+class Propose[A :XmlRep :Id,B <:raw.HTMLElement]( list: mutable.ListBuffer[A]
                                                 ,val ioHtml: IOHtml[B,A]
                                               ,save : A => Future[Option[A]],
                                                 sel : A => Unit
                                               )(implicit executionContext: ExecutionContext) extends DomCpnt[Div] {
 
 
+  val idimp: Id[A] = implicitly[Id[A]].prefix(id)
 
   def addAll (a : IterableOnce[A])= {
     val l = a.iterator.toList
 
     l.foreach(b => {
-      val h  = b.newHtml
+      val h  = b.newHtml(idimp)
       h.asInstanceOf[HTMLElement].style.display = "none"
       seleO.appendChild(h)
       h.asInstanceOf[HTMLElement].e.onclick {_ => sel(b)}
@@ -59,7 +61,7 @@ class Propose[A :IdXmlRep,B <:raw.HTMLElement]( list: mutable.ListBuffer[A]
   def read: Iterable[A] =  list
   def +=(b : A): Node = {
     list += b
-    val h  = b.newHtml
+    val h  = b.newHtml(idimp)
     seleO.appendChild(h)
     h.asInstanceOf[HTMLElement].e.onclick {_ => sel(b)}
     h
@@ -81,9 +83,9 @@ class Propose[A :IdXmlRep,B <:raw.HTMLElement]( list: mutable.ListBuffer[A]
 
     list.foreach(a => {
       if(filter(a)){
-        a.html.asInstanceOf[HTMLElement].style.display = "block"
+        a.html(idimp).asInstanceOf[HTMLElement].style.display = "block"
       }else{
-        a.html.asInstanceOf[HTMLElement].style.display = "none"
+        a.html(idimp).asInstanceOf[HTMLElement].style.display = "none"
       }
     })
   }
