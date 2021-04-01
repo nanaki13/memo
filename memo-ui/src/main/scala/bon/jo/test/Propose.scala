@@ -2,6 +2,7 @@ package bon.jo.test
 import bon.jo.html.DomShell.{$, $c}
 import bon.jo.html.HtmlEventDef._
 import bon.jo.memo.Dao.Id
+import bon.jo.test
 import bon.jo.test.XmlRep.{ListRep, _}
 import org.scalajs.dom.html.{Button, Div, Select}
 import org.scalajs.dom.raw.{HTMLElement, Node}
@@ -38,12 +39,12 @@ class Propose[A :XmlRep :Id,B <:raw.HTMLElement]( list: mutable.ListBuffer[A]
 
 
   val idimp: Id[A] = implicitly[Id[A]].prefix(id)
-
-  def addAll (a : IterableOnce[A])= {
+  val rep: XmlRep[A] = implicitly[XmlRep[A]]
+  def addAll (a : IterableOnce[A]): list.type = {
     val l = a.iterator.toList
 
     l.foreach(b => {
-      val h  = b.newHtml(idimp)
+      val h  = b.newHtml(idimp,rep)
       h.asInstanceOf[HTMLElement].style.display = "none"
       seleO.appendChild(h)
       h.asInstanceOf[HTMLElement].e.onclick {_ => sel(b)}
@@ -61,14 +62,14 @@ class Propose[A :XmlRep :Id,B <:raw.HTMLElement]( list: mutable.ListBuffer[A]
   def read: Iterable[A] =  list
   def +=(b : A): Node = {
     list += b
-    val h  = b.newHtml(idimp)
+    val h  = b.newHtml(idimp,rep)
     seleO.appendChild(h)
     h.asInstanceOf[HTMLElement].e.onclick {_ => sel(b)}
     h
   }
   def createEvent(): Unit = {
     btn.html.e.onclick{
-      c =>
+      _ =>
         save(ioHtml.toValue).recover{
           case _ => None
         }.foreach{

@@ -1,6 +1,6 @@
 package bon.jo.test
 
-import bon.jo.html.DomShell.{$,ExtendedElement, ExtendedHTMLCollection, ExtendedNode}
+import bon.jo.html.DomShell.{$, ExtendedElement, ExtendedHTMLCollection, ExtendedNode}
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Dao.Id
 import bon.jo.memo.Entities
@@ -16,59 +16,85 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.scalajs.js.JSConverters.JSRichIterableOnce
 import scala.scalajs.js.JSON
 import scala.util.{Failure, Success, Try}
-object MemoListIpnutR{
+import scala.xml.Elem
+
+object MemoListIpnutR {
 
 
-  def apply() = new MemoListIpnutR}
-class MemoListIpnutR( val data :MemoListJS = new MemoList(Nil.toJSArray  )) extends DomCpnt[Div] {
+  def apply() = new MemoListIpnutR
+}
+
+class MemoListIpnutR(val data: MemoListJS = new MemoList(Nil.toJSArray)) extends DomCpnt[Div] {
   val tInput: dci = i
 
-  implicit val listElementidXmlRep: XmlRep[ListElementJS] = li => <li>
-    {
-    if(li.checked){
-      <input  id={li.content+"i"} type="checkbox" checked="1"></input>
-    }else{
-      <input  id={li.content+"i"} type="checkbox" ></input>
-    }
-    }
-    <span id={li.content+"c"}>{li.content}</span><button id={li.content+"d"}>x</button></li>
 
   implicit val idEl: Id[ListElementJS] = me => s"$id-${me.content}"
-  implicit val idXmlRep: XmlRep[MemoListJS] = XmlRepImpl[MemoListJS](m => <ul id={id+"l"}>{m.elements.toList.xml}</ul>)
-  implicit val idListElementJS: Id[MemoListJS] = me => s"$id-l"
-  lazy val list = $[HTMLUListElement](id+"l")
-  def xml = <div id={id}>
-    {tInput.xml}
-    {data.xml}
+
+
+  val ckeckClass = "input-li"
+  val spanWordClass = "span-li"
+  val deleteClass = "delete-li"
+  implicit val listElementidXmlRep: XmlRep[ListElementJS] = li => <li>
+    {if (li.checked) {
+      <input class={ckeckClass} type="checkbox" checked="1"></input>
+    } else {
+      <input class={ckeckClass} type="checkbox"></input>
+    }}<span class={spanWordClass} >
+      {li.content}
+    </span> <button class={deleteClass}>x</button>
+  </li>
+  implicit val idXmlRep: XmlRep[MemoListJS] = XmlRepImpl[MemoListJS](m => <ul id={id + "l"}>
+    {m.elements.toList.xml}
+  </ul>)
+
+  lazy val list: HTMLUListElement = $[HTMLUListElement](id + "l")
+
+  def xml: Elem = <div id={id}>
+    {tInput.xml}{data.xml}
   </div>
 
-  def addEvent() = {
+  def elOfClass(htmlkElement: HTMLElement)(str : String): Iterable[Element] = htmlkElement.getElementsByClassName(str).map(_.asInstanceOf[HTMLElement])
+  def del(htmlkElement: HTMLElement): Unit = elOfClass(htmlkElement)(deleteClass).foreach(d =>d.e.onclick { _ => htmlkElement.html.removeFromDom() })
+  def addEvent(): Unit = {
+
+    console.log(tInput.html)
     val ev = tInput.html.e
-    ev.onAction{
-      val el :ListElementJS = new ListElement(tInput.html.value,true)
-      list.appendChild(el.newHtml)
-      $[HTMLElement](el.content+"d").e.onclick{ _ => el.html.removeFromDom()}
+    ev.onAction {
+      val el: ListElementJS = new ListElement(tInput.html.value, false)
+      val htmlN  = el.newHtml
+      list.appendChild(htmlN)
+
+      del(htmlN)
+      tInput.html.value =""
     }
-    ev.onkeyup{
+    ev.onkeyup {
       _ =>
-        list.children.foreach { e =>
-          val lElemntText = readInput(e)
+        list.children.map(_.asInstanceOf[HTMLElement]).foreach { e =>
+          val lElemntText = readWord(e)
+
+
           val show = lElemntText.toLowerCase.contains(tInput.html.value.toLowerCase)
-          e.asInstanceOf[HTMLElement].show(show)
+
+          e.show(show)
         }
     }
+    list.children.map(_.asInstanceOf[HTMLElement]).foreach(del)
 
   }
-  private def readInput(l : raw.Element)= $[Span](l.getAttribute("id")+"c").innerText
-  def read():MemoList = {
-    new MemoList(list.children.map(l =>  new ListElement ($[Span](l.getAttribute("id")+"c").innerText,$[Input](l.getAttribute("id")+"i").checked) ).map(_.asInstanceOf[ListElementJS]).toJSArray)
+
+  private def readWord(l: raw.HTMLElement) ={
+    elOfClass(l)(spanWordClass).head.innerText.trim
+  }
+  private def readCheck(l: raw.HTMLElement) ={
+    elOfClass(l)(ckeckClass).map(_.asInstanceOf[Input]).head.checked
+  }
+
+  def read(): MemoList = {
+    new MemoList(list.children.map(_.asInstanceOf[HTMLElement]).map(l => new ListElement(readWord(l), readCheck(l))).map(_.asInstanceOf[ListElementJS]).toJSArray)
   }
 }
+
 class MemoCtxView {
-
-
-
-
 
 
   val memoList: MemoListIpnutR = MemoListIpnutR()
@@ -78,17 +104,31 @@ class MemoCtxView {
   val memoType: dcselect = s[MemoType]
 
 
-
-
-  def newMemo = {
+  def newMemo: Entities.Memo = {
     val mt = MemoType(memoType.html.value)
-    val ret =  mt match {
-      case MemoType.Text =>  new Entities.Memo(tInput.html.value, contentInput.html.value, MemoType(memoType.html.value))
-      case MemoType.Json =>  new Entities.Memo(tInput.html.value, JSON.stringify(memoList.read().pure()) , MemoType(memoType.html.value))
+    val ret = mt match {
+      case MemoType.Text => new Entities.Memo(tInput.html.value, contentInput.html.value, MemoType(memoType.html.value))
+      case MemoType.Json => new Entities.Memo(tInput.html.value, JSON.stringify(memoList.read().pure()), MemoType(memoType.html.value))
     }
 
     ret
 
+  }
+
+  def makeSwitchView():Unit = {
+    memoType.html.onchange = { _ => {
+      MemoType(memoType.html.value) match {
+        case MemoType.Text =>
+          contentInput.html.style.display = "block"
+          memoList.html.style.display = "none"
+
+        case MemoType.Json =>
+          memoList.html.style.display = "block"
+          contentInput.html.style.display = "none"
+      }
+    }
+
+    }
   }
 }
 
@@ -126,25 +166,25 @@ class ViewsImpl(implicit executionContext: ExecutionContext) {
       })
   }
 
-  def addMemoLisner =
+  def addMemoLisner: Unit =
     memoView.btnInput.html.onclick = _ => {
       val m = mCtx.newMemo
       val req: Future[Unit] = Daos.memoDao.create(m).map(o => o.foreach(memoView.+=))
       req.onComplete {
         case Failure(exception) => throw (exception)
-        case Success(value) =>
+        case Success(_) =>
       }
 
 
     }
 
-  def addKw =
+  def addKw: Unit =
     keyWordView.btnInput.html.onclick = _ => {
       val m = Entities.KeyWord(None, keywWordI.html.value)
       val req: Future[Unit] = Daos.keyWordDao.create(m).map(o => o.foreach(keyWordView.+=))
       req.onComplete {
         case Failure(exception) => throw (exception)
-        case Success(value) =>
+        case Success(_) =>
       }
 
     }
@@ -152,7 +192,7 @@ class ViewsImpl(implicit executionContext: ExecutionContext) {
 
 
 class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: DomCpnt[Div], val memoKeywWordtx: MemoCtxView)
-                               (implicit idXmlRep: XmlRep[MemoKeywords],idM: Id[MemoKeywords], executionContext: ExecutionContext)
+                               (implicit idXmlRep: XmlRep[MemoKeywords], idM: Id[MemoKeywords], executionContext: ExecutionContext)
   extends SimpleView[Entities.MemoKeywords](() =>
     <div>titre
       {memoKeywWordtx.tInput.xml}<div>type :
@@ -170,7 +210,7 @@ class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: 
     (Option(searchParams.get("limit")).map(_.toInt).getOrElse(-1)
       , Option(searchParams.get("from")).map(_.toInt).getOrElse(-1))
   } match {
-    case Failure(exception) => (-1, -1)
+    case Failure(_) => (-1, -1)
     case Success(value) => value
   }
 
@@ -179,7 +219,7 @@ class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: 
       m.foreach(+=)
     })
 
-  def addMKw(iterable: Iterable[KeyWord]) =
+  def addMKw(iterable: Iterable[KeyWord]): Unit =
 
 
     btnInput.html.e.onclick {
@@ -188,7 +228,7 @@ class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: 
         val req: Future[Unit] = Daos.memoKeyWord.create(m).map(o => o.foreach(+=))
         req.onComplete {
           case Failure(exception) => throw (exception)
-          case Success(value) =>
+          case Success(_) =>
         }
       }
     }

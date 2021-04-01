@@ -77,7 +77,7 @@ object Dao {
 
     override def create(a: A): FO = okFuture {
       listBuffer.find(_ === a) match {
-        case Some(value) => None
+        case Some(_) => None
         case None =>
           listBuffer += a
           Option(a)
@@ -106,7 +106,7 @@ object Dao {
       listBuffer.remove(e._2)
       a
     }) match {
-      case Some(value) => true
+      case Some(_) => true
       case None => false
     })
 

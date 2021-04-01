@@ -16,25 +16,28 @@ class ViewsDef() {
 
 
 
-  implicit val memoXml: XmlRep[Memo] ={
-    memo =>
+  implicit val memoXml: XmlRepCapt[Memo,MemoListIpnutR] ={
+    (memo,catpeur) =>
       <div>
         <h1>
-          {memo.title}
+          <a class="a-title" href={s"/app/memo/${memo.id.getOrElse(0)}"}>{memo.title}</a>
         </h1>
-        <div>type :
+        <div class="m-type">type :
           {memo.memoType}</div>
-        <h2>content</h2><div>{memo.memoType match {
+        <h2>content</h2><div class="m-content">{memo.memoType match {
         case MemoType.Text => memo.content
         case MemoType.Json =>
           Try {
-            (new MemoListIpnutR(JSON.parse(memo.content).asInstanceOf[MemoListJS])).xml
+            val l = new MemoListIpnutR(JSON.parse(memo.content).asInstanceOf[MemoListJS])
+            catpeur(Some(l))
+            l.xml
           } match {
-            case Failure(exception) => s"Erreur en traitant : ${memo.content}"
+            case Failure(_) => s"Erreur en traitant : ${memo.content}"
             case Success(value) =>  value
           }
       }
         }</div>
+
       </div>
   }
   implicit val keyWord: XmlRep[KeyWord] = {
@@ -43,11 +46,13 @@ class ViewsDef() {
     </div>
   }
 
-  implicit val memoKeyWordXml: XmlRep[MemoKeywords] ={
-    memo =>
+  implicit val memoKeyWordXml: XmlRepCapt[MemoKeywords,MemoListIpnutR] ={
+    (memo,catpeur) =>
       <div>
-        {memo.memo.xml}
+        ---{memo.memo.xml(catpeur)}---
         <h3>tags</h3>{memo.keyWords.xml}
+        <button class="btn-edit">edit</button>
+        <button class="btn-save">save</button>
       </div>
   }
 

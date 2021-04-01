@@ -10,12 +10,12 @@ object PopUp {
 
   private var _show = false
 
-  private def show(htmlNode: HTMLElement) = {
+  private def show(htmlNode: HTMLElement): Unit = {
     document.body.appendChild(htmlNode)
     _show = true
   }
 
-  private def hide(htmlNode: HTMLElement) = {
+  private def hide(htmlNode: HTMLElement): Unit = {
     document.body.removeChild(htmlNode)
     _show = false
   }

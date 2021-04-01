@@ -12,13 +12,12 @@ object test2 extends App {
 
     val fut = dao create Entities.KeyWord(None, "toto") flatMap {
       case None => Future.failed(new IllegalStateException())
-      case Some(value) => {
+      case Some(value) =>
         println(value)
         dao findLike "t" map {
           case Nil => println("rien")
           case a => println(a)
         }
-      }
     }
     Await.result(fut, duration.Duration.Inf)
   }

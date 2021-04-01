@@ -1,12 +1,13 @@
 package bon.jo.test
 
 import org.scalajs.dom.html.{Button, Div, Input, Select, TextArea}
-import org.scalajs.dom.raw.HTMLElement
+import org.scalajs.dom.raw.{HTMLElement, HTMLOptionElement}
 
 import scala.collection.mutable.ListBuffer
 import scala.xml.{Elem, Node}
 import XmlRep._
 import SimpleView._
+import bon.jo.html.DomShell.ExtendedHTMLCollection
 import bon.jo.memo.Dao.Id
 import bon.jo.memo.Entities
 import org.scalajs.dom.raw
@@ -15,7 +16,8 @@ import scala.concurrent.Future
 object SimpleView{
   trait DSelect{
     self : DomCpnt[Select] =>
-    def selectFirst = html.firstElementChild.asInstanceOf[raw.HTMLOptionElement].selected = true
+    def selectFirst(): Unit = html.firstElementChild.asInstanceOf[raw.HTMLOptionElement].selected = true
+    def select(v : String): Unit = html.getElementsByTagName("option").map(_.asInstanceOf[HTMLOptionElement]).filter(_.value == v).foreach(_.selected = true)
   }
   type dc = DomCpnt[_ <: HTMLElement]
   type dci = DomCpnt[Input]
@@ -54,9 +56,8 @@ abstract  class SimpleView[A: XmlRep](creationHtml: () => Node)(implicit ida : I
   val idaPr : Id[A] = ida.prefix(cpnt.id)
   def xml: Node = cpnt.xml
 
-  def +=(p: A) = {
-
-    asHtml.html.appendChild(p.newHtml(idaPr))
+  def +=(p: A): ListBuffer[A] = {
+    asHtml.html.appendChild(p.newHtml(idaPr,implicitly[XmlRep[A]]))
     as += p
   }
 }

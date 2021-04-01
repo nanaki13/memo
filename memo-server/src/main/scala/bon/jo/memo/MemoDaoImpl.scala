@@ -20,10 +20,6 @@ class MemoDaoImpl(implicit val profile: DBProfile.DB) extends  DaoImpl with Dao[
   }
 
   override def update(a: Entities.Memo,id : Option[Int]): FO = {
-    val e = id match {
-      case Some(_) => a.copy(id)
-      case None => a
-    }
     db.run(memos.filter(_.id === a.id).update(a)).map {
       case 1 => Some(a)
       case 0 => None

@@ -60,7 +60,7 @@ trait MemoDBImpl {
 
   val allinOrder = List(memos, keyswords, memoKeywords)
 
-  def create(implicit db: DBProfile, executionContext: ExecutionContext) = Future.sequence(allinOrder.map(_.schema.createIfNotExists).map(db.db.run))
+  def create(implicit db: DBProfile, executionContext: ExecutionContext): Future[List[Unit]] = Future.sequence(allinOrder.map(_.schema.createIfNotExists).map(db.db.run))
 
 
 }

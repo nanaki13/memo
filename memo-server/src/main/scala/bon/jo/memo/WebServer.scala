@@ -32,7 +32,7 @@ object WebServer extends App {
 
   private implicit object memoKeyWordDao extends MemoKeyWordsDaoImpl()
   implicit object Custom extends CustomSerializer[MemoType](
-    formar => ( {
+    _ => ( {
       case JString(v) => MemoType(v)
     }, {
       case s  : MemoType=> JString(s.name)

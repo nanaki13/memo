@@ -13,7 +13,7 @@ object test extends App {
 
     val fut = dao create new Entities.Memo( "toto", "toto") flatMap {
       case None => Future.failed(new IllegalStateException())
-      case Some(value) => dao create new Entities.Memo( "toto", "toto") map {
+      case Some(_) => dao create new Entities.Memo( "toto", "toto") map {
         case None =>
         case Some(value) => println(value)
       }
