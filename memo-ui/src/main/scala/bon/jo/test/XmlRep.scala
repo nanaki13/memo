@@ -11,7 +11,7 @@ object XmlRep {
 
 
   implicit class ListRep[A: XmlRep](seq: Iterable[A]) {
-    def xml: Iterable[HTMLElement] = seq.map(_.html)
+    def html: Iterable[HTMLElement] = seq.map(_.html)
   }
 
   implicit class PrXmlId[B](b: B) {
@@ -24,7 +24,7 @@ object XmlRep {
 
 
     def html(implicit v : XmlRep[B]): HTMLElement = implicitly[XmlRep[B]].html(b)
-    def html[C](f : Option[C] => Unit)(implicit v : XmlRepCapt[B,C]): HTMLElement = v.html(b,f)
+   // def html[C](f : Option[C] => Unit)(implicit v : XmlRepCapt[B,C]): HTMLElement = v.html(b,f)
   }
 
 
@@ -50,9 +50,9 @@ trait XmlRep[A] {
 
  // def other[B](prefixId: String)(function: IdXmlRep[A] => B): B
 }
-trait XmlRepCapt[A,B]  extends XmlRep[A]{
-  def html(memo: A,argCapt : Option[B] => Unit): HTMLElement
-  def html(memo: A): HTMLElement = html(memo, _ =>{})
+//trait XmlRepCapt[A,B]  extends XmlRep[A]{
+//  def html(memo: A,argCapt : Option[B] => Unit): HTMLElement
+ // def html(memo: A): HTMLElement = html(memo, _ =>{})
   // def other[B](prefixId: String)(function: IdXmlRep[A] => B): B
-}
+//}
 

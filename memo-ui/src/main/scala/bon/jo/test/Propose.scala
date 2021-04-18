@@ -56,7 +56,7 @@ class Propose[A :XmlRep :Id,B <:raw.HTMLElement]( list: mutable.ListBuffer[A]
   def xml: Elem = <div id={id}>
     {ioHtml.xml}
     {btn.xml}
-   <div id={id+"s"}>{list.xml}</div>
+   <div id={id+"s"}>{list.html}</div>
   </div>
 
   def read: Iterable[A] =  list

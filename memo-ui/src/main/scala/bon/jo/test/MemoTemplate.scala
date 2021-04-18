@@ -13,7 +13,7 @@ import bon.jo.test.XmlRep._
 import org.scalajs.dom.html.{Button, Div, Input}
 import org.scalajs.dom.raw.HTMLElement
 import org.scalajs.dom.{console, raw, window}
-
+import HTMLDef._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext
@@ -100,9 +100,9 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
     import view.viewsDef.memoKeyWordXml
 
     var memoListIpnutR : Option[MemoListIpnutR] = None
-    val html = me.addChild[Div](value.xml[MemoListIpnutR](memoListIpnutR= _))
+    val html = me :+ value.html
     lazy val ctx = new MemoCtxView
-    memoListIpnutR.foreach(_.addEvent())
+
     html.getElementsByClassName("btn-save").map(_.asInstanceOf[Button]).foreach(b => {
       b.$click { _ =>
         val ret = value.memo.memoType match {
@@ -130,7 +130,7 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
           html.getElementsByClassName("m-content").map(_.asInstanceOf[HTMLElement]).foreach { a =>
             a.parentElement.addChild(ctx.contentInput.xml)
             ctx.contentInput.html.value = value.memo.content
-            a.parentElement.addChild(ctx.memoList.xml)
+            a.parentElement :+ (ctx.memoList.html)
             ()
           }
           html.getElementsByClassName("m-type").map(_.asInstanceOf[HTMLElement]).foreach { a =>
@@ -169,7 +169,7 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
       case Target._404 => _404Load()
     }
 
-    p.appendChild(Test.htmlTest)
+    p.appendChild(HTMLDef.htmlTest)
     def _404Load() = {
       p.clear()
       p.addChild[raw.HTMLHeadingElement](<h1>page non trouvé</h1>)
