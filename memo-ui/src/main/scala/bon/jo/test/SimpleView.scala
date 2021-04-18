@@ -23,7 +23,8 @@ object SimpleView{
   type dci = DomCpnt[Input]
   type dcta = DomCpnt[TextArea]
   type dcselect = DomCpnt[Select] with DSelect
-  def i: dci = DomCpnt[Input](<input></input>)
+  def i(classCss : String = "form-control"): dci = DomCpnt[Input](<input class={classCss}></input>)
+  def i: dci = i()
   def ta: dcta = DomCpnt[TextArea](<textarea  cols="150"  rows="51" ></textarea>)
   def b(title: String): dc = DomCpnt[Button]( <button >
     {title}
@@ -43,7 +44,7 @@ object SimpleView{
 
 abstract  class SimpleView[A: XmlRep](creationHtml: () => Node)(implicit ida : Id[A]) {
 
-  def fillFromService: Future[Unit]
+  def fillFromService: Future[Iterable[A]]
   val as: ListBuffer[A] = ListBuffer()
   val asHtml: dc = DomCpnt[Div](<div>
     {as.xml}

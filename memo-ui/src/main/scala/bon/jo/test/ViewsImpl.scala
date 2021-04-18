@@ -1,7 +1,8 @@
 package bon.jo.test
 
+import bon.jo.html.{AutoId, GenId}
 import bon.jo.html.DomShell.{$, ExtendedElement, ExtendedHTMLCollection, ExtendedNode}
-import bon.jo.html.HtmlEventDef.ExH
+import bon.jo.html.HtmlEventDef._
 import bon.jo.memo.Dao.Id
 import bon.jo.memo.Entities
 import bon.jo.memo.Entities.{KeyWord, MemoKeywords, MemoType}
@@ -24,7 +25,7 @@ object MemoListIpnutR {
   def apply() = new MemoListIpnutR
 }
 
-class MemoListIpnutR(val data: MemoListJS = new MemoList(Nil.toJSArray)) extends DomCpnt[Div] {
+class MemoListIpnutR(val data: MemoListJS = new MemoList(Nil.toJSArray)) extends GenId{
   val tInput: dci = i
 
 
@@ -49,17 +50,17 @@ class MemoListIpnutR(val data: MemoListJS = new MemoList(Nil.toJSArray)) extends
 
   lazy val list: HTMLUListElement = $[HTMLUListElement](id + "l")
 
-  def xml: Elem = <div id={id}>
-    {tInput.xml}{data.xml}
+  def xml: Elem = <div id={id} class="form-group">
+    <label for={tInput.id}></label>{tInput.xml}{data.xml}
   </div>
 
   def elOfClass(htmlkElement: HTMLElement)(str : String): Iterable[Element] = htmlkElement.getElementsByClassName(str).map(_.asInstanceOf[HTMLElement])
-  def del(htmlkElement: HTMLElement): Unit = elOfClass(htmlkElement)(deleteClass).foreach(d =>d.e.onclick { _ => htmlkElement.html.removeFromDom() })
+  def del(htmlkElement: HTMLElement): Unit = elOfClass(htmlkElement)(deleteClass).foreach(d =>d.$click { _ => htmlkElement.html.removeFromDom() })
   def addEvent(): Unit = {
 
     console.log(tInput.html)
-    val ev = tInput.html.e
-    ev.onAction {
+    val ev = tInput.html
+    ev.$Action {
       val el: ListElementJS = new ListElement(tInput.html.value, false)
       val htmlN  = el.newHtml
       list.appendChild(htmlN)
@@ -67,7 +68,7 @@ class MemoListIpnutR(val data: MemoListJS = new MemoList(Nil.toJSArray)) extends
       del(htmlN)
       tInput.html.value =""
     }
-    ev.onkeyup {
+    ev.$keyup {
       _ =>
         list.children.map(_.asInstanceOf[HTMLElement]).foreach { e =>
           val lElemntText = readWord(e)
@@ -144,39 +145,40 @@ class ViewsImpl(implicit executionContext: ExecutionContext) {
 
   object mCtx extends MemoCtxView
 
-  object memoView extends SimpleView[Entities.Memo](() => <div>titre :
-    {mCtx.tInput.xml}
-    contenu :
-    {mCtx.contentInput.xml}
-  </div>) {
-    def fillFromService: Future[Unit] = Daos.memoDao.readAll()
-      .map(m => {
-        m.foreach(+=)
-      })
-  }
+//  object memoView extends SimpleView[Entities.Memo](() => <div>titre :
+//    {mCtx.tInput.xml}
+//    contenu :
+//    {mCtx.contentInput.xml}
+//  </div>) {
+//    def fillFromService: Future[Unit] = Daos.memoDao.readAll()
+//      .map(m => {
+//        m.foreach(+=)
+//      })
+//  }
 
   val keywWordI: dci = i
 
   object keyWordView extends SimpleView[Entities.KeyWord](() => <div>keyWord :
     {keywWordI.xml}
   </div>) {
-    def fillFromService: Future[Unit] = Daos.keyWordDao.readAll()
+    def fillFromService: Future[Iterable[KeyWord]] = Daos.keyWordDao.readAll()
       .map(m => {
         m.foreach(+=)
+        m
       })
   }
 
-  def addMemoLisner: Unit =
-    memoView.btnInput.html.onclick = _ => {
-      val m = mCtx.newMemo
-      val req: Future[Unit] = Daos.memoDao.create(m).map(o => o.foreach(memoView.+=))
-      req.onComplete {
-        case Failure(exception) => throw (exception)
-        case Success(_) =>
-      }
-
-
-    }
+//  def addMemoLisner: Unit =
+//    memoView.btnInput.html.onclick = _ => {
+//      val m = mCtx.newMemo
+//      val req: Future[Unit] = Daos.memoDao.create(m).map(o => o.foreach(memoView.+=))
+//      req.onComplete {
+//        case Failure(exception) => throw (exception)
+//        case Success(_) =>
+//      }
+//
+//
+//    }
 
   def addKw: Unit =
     keyWordView.btnInput.html.onclick = _ => {
@@ -214,15 +216,16 @@ class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: 
     case Success(value) => value
   }
 
-  def fillFromService: Future[Unit] = Daos.memoKeyWord.readAll(limit = limit, offset = offset)
+  def fillFromService: Future[Iterable[MemoKeywords]] = Daos.memoKeyWord.readAll(limit = limit, offset = offset)
     .map(m => {
       m.foreach(+=)
+      m
     })
 
   def addMKw(iterable: Iterable[KeyWord]): Unit =
 
 
-    btnInput.html.e.onclick {
+    btnInput.html.$click {
       _ => {
         val m = Entities.MemoKeywords(memoKeywWordtx.newMemo, iterable.toSet)
         val req: Future[Unit] = Daos.memoKeyWord.create(m).map(o => o.foreach(+=))

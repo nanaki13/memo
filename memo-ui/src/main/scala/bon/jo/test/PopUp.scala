@@ -33,7 +33,7 @@ object PopUp {
       htmlNode.style.right = "10em"
       htmlNode.style.top = "2em"
       show(htmlNode)
-      $[Button]("pidb").e.onclick { _ => hide(htmlNode) }
+      $[Button]("pidb").$click { _ => hide(htmlNode) }
     }
 
   }

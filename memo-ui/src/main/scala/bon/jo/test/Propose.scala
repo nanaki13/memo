@@ -40,14 +40,14 @@ class Propose[A :XmlRep :Id,B <:raw.HTMLElement]( list: mutable.ListBuffer[A]
 
   val idimp: Id[A] = implicitly[Id[A]].prefix(id)
   val rep: XmlRep[A] = implicitly[XmlRep[A]]
-  def addAll (a : IterableOnce[A]): list.type = {
+  def addAll (a : IterableOnce[A]): mutable.ListBuffer[A] = {
     val l = a.iterator.toList
 
     l.foreach(b => {
       val h  = b.newHtml(idimp,rep)
       h.asInstanceOf[HTMLElement].style.display = "none"
       seleO.appendChild(h)
-      h.asInstanceOf[HTMLElement].e.onclick {_ => sel(b)}
+      h.asInstanceOf[HTMLElement].$click {_ => sel(b)}
     })
     list.addAll(a)
   }
@@ -64,11 +64,11 @@ class Propose[A :XmlRep :Id,B <:raw.HTMLElement]( list: mutable.ListBuffer[A]
     list += b
     val h  = b.newHtml(idimp,rep)
     seleO.appendChild(h)
-    h.asInstanceOf[HTMLElement].e.onclick {_ => sel(b)}
+    h.asInstanceOf[HTMLElement].$click {_ => sel(b)}
     h
   }
   def createEvent(): Unit = {
-    btn.html.e.onclick{
+    btn.html.$click{
       _ =>
         save(ioHtml.toValue).recover{
           case _ => None

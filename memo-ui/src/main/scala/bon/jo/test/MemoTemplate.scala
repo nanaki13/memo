@@ -66,15 +66,17 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
   }
 
 
-  override def xml: Node = <div id="root">
-    {target match {
-      case Target.MemoCreation => memoKeywWord.xml
-      case Target.KeyWordK => view.keyWordView.xml
-      case Target._404 =>
-      case Target.ReadMemo(id) => <div>On veut lire
-        {id}
-      </div>
-    }}
+  override def xml: Node = <div id="root"  class="container">
+    {
+//    target match {
+//      case Target.MemoCreation => memoKeywWord.xml
+//      case Target.KeyWordK => view.keyWordView.xml
+//      case Target._404 =>
+//      case Target.ReadMemo(id) => <div>On veut lire
+//        {id}
+//      </div>
+//    }
+    }
   </div>
 
 
@@ -94,6 +96,64 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
 
   def target: Target = pathToTarget(Routing.urlPath)
 
+  def addMemo(value: Entities.MemoKeywords): Unit = {
+    import view.viewsDef.memoKeyWordXml
+
+    var memoListIpnutR : Option[MemoListIpnutR] = None
+    val html = me.addChild[Div](value.xml[MemoListIpnutR](memoListIpnutR= _))
+    lazy val ctx = new MemoCtxView
+    memoListIpnutR.foreach(_.addEvent())
+    html.getElementsByClassName("btn-save").map(_.asInstanceOf[Button]).foreach(b => {
+      b.$click { _ =>
+        val ret = value.memo.memoType match {
+          case MemoType.Text => value
+          case MemoType.Json => value.copy(memo = value.memo.copy(content = JSON.stringify(memoListIpnutR.get.read().pure())))
+        }
+        Daos.memoKeyWord.update(ret).onComplete {
+          case Failure(exception) => console.log(exception);PopUp("Sauvegarde KO")
+          case Success(value) => PopUp("Sauvegarde OK")
+
+        }
+      }}
+    )
+
+    html.getElementsByClassName("btn-edit").map(_.asInstanceOf[Button]).foreach(b => {
+      b.$click { _ =>
+        val orgText = b.innerText
+        if(b.innerText != "save"){
+          b.innerText = "save"
+
+          html.getElementsByClassName("a-title").map(_.asInstanceOf[HTMLElement]).foreach { a =>
+            a.parentElement.addChild(ctx.tInput.xml)
+            ctx.tInput.html.value = value.memo.title
+          }
+          html.getElementsByClassName("m-content").map(_.asInstanceOf[HTMLElement]).foreach { a =>
+            a.parentElement.addChild(ctx.contentInput.xml)
+            ctx.contentInput.html.value = value.memo.content
+            a.parentElement.addChild(ctx.memoList.xml)
+            ()
+          }
+          html.getElementsByClassName("m-type").map(_.asInstanceOf[HTMLElement]).foreach { a =>
+            a.addChild(ctx.memoType.xml)
+            ctx.memoType.select(value.memo.memoType.toString)
+          }
+          ctx.makeSwitchView()
+          ctx.memoList.addEvent()
+        }else{
+          val nMoemo = ctx.newMemo.copy(value.memo.id)
+          Daos.memoKeyWord.update( value.copy(memo = nMoemo)).onComplete {
+            case Failure(exception) => console.log(exception)
+            case Success(value) => PopUp("Sauvegarde OK")
+              b.innerText = orgText
+          }
+        }
+
+
+      }
+    })
+    ()
+  }
+
   override def init(p: HTMLElement): Unit = {
 
     target match {
@@ -103,65 +163,13 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
       case Target.ReadMemo(id) =>
         Daos.memoKeyWord.read(id).foreach {
           case Some(value) =>
-            import view.viewsDef.memoKeyWordXml
-            var memoListIpnutR : Option[MemoListIpnutR] = None
-            val html = me.addChild[Div](value.xml[MemoListIpnutR](memoListIpnutR= _))
-            lazy val ctx = new MemoCtxView
-            memoListIpnutR.foreach(_.addEvent())
-            html.getElementsByClassName("btn-save").map(_.asInstanceOf[Button]).foreach(b => {
-              b.e.onclick { _ =>
-                val ret = value.memo.memoType match {
-                  case MemoType.Text => value
-                  case MemoType.Json => value.copy(memo = value.memo.copy(content = JSON.stringify(memoListIpnutR.get.read().pure())))
-                }
-                Daos.memoKeyWord.update(ret).onComplete {
-                  case Failure(exception) => console.log(exception);PopUp("Sauvegarde KO")
-                  case Success(value) => PopUp("Sauvegarde OK")
-
-                }
-              }}
-              )
-
-            html.getElementsByClassName("btn-edit").map(_.asInstanceOf[Button]).foreach(b => {
-              b.e.onclick { _ =>
-                val orgText = b.innerText
-                if(b.innerText != "save"){
-                  b.innerText = "save"
-
-                  html.getElementsByClassName("a-title").map(_.asInstanceOf[HTMLElement]).foreach { a =>
-                    a.parentElement.addChild(ctx.tInput.xml)
-                    ctx.tInput.html.value = value.memo.title
-                  }
-                  html.getElementsByClassName("m-content").map(_.asInstanceOf[HTMLElement]).foreach { a =>
-                    a.parentElement.addChild(ctx.contentInput.xml)
-                    ctx.contentInput.html.value = value.memo.content
-                    a.parentElement.addChild(ctx.memoList.xml)
-                    ()
-                  }
-                  html.getElementsByClassName("m-type").map(_.asInstanceOf[HTMLElement]).foreach { a =>
-                    a.addChild(ctx.memoType.xml)
-                    ctx.memoType.select(value.memo.memoType.toString)
-                  }
-                  ctx.makeSwitchView()
-                  ctx.memoList.addEvent()
-                }else{
-                  val nMoemo = ctx.newMemo.copy(value.memo.id)
-                  Daos.memoKeyWord.update( value.copy(memo = nMoemo)).onComplete {
-                    case Failure(exception) => console.log(exception)
-                    case Success(value) => PopUp("Sauvegarde OK")
-                      b.innerText = orgText
-                  }
-                }
-
-
-              }
-            })
-            ()
+            addMemo(value)
           case None =>
         }
       case Target._404 => _404Load()
     }
 
+    p.appendChild(Test.htmlTest)
     def _404Load() = {
       p.clear()
       p.addChild[raw.HTMLHeadingElement](<h1>page non trouvé</h1>)
@@ -170,18 +178,18 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
 
     def memoCreationLoad(): Unit = {
       memoKeywWord.memoKeywWordtx.memoList.addEvent()
-      memoKeywWord.memoKeywWordtx.memoType.selectFirst
+      memoKeywWord.memoKeywWordtx.memoType.selectFirst()
       memoKeywWord.memoKeywWordtx.makeSwitchView()
       memoKeywWord.fillFromService.onComplete {
         case Failure(exception) => throw exception
-        case Success(_) =>
+        case Success(d) => d.foreach(addMemo)
       }
       Daos.keyWordDao.readAll().map(kws => {
         memoKeywWord.propose.addAll(kws)
         memoKeywWord.propose.createEvent()
         val htmlI = memoKeywWord.propose.ioHtml.html
-        val eventAdd = htmlI.e
-        eventAdd.onkeyup {
+
+        htmlI.$keyup {
           _ =>
             memoKeywWord.propose.doFilter(htmlI.value.trim.nonEmpty && _.value.contains(htmlI.value))
         }
@@ -195,83 +203,7 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
   }
 }
 
-object Paths {
-
-  import Routing._
-
-  val pCreationMemo: Path = "app" / "memo"
-  val pCreationKW: Path = "app" / "keyword"
-}
 
 
-object Routing {
-
-  type PF[A] = PartialFunction[Routing.Path, A]
 
 
-  def create[A](partialFunction: PartialFunction[Routing.Path, A])(implicit _404: A): Routing.Path => A = {
-    partialFunction orElse { case _ => _404 }
-  }
-
-  case class Path(str: List[String]) {
-    def matches[R](list: PathMatchList[R]): Option[R] = {
-      if (str.size != list.str.size) {
-        None
-      } else {
-        list.tr(str.zip(list.str).filter(e => e._2.variable && e._2.matches(e._1)).map(e => e._2.extract(e._1)))
-      }
-    }
-
-    def /(s: String): Path = copy(str = str :+ s)
-
-    def /[A](s: PathMatcher[_])(implicit tp: List[Any] => Option[A]): PathMatchList[A] = PathMatchList(str.map(StrictMatch.apply) :+ s)(tp)
-  }
-
-  case class PathMatchList[R](str: List[PathMatcher[_]])(tp: List[Any] => Option[R]) {
-    def tr(value: List[Any]): Option[R] = tp(value)
-
-  }
-
-  trait PathMatcher[A] {
-    def matches(str: String): Boolean
-
-    def extract(str: String): A
-
-    def variable: Boolean
-  }
-
-  trait PathMatcherString extends PathMatcher[String] {
-    override def extract(str: String): String = str
-  }
-
-  case class StrictMatch(strRef: String) extends PathMatcherString {
-    override def matches(str: String): Boolean = strRef == str
-
-    override def variable: Boolean = false
-  }
-
-  object IntPath extends PathMatcher[Int] {
-    override def matches(str: String): Boolean = {
-      Try(str.toInt) match {
-        case Failure(_) => false
-        case Success(_) => true
-      }
-    }
-
-
-    override def variable: Boolean = true
-
-    override def extract(str: String): Int = str.toInt
-  }
-
-  implicit class PFromStr(str: String) {
-    def /(o: String): Path = Path(List(str, o))
-  }
-
-  object Path {
-    def apply(str: String): Path = Path(str.split("/").toList.filter(_.nonEmpty))
-
-  }
-
-  def urlPath: Routing.Path = Path(scalajs.js.URIUtils.decodeURI(window.location.pathname))
-}
