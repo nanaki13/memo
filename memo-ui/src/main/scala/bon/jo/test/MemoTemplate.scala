@@ -13,14 +13,15 @@ import bon.jo.test.XmlRep._
 import org.scalajs.dom.html.{Button, Div, Input}
 import org.scalajs.dom.raw.HTMLElement
 import org.scalajs.dom.{console, raw, window}
-import HTMLDef._
+import HTMLDef.{$c, _}
+
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext
 import scala.scalajs.js.JSON
 import scala.util.{Failure, Success, Try}
 import scala.xml.Node
-
+import SimpleView.DSelect
 sealed trait Target extends Product
 
 object Target {
@@ -39,14 +40,14 @@ object Target {
 case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Template with XmlTemplate {
 
 
-  val listView: DomCpnt[Div] = DomCpnt[Div](<div></div>)
+
   val view = new ViewsImpl()
 
 
   val currentKeyWord: mutable.ListBuffer[KeyWord] = scala.collection.mutable.ListBuffer[KeyWord]()
  //
 
-  def addToCurrentKW(keyWord: KeyWord, listView: DomCpnt[Div])(implicit v: XmlRep[KeyWord]): raw.Node = {
+  def addToCurrentKW(keyWord: KeyWord, listView: Div)(implicit v: XmlRep[KeyWord]): raw.Node = {
     currentKeyWord += keyWord
     implicit val idForCurrent: Id[KeyWord] = view.idK.prefix("curr")
     listView.html.appendChild(keyWord.newHtml)
@@ -56,27 +57,17 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
 
   private val memoKeywWord: MemoKeyWordViewListCreate = {
     import view.viewsDef._
-    val lView = DomCpnt[Div](<div></div>)
+    val lView : Div = $c.div
+    def inp : Input = $c.input
     val propose = new Propose[KeyWord, Input](ListBuffer(),
-      new IOHtml[Input, KeyWord](id => {
-        <input id={id}></input>
-      }, input => KeyWord(None, input.value)), Daos.keyWordDao.create, addToCurrentKW(_, lView))
+      new IOHtml[Input, KeyWord]( inp, input => KeyWord(None, input.value)), Daos.keyWordDao.create, addToCurrentKW(_, lView))
 
     new MemoKeyWordViewListCreate(propose, lView, new MemoCtxView)
   }
 
 
   override def xml: Node = <div id="root"  class="container">
-    {
-//    target match {
-//      case Target.MemoCreation => memoKeywWord.xml
-//      case Target.KeyWordK => view.keyWordView.xml
-//      case Target._404 =>
-//      case Target.ReadMemo(id) => <div>On veut lire
-//        {id}
-//      </div>
-//    }
-    }
+
   </div>
 
 
@@ -99,15 +90,18 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
   def addMemo(value: Entities.MemoKeywords): Unit = {
     import view.viewsDef.memoKeyWordXml
 
-    var memoListIpnutR : Option[MemoListIpnutR] = None
-    val html = me :+ value.html
-    lazy val ctx = new MemoCtxView
+   //val memoListIpnutR : Option[MemoListIpnutR] = None
+    scalajs.js.special.debugger()
+    val ctx = new MemoCtxView
+
+    val html = me :+ value.htmlp(Some(ctx.memoList))
+
 
     html.getElementsByClassName("btn-save").map(_.asInstanceOf[Button]).foreach(b => {
       b.$click { _ =>
         val ret = value.memo.memoType match {
           case MemoType.Text => value
-          case MemoType.Json => value.copy(memo = value.memo.copy(content = JSON.stringify(memoListIpnutR.get.read().pure())))
+          case MemoType.Json => value.copy(memo = value.memo.copy(content = JSON.stringify(ctx.memoList.read().pure())))
         }
         Daos.memoKeyWord.update(ret).onComplete {
           case Failure(exception) => console.log(exception);PopUp("Sauvegarde KO")
@@ -124,17 +118,17 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
           b.innerText = "save"
 
           html.getElementsByClassName("a-title").map(_.asInstanceOf[HTMLElement]).foreach { a =>
-            a.parentElement.addChild(ctx.tInput.xml)
-            ctx.tInput.html.value = value.memo.title
+            a.parentElement :+ ctx.tInput
+            ctx.tInput.value = value.memo.title
           }
           html.getElementsByClassName("m-content").map(_.asInstanceOf[HTMLElement]).foreach { a =>
-            a.parentElement.addChild(ctx.contentInput.xml)
-            ctx.contentInput.html.value = value.memo.content
+            a.parentElement :+ ctx.contentInput
+            ctx.contentInput.value = value.memo.content
             a.parentElement :+ (ctx.memoList.html)
             ()
           }
           html.getElementsByClassName("m-type").map(_.asInstanceOf[HTMLElement]).foreach { a =>
-            a.addChild(ctx.memoType.xml)
+            a:+ (ctx.memoType)
             ctx.memoType.select(value.memo.memoType.toString)
           }
           ctx.makeSwitchView()
@@ -156,9 +150,11 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
 
   override def init(p: HTMLElement): Unit = {
 
+
     target match {
-      case Target.MemoCreation => memoCreationLoad()
+      case Target.MemoCreation => p.appendChild(memoKeywWord.cpnt);memoCreationLoad()
       case Target.KeyWordK =>
+        p.appendChild(view.keyWordView.cpnt)
         view.keyWordView.fillFromService.foreach(_ => view.addKw)
       case Target.ReadMemo(id) =>
         Daos.memoKeyWord.read(id).foreach {
@@ -169,7 +165,6 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
       case Target._404 => _404Load()
     }
 
-    p.appendChild(HTMLDef.htmlTest)
     def _404Load() = {
       p.clear()
       p.addChild[raw.HTMLHeadingElement](<h1>page non trouvé</h1>)
@@ -177,10 +172,11 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
 
 
     def memoCreationLoad(): Unit = {
-      memoKeywWord.memoKeywWordtx.memoList.addEvent()
+     // memoKeywWord.memoKeywWordtx.memoList.addEvent()
       memoKeywWord.memoKeywWordtx.memoType.selectFirst()
       memoKeywWord.memoKeywWordtx.makeSwitchView()
-      memoKeywWord.fillFromService.onComplete {
+      memoKeywWord.memoKeywWordtx.memoList.addEvent()
+      memoKeywWord.callService.onComplete {
         case Failure(exception) => throw exception
         case Success(d) => d.foreach(addMemo)
       }

@@ -1,24 +1,22 @@
 package bon.jo.test
-import bon.jo.html.DomShell.{$, $c}
 import bon.jo.html.HtmlEventDef._
+import bon.jo.html.DomShell.ExtendedHTMLCollection
 import bon.jo.memo.Dao.Id
-import bon.jo.test
-import bon.jo.test.XmlRep.{ListRep, _}
-import org.scalajs.dom.html.{Button, Div, Select}
+import bon.jo.test.HTMLDef.{$l, $va_t}
+import bon.jo.test.XmlRep.ListRep
+import org.scalajs.dom.html.Div
+import org.scalajs.dom.raw
 import org.scalajs.dom.raw.{HTMLElement, Node}
-import org.scalajs.dom.{console, document, raw}
 
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
-import scala.xml.Elem
 trait HtmlExtract[A,B<: raw.Element]{
     def extract(html : B) : A
 }
 
 
-class IOHtml[A <: raw.Element,E](xmlf :String  => Elem,extractF: A => E) extends DomCpnt[A] with HtmlExtract[E,A] {
-  override def xml: Elem = xmlf(id)
+class IOHtml[A <: raw.Element,E](xmlf :  => A,extractF: A => E) extends HtmlExtract[E,A] {
+  val html: A =xmlf
 
   override def extract(htmlp: A): E = extractF(htmlp)
   def toValue: E = extract(html)
@@ -35,40 +33,38 @@ class Propose[A :XmlRep :Id,B <:raw.HTMLElement]( list: mutable.ListBuffer[A]
                                                 ,val ioHtml: IOHtml[B,A]
                                               ,save : A => Future[Option[A]],
                                                 sel : A => Unit
-                                              )(implicit executionContext: ExecutionContext) extends DomCpnt[Div] {
+                                              )(implicit executionContext: ExecutionContext)  {
 
 
-  val idimp: Id[A] = implicitly[Id[A]].prefix(id)
+ // val idimp: Id[A] = implicitly[Id[A]].prefix(id)
   val rep: XmlRep[A] = implicitly[XmlRep[A]]
   def addAll (a : IterableOnce[A]): mutable.ListBuffer[A] = {
     val l = a.iterator.toList
 
     l.foreach(b => {
-      val h  = b.newHtml(idimp,rep)
-      h.asInstanceOf[HTMLElement].style.display = "none"
+      val h  = rep.html(b)
+      h.style.display = "none"
       seleO.appendChild(h)
-      h.asInstanceOf[HTMLElement].$click {_ => sel(b)}
+      h.$click {_ => sel(b)}
     })
     list.addAll(a)
   }
   private val btn = SimpleView.b("add")
-  private lazy val seleO = $[Select](id+"s")
-  def xml: Elem = <div id={id}>
-    {ioHtml.xml}
-    {btn.xml}
-   <div id={id+"s"}>{list.html}</div>
-  </div>
+  private val seleO = $l div list.html
+  def html: Div = {
+    $va_t div (ioHtml.html,btn,seleO)
+  }
 
   def read: Iterable[A] =  list
   def +=(b : A): Node = {
     list += b
-    val h  = b.newHtml(idimp,rep)
+    val h  = rep.html(b)
     seleO.appendChild(h)
-    h.asInstanceOf[HTMLElement].$click {_ => sel(b)}
+    h.$click {_ => sel(b)}
     h
   }
   def createEvent(): Unit = {
-    btn.html.$click{
+    btn.$click{
       _ =>
         save(ioHtml.toValue).recover{
           case _ => None
@@ -82,11 +78,11 @@ class Propose[A :XmlRep :Id,B <:raw.HTMLElement]( list: mutable.ListBuffer[A]
 
   def doFilter( filter : A => Boolean): Unit = {
 
-    list.foreach(a => {
-      if(filter(a)){
-        a.html(idimp).asInstanceOf[HTMLElement].style.display = "block"
+    (list zip seleO.children).foreach(a => {
+      if(filter(a._1)){
+        a._2.asInstanceOf[HTMLElement].style.display = "block"
       }else{
-        a.html(idimp).asInstanceOf[HTMLElement].style.display = "none"
+        a._2.asInstanceOf[HTMLElement].style.display = "none"
       }
     })
   }

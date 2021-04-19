@@ -8,7 +8,7 @@ import org.scalajs.dom.html.{Anchor, Div, Element}
 import org.scalajs.dom.raw.{HTMLElement, Node, Text}
 import org.scalajs.dom.{console, document}
 import bon.jo.html.HtmlEventDef._
-import bon.jo.test.HTMLDef.{$t, $va, HtmlOps, $ref => $}
+import bon.jo.test.HTMLDef.{$t, $va, HtmlOps, $ref }
 
 import scala.scalajs.js.JSON
 import scala.util.{Failure, Success, Try}
@@ -19,18 +19,18 @@ object ViewsDef {
 
 class ViewsDef() {
 
-  import $._
 
-  implicit val memoXml: XmlRep[Memo] = {
-    memo =>
-      $va div($ h1 {
-        _ :+ ($ a {
+  implicit val memoXml:  XmlRepParam[Memo,MemoListIpnutR] = {
+    (memo,mList) =>
+      $va div($ref h1 {
+        _ :+ ($ref a {
           lienTilre =>
             lienTilre._class = "a-title"
+            lienTilre.textContent = memo.title
             lienTilre.asInstanceOf[Anchor].href = s"/app/memo/${memo.id.getOrElse(0)}"
         })
       }
-        , $ div {
+        , $ref div {
         tpeDiv =>
           tpeDiv._class = "m-type"
           tpeDiv :+ ($t div
@@ -43,18 +43,24 @@ class ViewsDef() {
 
       }
         , $t h2 "Contenu",
-        $ div {
+        $ref div {
           cnt =>
             cnt._class = "m-content"
-            cnt.textContent = memo.memoType match {
-              case MemoType.Text => memo.content
+
+            memo.memoType match {
+              case MemoType.Text => cnt.textContent = memo.content
               case MemoType.Json =>
                 Try {
-                  val l = new MemoListIpnutR(JSON.parse(memo.content).asInstanceOf[MemoListJS])
-                  l.addEvent()
-                  l
+                  mList.foreach(ml =>{
+                    ml.data = JSON.parse(memo.content).asInstanceOf[MemoListJS]
+
+                    cnt :+ ml.html
+                    ml.addEvent()
+                  })
+
+                  mList
                 } match {
-                  case Failure(_) => s"Erreur en traitant : ${memo.content}"
+                  case Failure(a) => s"Erreur en traitant : ${memo.content}\n$a"
                   case Success(value) => value.toString()
                 }
             }
@@ -62,7 +68,7 @@ class ViewsDef() {
       )
   }
   implicit val keyWord: XmlRep[KeyWord] = {
-    memo =>
+    (memo,_) =>
 
       $t div {
         memo.value
@@ -70,17 +76,19 @@ class ViewsDef() {
 
   }
 
-  implicit val memoKeyWordXml: XmlRep[MemoKeywords] = {
-    (memo) =>
+  implicit val memoKeyWordXml: XmlRepParam[MemoKeywords,MemoListIpnutR] = {
+    (memo,lisCpnt) =>
       $va div(
-        memo.memo.html,
+        memo.memo.htmlp(lisCpnt),
         $t h3 "tags"
-        , $ button {
+        , $ref button {
         edit =>
+          edit.textContent = "edit"
           edit._class = "btn-edit btn btn-primary"
-      }, $ button {
+      }, $ref button {
         save =>
-          save._class = "btn-edit btn btn-primary"
+          save.textContent = "save"
+          save._class = "btn-save btn btn-primary"
       }
       )
   }
@@ -158,7 +166,7 @@ object HTMLDef {
   }
 
   object $va extends scala.Dynamic {
-    def applyDynamic(tagName: String)(htmlL: Element*): HTMLElement = {
+    def applyDynamic(tagName: String)(htmlL: Node*): HTMLElement = {
       val ret = document.createElement(tagName).asInstanceOf[HTMLElement]
       htmlL.foreach(ret.appendChild)
       ret
@@ -192,23 +200,7 @@ object HTMLDef {
   }
 
 
-  val htmlTest = $ref div {
-    root =>
-      List($ref button { btnAction =>
-        btnAction.textContent = "Click MOi"
-        btnAction._class = "btn btn-primary"
-        btnAction.$click { _ => btnAction :+ ($ref div (salutDiv => salutDiv.textContent = "Salut")) }
-      }).foreach(root :+ _)
-      root :+ (
-        $ref select {
-          select =>
 
-            List("A", "B", "C").foreach(letre => select :+ ($ref option (o => o.textContent = letre)))
-        }
-
-        )
-
-  }
 
 
 }

@@ -10,7 +10,7 @@ import SimpleView._
 import bon.jo.html.DomShell.ExtendedHTMLCollection
 import bon.jo.memo.Dao.Id
 import bon.jo.memo.Entities
-import bon.jo.test.HTMLDef.{$l, $l_t, $ref, $ref_t, $t, $va, $va_t, HtmlOps}
+import bon.jo.test.HTMLDef.{$c, $l, $l_t, $ref, $ref_t, $t, $va, $va_t, HtmlOps}
 import org.scalajs.dom.raw
 
 import scala.concurrent.Future
@@ -23,14 +23,14 @@ object SimpleView {
     def select(v: String): Unit = self.getElementsByTagName("option").map(_.asInstanceOf[HTMLOptionElement]).filter(_.value == v).foreach(_.selected = true)
   }
 
-  def i(classCss: String = "form-control"): Input = $ref_t input {
-    _._class = classCss
-  }
+  def i(classCss: String = "form-control"): Input = ($ref_t input {
+    r : Input => r._class = classCss
+  })
 
   def i: Input = i()
 
   //def ta: TextArea = DomCpnt[TextArea](<textarea  cols="150"  rows="51" ></textarea>)
-  def ta: TextArea = $ref_t textarea { t => t.cols = 150; t.rows = 51 }
+  def ta: TextArea = $ref_t textarea { t: TextArea => t.cols = 150; t.rows = 51 }
 
   def b(title: String): Button = ($t button title).$to
 
@@ -49,23 +49,20 @@ object SimpleView {
   def s[A](implicit elemnts: Entities.EnumComp[A]): Select = s(elemnts.values)((k => k.toString, a => a.toString))
 }
 
-abstract class SimpleView[A: XmlRep](creationHtml: () => HTMLElement)(implicit ida: Id[A]) {
+abstract class SimpleView[A,P](creationHtml: () => HTMLElement)(implicit v : XmlRepParam[A,P]) {
 
-  def fillFromService: Future[Iterable[A]]
+//  def fillFromService: Future[Iterable[A]]
 
   val as: ListBuffer[A] = ListBuffer()
-  val listHtml: Div = $l_t div (as.html)
+  val listHtml: Div = $c.div
 
   val btnInput: Button = b("ajouter")
   val cpnt: Div = $va_t div( listHtml,creationHtml(),btnInput)
 
 
-  val idaPr: Id[A] = ida.prefix(cpnt.id)
-
-
-
-  def +=(p: A): ListBuffer[A] = {
-    listHtml.appendChild(p.newHtml(idaPr, implicitly[XmlRep[A]]))
+  def +=(p: A,pp:Option[P]): ListBuffer[A] = {
+    listHtml.appendChild(p.htmlp(pp))
     as += p
   }
+  def +=(p: A): ListBuffer[A] = +=(p,None)
 }

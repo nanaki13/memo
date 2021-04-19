@@ -24,18 +24,14 @@ object XmlRep {
 
 
     def html(implicit v : XmlRep[B]): HTMLElement = implicitly[XmlRep[B]].html(b)
+    def htmlp[P](p : Option[P])(implicit v : XmlRepParam[B,P]): HTMLElement = v.html(b,p)
    // def html[C](f : Option[C] => Unit)(implicit v : XmlRepCapt[B,C]): HTMLElement = v.html(b,f)
   }
 
 
   //def apply[A](a: A => Node)(implicit idp: Id[A]): IdXmlRep[A] = XmlRepImpl(a,idp)
 
-  case class XmlRepImpl[A](xmlF : A => HTMLElement) extends XmlRep[A] {
 
-    override def html(memo: A): HTMLElement = xmlF(memo)
-
-
-  }
 
 //  trait IdXmlRep[A] extends XmlRep[A] {
 //
@@ -44,9 +40,12 @@ object XmlRep {
 //  }
 
 }
+trait XmlRep[A] extends XmlRepParam[A,Nothing]{
+  def html(memo: A): HTMLElement = html(memo,None)
+}
+trait XmlRepParam[A,P] {
 
-trait XmlRep[A] {
-  def html(memo: A): HTMLElement
+  def html(memo: A,p : Option[P]): HTMLElement
 
  // def other[B](prefixId: String)(function: IdXmlRep[A] => B): B
 }

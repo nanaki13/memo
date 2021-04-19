@@ -6,7 +6,7 @@ import bon.jo.html.HtmlEventDef._
 import bon.jo.memo.Dao.Id
 import bon.jo.memo.Entities
 import bon.jo.memo.Entities.{KeyWord, MemoKeywords, MemoType}
-import bon.jo.test.SimpleView.{dcselect, i, s, ta}
+import bon.jo.test.SimpleView.{i, s, ta}
 import bon.jo.test.HTMLDef._
 import bon.jo.test.XmlRep._
 import org.scalajs.dom.{console, raw}
@@ -20,39 +20,40 @@ import scala.scalajs.js.JSON
 import scala.util.{Failure, Success, Try}
 import scala.xml.Elem
 
-object MemoListIpnutR {
 
-
-  def apply() = new MemoListIpnutR
-}
-
-class MemoListIpnutR(val data: MemoListJS = new MemoList(Nil.toJSArray)) extends GenId {
+class MemoListIpnutR(var data: MemoListJS = new MemoList(Nil.toJSArray)) extends GenId {
   val tInput: Input = $c.input
-
+  tInput.id = s"$id-i"
   HTMLDef
   implicit val idEl: Id[ListElementJS] = me => s"$id-${me.content}"
 
 
   val ckeckClass = "input-li"
   val spanWordClass = "span-li"
-  val deleteClass = "delete-li"
+//  val deleteClass = "delete-li"
+  def spanWord : Span = {
+  ($ref span (r => r._class = spanWordClass)).$to
+}
+  def checkInput : Input = {
+    $ref_t input ((r : Input) => {
+      r._class = ckeckClass
+      r.`type` = "checkbox"
+    })
+  }
   implicit val listElementidXmlRep: XmlRep[ListElementJS] = {
-    li =>
+    (li ,_)=>
       $va li( {
-        val inp: Input = $c.input
-        if (li.checked) {
-          inp.checked = true
-        }
-
-        inp.`type` = "checkbox"
+        val inp: Input = checkInput
+        inp.checked = li.checked
         inp
 
-      }, $ref span { sContent =>
-        sContent._class = spanWordClass
-        sContent.textContent = li.content
+      },  {
+        val s = spanWord
+        s.textContent = li.content
+        s
       })
   }
-  implicit val idXmlRep: XmlRep[MemoListJS] = XmlRepImpl[MemoListJS](m => $ref ul {
+  implicit val idXmlRep: XmlRep[MemoListJS] = ((m,_ )=> $ref ul {
     lUl =>
       lUl.id = id + "l"
       m.elements.toList.html.foreach(lUl :+ _)
@@ -61,32 +62,32 @@ class MemoListIpnutR(val data: MemoListJS = new MemoList(Nil.toJSArray)) extends
 
   lazy val list: HTMLUListElement = $[HTMLUListElement](id + "l")
 
-  def html: Div = ($ref div {d =>
-    d.id=id
-    d._class ="form-group"
+  lazy val html: Div = ($ref div { d =>
+    d.id = id
+    d._class = "form-group"
     d :++ (
       $ref label {
-      l =>
-          l.$attr(("for",tInput.id))
-      },tInput,data.html
+        l =>
+          l.$attr(("for", tInput.id))
+      }, tInput, data.html(idXmlRep)
     )
   }).$to
 
 
   def elOfClass(htmlkElement: HTMLElement)(str: String): Iterable[Element] = htmlkElement.getElementsByClassName(str).map(_.asInstanceOf[HTMLElement])
 
-  def del(htmlkElement: HTMLElement): Unit = elOfClass(htmlkElement)(deleteClass).foreach(d => d.$click { _ => htmlkElement.html.removeFromDom() })
+  //def del(htmlkElement: HTMLElement): Unit = elOfClass(htmlkElement)(deleteClass).foreach(d => d.$click { _ => htmlkElement.html.removeFromDom() })
 
   def addEvent(): Unit = {
 
-    console.log(tInput)
+
     val ev = tInput
     ev.$Action {
       val el: ListElementJS = new ListElement(tInput.value, false)
       val htmlN = el.newHtml
       list.appendChild(htmlN)
 
-      del(htmlN)
+    //  del(htmlN)
       tInput.value = ""
     }
     ev.$keyup {
@@ -100,15 +101,15 @@ class MemoListIpnutR(val data: MemoListJS = new MemoList(Nil.toJSArray)) extends
           e.show(show)
         }
     }
-    list.children.map(_.asInstanceOf[HTMLElement]).foreach(del)
+    //list.children.map(_.asInstanceOf[HTMLElement]).foreach(del)
 
   }
 
-  private def readWord(l: raw.HTMLElement) = {
+  private def readWord(l: raw.HTMLElement): String = {
     elOfClass(l)(spanWordClass).head.innerText.trim
   }
 
-  private def readCheck(l: raw.HTMLElement) = {
+  private def readCheck(l: raw.HTMLElement): Boolean = {
     elOfClass(l)(ckeckClass).map(_.asInstanceOf[Input]).head.checked
   }
 
@@ -120,7 +121,7 @@ class MemoListIpnutR(val data: MemoListJS = new MemoList(Nil.toJSArray)) extends
 class MemoCtxView {
 
 
-  val memoList: MemoListIpnutR = MemoListIpnutR()
+  val memoList: MemoListIpnutR = new MemoListIpnutR()
 
   val tInput: Input = i
   val contentInput: TextArea = ta
@@ -180,8 +181,8 @@ class ViewsImpl(implicit executionContext: ExecutionContext) {
 
   val keywWordI: Input = i
 
-  object keyWordView extends SimpleView[Entities.KeyWord](() => $va div ( $va span(keyWord.html,$t(":")
-    ,keywWordI))) {
+  object keyWordView extends SimpleView[Entities.KeyWord,Nothing](() => $va div ($va span($t("titre :")
+    , keywWordI))) {
     def fillFromService: Future[Iterable[KeyWord]] = Daos.keyWordDao.readAll()
       .map(m => {
         m.foreach(+=)
@@ -189,6 +190,16 @@ class ViewsImpl(implicit executionContext: ExecutionContext) {
       })
   }
 
+  def addKw: Unit =
+    keyWordView.btnInput.html.onclick = _ => {
+      val m = Entities.KeyWord(None, keywWordI.value)
+      val req: Future[Unit] = Daos.keyWordDao.create(m).map(o => o.foreach(keyWordView.+=))
+      req.onComplete {
+        case Failure(exception) => throw (exception)
+        case Success(_) =>
+      }
+
+    }
   //  def addMemoLisner: Unit =
   //    memoView.btnInput.html.onclick = _ => {
   //      val m = mCtx.newMemo
@@ -202,29 +213,23 @@ class ViewsImpl(implicit executionContext: ExecutionContext) {
   //    }
 
 
-
+}
 
 
 class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: Div, val memoKeywWordtx: MemoCtxView)
-                               (implicit idXmlRep: XmlRep[MemoKeywords], idM: Id[MemoKeywords], executionContext: ExecutionContext)
-  extends SimpleView[Entities.MemoKeywords](() =>
+                               (implicit idXmlRep: XmlRepParam[MemoKeywords,MemoListIpnutR], idM: Id[MemoKeywords], executionContext: ExecutionContext)
+  extends SimpleView[Entities.MemoKeywords,MemoListIpnutR](() =>
     $va div(
       $t span "titre",
       memoKeywWordtx.tInput,
       $t span "type :",
       memoKeywWordtx.memoType,
       $t div "content",
-      $va div(memoKeywWordtx.contentInput,memoKeywWordtx.memoList.html)
-    )
-    <div>titre
-      {memoKeywWordtx.tInput}<div>type :
-      {memoKeywWordtx.memoType.xml}
-    </div>
-      <div>Content :</div>
-      <div>
-        {memoKeywWordtx.contentInput.xml}{memoKeywWordtx.memoList.html}
-      </div>{listView.xml}<div>KeyWord :</div>{propose.xml}
-    </div>) {
+      $va div(memoKeywWordtx.contentInput, memoKeywWordtx.memoList.html),
+      listView,
+      $t div "KeyWord : ",
+      propose.html
+    )) {
 
 
   val searchParams = new URLSearchParams(org.scalajs.dom.window.location.search)
@@ -236,11 +241,7 @@ class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: 
     case Success(value) => value
   }
 
-  def fillFromService: Future[Iterable[MemoKeywords]] = Daos.memoKeyWord.readAll(limit = limit, offset = offset)
-    .map(m => {
-      m.foreach(+=)
-      m
-    })
+  def callService: Future[Iterable[MemoKeywords]] = Daos.memoKeyWord.readAll(limit = limit, offset = offset)
 
   def addMKw(iterable: Iterable[KeyWord]): Unit =
 
@@ -248,7 +249,7 @@ class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: 
     btnInput.html.$click {
       _ => {
         val m = Entities.MemoKeywords(memoKeywWordtx.newMemo, iterable.toSet)
-        val req: Future[Unit] = Daos.memoKeyWord.create(m).map(o => o.foreach(+=))
+        val req: Future[Unit] = Daos.memoKeyWord.create(m).map(o => o.foreach(+=(_,Some(new MemoListIpnutR()))))
         req.onComplete {
           case Failure(exception) => throw (exception)
           case Success(_) =>
