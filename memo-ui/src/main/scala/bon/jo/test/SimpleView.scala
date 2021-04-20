@@ -5,7 +5,7 @@ import org.scalajs.dom.raw.{HTMLElement, HTMLOptionElement}
 
 import scala.collection.mutable.ListBuffer
 import scala.xml.{Elem, Node}
-import XmlRep._
+import HtmlRep._
 import SimpleView._
 import bon.jo.html.DomShell.ExtendedHTMLCollection
 import bon.jo.memo.Dao.Id
