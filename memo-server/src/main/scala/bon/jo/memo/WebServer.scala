@@ -1,17 +1,13 @@
 package bon.jo.memo
 
-import java.io.File
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
 import bon.jo.memo.Entities.MemoType
-import com.typesafe.config.ConfigFactory
-import org.json4s
 import org.json4s.{CustomSerializer, DefaultFormats, Formats, JString}
-import slick.jdbc.JdbcProfile
 
-import scala.util.{Failure, Success}
+import java.io.File
 //import slick.jdbc.H2Profile.api.Database
 
 import scala.concurrent.ExecutionContextExecutor

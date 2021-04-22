@@ -1,21 +1,21 @@
 package bon.jo.memo
 
 
-
 import bon.jo.memo.Entities.MemoKeywordRel
 
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 
 class MemoKeyWordsDaoImpl(implicit val profile: DBProfile.DB,
- memoDaoImpl: MemoDaoImpl,
- keyWordDaoImpl: KeyWordDaoImpl) extends DaoImpl with Dao[Entities.MemoKeywords, Int] {
+                          memoDaoImpl: MemoDaoImpl,
+                          keyWordDaoImpl: KeyWordDaoImpl) extends DaoImpl with Dao[Entities.MemoKeywords, Int] {
+
   import profile._
   import profile.profile.api._
 
-  override def readAll(limit : Int, offset : Int): FL = {
+  override def readAll(limit: Int, offset: Int): FL = {
     (for (a <- (for {
-      memos <- memoDaoImpl.readAll(limit,offset)
+      memos <- memoDaoImpl.readAll(limit, offset)
     } yield {
       for {
         m <- memos
@@ -25,7 +25,6 @@ class MemoKeyWordsDaoImpl(implicit val profile: DBProfile.DB,
       }
     })) yield Future.sequence(a)).flatten
   }
-
 
 
   override def create(a: Entities.MemoKeywords): FO = {
@@ -38,10 +37,10 @@ class MemoKeyWordsDaoImpl(implicit val profile: DBProfile.DB,
           }
         }).flatMap(e => {
           val keys = e.flatten
-          val cRel = keys.toSeq.map(k => MemoKeywordRel(nMemo.id.get,k.id.get)).map(memoKeywords += _)
-          val ret = DBIO.seq(cRel : _ *)
+          val cRel = keys.toSeq.map(k => MemoKeywordRel(nMemo.id.get, k.id.get)).map(memoKeywords += _)
+          val ret = DBIO.seq(cRel: _ *)
           val createRelRun = db.run(ret)
-          createRelRun.map{ _ =>
+          createRelRun.map { _ =>
             Some(Entities.MemoKeywords(nMemo, keys))
           }
 
@@ -58,9 +57,18 @@ class MemoKeyWordsDaoImpl(implicit val profile: DBProfile.DB,
             case Some(_) => keyWordDaoImpl.update(keyW)
             case None => keyWordDaoImpl.create(keyW)
           }
-        }).map(e => {
+        }).flatMap(e => {
           val keys = e.flatten
-          Some(Entities.MemoKeywords(nMemo, keys))
+          val relation = keys.toSeq.map(k => MemoKeywordRel(nMemo.id.get, k.id.get))
+          val delete = memoKeywords.filter(_.idMemo === a.memo.id).delete
+          val cRel = relation.map(memoKeywords += _)
+          val createAction = DBIO.sequence(cRel)
+          db.run(delete).flatMap(e => {
+            db.run(createAction).map { _ =>
+              Some(Entities.MemoKeywords(nMemo, keys))
+            }
+          })
+
         })
       case None => Future.successful(None)
     }
@@ -80,7 +88,6 @@ class MemoKeyWordsDaoImpl(implicit val profile: DBProfile.DB,
   override def delete(a: Int): FB = db run memoKeywords.filter(_.idMemo === a).delete flatMap {
     _ => memoDaoImpl.delete(a)
   }
-
 
 
   def findLike(query: String): FL = {

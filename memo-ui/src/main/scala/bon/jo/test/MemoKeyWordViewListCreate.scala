@@ -39,7 +39,7 @@ class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: 
 
   def callService: Future[Iterable[MemoKeywords]] = Daos.memoKeyWord.readAll(limit = limit, offset = offset)
 
-  def addMKw(iterable: Iterable[KeyWord]): Unit =
+  def addEventNewMemoKeyWord(iterable: Iterable[KeyWord]): Unit =
 
 
     btnInput.$click {

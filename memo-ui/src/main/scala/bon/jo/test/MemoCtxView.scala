@@ -2,7 +2,7 @@ package bon.jo.test
 
 import bon.jo.memo.Entities
 import bon.jo.memo.Entities.MemoType
-import bon.jo.test.SimpleView.{i, s, ta}
+import bon.jo.test.SimpleView.{i, s, sv, ta}
 import org.scalajs.dom.html.{Input, Select, TextArea}
 import bon.jo.html.DomShell.ExtendedElement
 import bon.jo.html.HtmlEventDef.ExH
@@ -16,7 +16,11 @@ class MemoCtxView {
 
   val tInput: Input = i
   val contentInput: TextArea = ta
-  val memoType: Select = s[MemoType]
+  implicit val textFromMemoType: MemoType => String = {
+    case MemoType.Json => "List"
+    case MemoType.Text => "text"
+  }
+  val memoType: Select = sv[MemoType]
 
 
   def newMemo: Entities.Memo = {
@@ -30,16 +34,19 @@ class MemoCtxView {
 
   }
 
+  def hideOrShow(): Unit = MemoType(memoType.value) match {
+    case MemoType.Text =>
+      contentInput.show(true)
+      memoList.html.show(false)
+    case MemoType.Json =>
+      contentInput.show(false)
+      memoList.html.show(true)
+  }
+
   def makeSwitchView(): Unit = {
+    hideOrShow()
     memoType.$change { _ => {
-      MemoType(memoType.value) match {
-        case MemoType.Text =>
-          contentInput.show(true)
-          memoList.html.show(false)
-        case MemoType.Json =>
-          contentInput.show(false)
-          memoList.html.show(true)
-      }
+      hideOrShow()
     }
 
     }

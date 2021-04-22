@@ -1,21 +1,48 @@
 package bon.jo.test
 
 
-import bon.jo.memo.Dao.Id
+import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Entities.{KeyWord, Memo, MemoKeywords, MemoType}
+import bon.jo.test.HTMLDef.{$attr, $c, $l, $l_t, $ref, $t, $va, HtmlOps}
 import bon.jo.test.HtmlRep._
-import org.scalajs.dom.html.{Anchor, Div, Element}
-import org.scalajs.dom.raw.{HTMLElement, Node, Text}
-import org.scalajs.dom.{console, document}
-import bon.jo.html.HtmlEventDef._
-import bon.jo.test.HTMLDef.{$l, $ref, $t, $va, HtmlOps}
 import bon.jo.test.MemoLists.MemoListJS
+import org.scalajs.dom.html.{Anchor, Div, Input, Span, Button}
+import org.scalajs.dom.raw.HTMLElement
 
+
+import scala.:+
+import scala.collection.mutable
+import scala.concurrent.{ExecutionContext, Future}
 import scala.scalajs.js.JSON
 import scala.util.{Failure, Success, Try}
 
 object ViewsDef {
+  val kwClass = "kwClass"
+
   def apply(): ViewsDef = new ViewsDef
+
+  def kwIO() = new IOHtml[Input, KeyWord]($c.input: Input, input => KeyWord(None, input.value))
+
+  class ProposeInput[A](strF: A => String,textCreer : String)(
+    list: mutable.ListBuffer[A]
+    , override val ioHtml: IOHtml[Input, A]
+    , save: A => Future[Option[A]],
+    sel: A => Unit
+  )(implicit executionContext: ExecutionContext, htmlRep: HtmlRep[A])
+    extends Propose[A, Input](list, ioHtml, save, sel) {
+    btn.textContent=textCreer
+    ioHtml.html.$keyup {
+      v =>
+        doFilter(ioHtml.html.value.trim.nonEmpty && strF(_).toLowerCase.contains(ioHtml.html.value.toLowerCase))
+    }
+  }
+
+  val closeClass = "closeClass"
+  def closeBtn: Span = {
+    (($attr span("type" -> "button", "class" -> s"badge badge-secondary $closeClass", "aria-label" -> "Close")) +=
+      $t("×")
+      ).$to
+  }
 }
 
 class ViewsDef() {
@@ -24,7 +51,7 @@ class ViewsDef() {
   implicit val memoXml: XmlRepParam[Memo, MemoListView] = {
     (memo, mList) =>
       $va div($ref h1 {
-        _ :+ ($ref a {
+        _ += ($ref a {
           lienTilre =>
             lienTilre._class = "a-title"
             lienTilre.textContent = memo.title
@@ -34,7 +61,7 @@ class ViewsDef() {
         , $ref div {
         tpeDiv =>
           tpeDiv._class = "m-type"
-          tpeDiv :+ ($t div
+          tpeDiv += ($t div
             s"""Type : ${
               memo.memoType match {
                 case MemoType.Text => "Text"
@@ -55,7 +82,7 @@ class ViewsDef() {
                   mList.foreach(ml => {
                     ml.data = JSON.parse(memo.content).asInstanceOf[MemoListJS]
 
-                    cnt :+ ml.html
+                    cnt += ml.html
                     ml.addEvent()
                   })
 
@@ -69,10 +96,39 @@ class ViewsDef() {
       )
   }
   implicit val keyWord: HtmlRep[KeyWord] = HtmlRep {
-    (memo) =>
-      $t div {
-        memo.value
+    (kw) =>
+      val ret = $t span {
+        kw.value
       }
+      ret._class = s"badge badge-primary ${ViewsDef.kwClass}"
+      ret +=  ViewsDef.closeBtn
+
+
+  }
+
+
+
+  class MKCpnt(memo: MemoKeywords, lisCpnt: MemoListView) {
+
+    val kwDiv: Div = $l_t div memo.keyWords.html
+    var l: List[HTMLElement] = List(memo.memo.htmlp(Some(lisCpnt)),
+      $t h3 "tags", kwDiv
+    )
+    memo.memo.memoType match {
+      case MemoType.Json =>
+        l = l :+ ($ref button {
+          save =>
+            save.textContent = "save"
+            save._class = "btn-save btn btn-primary"
+        })
+      case MemoType.Text => l = l :+ ($ref button {
+        edit =>
+          edit.textContent = "edit"
+          edit._class = "btn-edit btn btn-primary"
+      })
+    }
+    val html: Div = $l_t div l
+
 
   }
 
@@ -81,16 +137,15 @@ class ViewsDef() {
 
     (memo, lisCpnt) => {
       var l: List[HTMLElement] = List(memo.memo.htmlp(lisCpnt),
-        $t h3 "tags",$l div memo.keyWords.html
+        $t h3 "tags", $l div memo.keyWords.html
       )
       memo.memo.memoType match {
-        case MemoType.Json => {
+        case MemoType.Json =>
           l = l :+ ($ref button {
             save =>
               save.textContent = "save"
               save._class = "btn-save btn btn-primary"
           })
-        }
         case MemoType.Text => l = l :+ ($ref button {
           edit =>
             edit.textContent = "edit"

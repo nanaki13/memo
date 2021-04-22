@@ -1,34 +1,55 @@
 package bon.jo.test
 
 import org.scalajs.dom.document
-import org.scalajs.dom.raw.{HTMLElement, Node, Text}
+import org.scalajs.dom.raw.{DOMTokenList, HTMLCollection, HTMLElement, Node, Text}
+
+import scala.language.dynamics
 
 object HTMLDef {
-  implicit class HtmlOps(t: HTMLElement) {
+  implicit class HtmlOps[T <: HTMLElement](t: T) {
+
+    object $classSelect extends scala.Dynamic {
+
+      def apply(clSel: String): HTMLCollection = t.getElementsByClassName(clSel)
+
+      def selectDynamic(clSel: String): HTMLCollection = apply(clSel)
+    }
+    def _class: DOMTokenList = t.classList
     def _class_=(s: String): Unit = {
       s.split(" ").foreach(t.classList.add)
     }
 
-    def $to[T <: HTMLElement]: T = t.asInstanceOf[T]
+    def $to[A <: HTMLElement]: A = t.asInstanceOf[A]
 
-    def $list(htmlList: Iterable[HTMLElement]): HTMLElement = {
+    def $list(htmlList: Iterable[HTMLElement]): T = {
       htmlList.foreach(t appendChild _)
       t
     }
 
-    def $attr(keyValue: (String, String)*): HTMLElement = {
+    def $attr(keyValue: (Any, Any)*): T = {
       keyValue.foreach(e => {
-        t.setAttribute(e._1, e._2)
+        t.setAttribute(e._1.toString, e._2.toString)
 
       })
       t
     }
 
-    def :+(childRen: HTMLElement): HTMLElement = t.appendChild(childRen).asInstanceOf[HTMLElement]
+    def +=(childRen: Node): T = {
+      t.appendChild(childRen).asInstanceOf[HTMLElement]
+      t
+    }
 
-    def :++(childRens: HTMLElement*): Unit = childRens foreach :+
+    def $textContent(str: String): T = {
+      t.textContent = str
+      t
+    }
 
-    def _class = t.classList
+    def ++=(childRens: Node*): T = {
+      childRens foreach +=
+      t
+    }
+
+
   }
 
   import scala.language.dynamics
@@ -82,8 +103,25 @@ object HTMLDef {
 
   }
 
+  object $attr extends scala.Dynamic {
+    def applyDynamic(tagName: String)(htmlL: (Any, Any)*): HTMLElement = {
+      val ret = document.createElement(tagName).asInstanceOf[HTMLElement]
+      ret.$attr(htmlL: _ *)
+      ret
+    }
+
+    object t extends scala.Dynamic {
+      def applyDynamic[T <: HTMLElement](tagName: String)(htmlL: (Any, Any)*): T = {
+        val ret = document.createElement(tagName).asInstanceOf[T]
+        ret.$attr(htmlL: _ *)
+        ret
+      }
+    }
+
+  }
+
   object $va_t extends scala.Dynamic {
-    def applyDynamic[T <: HTMLElement](tagName: String)(htmlL: HTMLElement*): T = {
+    def applyDynamic[T <: HTMLElement](tagName: String)(htmlL: Node*): T = {
       val ret = document.createElement(tagName).asInstanceOf[T]
       htmlL.foreach(ret.appendChild)
       ret
@@ -92,7 +130,7 @@ object HTMLDef {
   }
 
   object $l extends scala.Dynamic {
-    def applyDynamic(tagName: String)(htmlL: Iterable[HTMLElement]): HTMLElement = {
+    def applyDynamic(tagName: String)(htmlL: Iterable[Node]): HTMLElement = {
       val ret = document.createElement(tagName).asInstanceOf[HTMLElement]
       htmlL.foreach(ret.appendChild)
       ret
@@ -100,7 +138,7 @@ object HTMLDef {
   }
 
   object $l_t extends scala.Dynamic {
-    def applyDynamic[T <: HTMLElement](tagName: String)(htmlL: Iterable[HTMLElement]): T = {
+    def applyDynamic[T <: HTMLElement](tagName: String)(htmlL: Iterable[Node]): T = {
       val ret = document.createElement(tagName).asInstanceOf[T]
       htmlL.foreach(ret.appendChild)
       ret

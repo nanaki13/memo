@@ -30,7 +30,7 @@ object SimpleView {
   def i: Input = i()
 
   //def ta: TextArea = DomCpnt[TextArea](<textarea  cols="150"  rows="51" ></textarea>)
-  def ta: TextArea = $ref_t textarea { t: TextArea => t.cols = 150; t.rows = 51 }
+  def ta: TextArea = $ref_t textarea { t: TextArea => t.cols = 150; t.rows = 10 }
 
   def b(title: String): Button = ($t button title).$to
 
