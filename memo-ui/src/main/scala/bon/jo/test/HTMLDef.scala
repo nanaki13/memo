@@ -1,11 +1,24 @@
 package bon.jo.test
 
-import org.scalajs.dom.document
+import org.scalajs.dom.{DOMList, document}
 import org.scalajs.dom.raw.{DOMTokenList, HTMLCollection, HTMLElement, Node, Text}
 
 import scala.language.dynamics
 
 object HTMLDef {
+  implicit class DomlistOps[T](domList : DOMList[T]) extends Iterable[T]{
+    override def iterator: Iterator[T] = new Iterator[T] {
+      val l = domList.length
+      var _index =0
+      override def hasNext: Boolean = _index < l
+
+      override def next(): T = {
+        val ret = domList.item(_index)
+        _index += 1
+        ret
+      }
+    }
+  }
   implicit class HtmlOps[T <: HTMLElement](t: T) {
 
     object $classSelect extends scala.Dynamic {
@@ -14,7 +27,7 @@ object HTMLDef {
 
       def selectDynamic(clSel: String): HTMLCollection = apply(clSel)
     }
-    def _class: DOMTokenList = t.classList
+    def _class: String = t.classList.mkString(" ")
     def _class_=(s: String): Unit = {
       s.split(" ").foreach(t.classList.add)
     }
@@ -52,43 +65,34 @@ object HTMLDef {
 
   }
 
-  import scala.language.dynamics
-
   object $c extends scala.Dynamic {
     def selectDynamic[T <: HTMLElement](tagName: String): T = {
-      val ret = document.createElement(tagName).asInstanceOf[T]
-
-      ret
+      document.createElement(tagName).asInstanceOf[T]
     }
   }
 
   object $ref extends scala.Dynamic {
-
-    //def selectDynamic[T <: HTMLElement](tagName: String): T = document.createElement(tagName).asInstanceOf[T]
-
     def applyDynamic(tagName: String)(d: HTMLElement => Unit): HTMLElement = {
-      val ret = document.createElement(tagName).asInstanceOf[HTMLElement]
+      val ret = $c.selectDynamic[HTMLElement](tagName)
       d(ret)
       ret
     }
-  }
-
-  object $ref_t extends scala.Dynamic {
-
-    //def selectDynamic[T <: HTMLElement](tagName: String): T = document.createElement(tagName).asInstanceOf[T]
-
-    def applyDynamic[T <: HTMLElement](tagName: String)(d: T => Unit): T = {
-      val ret = document.createElement(tagName).asInstanceOf[T]
-      d(ret)
-      ret
+    object t extends scala.Dynamic {
+      def applyDynamic[T <: HTMLElement](tagName: String)(d: T => Unit): T = {
+        val ret = $c.selectDynamic[T](tagName)
+        d(ret)
+        ret
+      }
     }
   }
+
+
 
   object $t extends scala.Dynamic {
     def apply(str: String): Text = document.createTextNode(str)
 
     def applyDynamic(tagName: String)(textContent: String): HTMLElement = {
-      val ret = document.createElement(tagName).asInstanceOf[HTMLElement]
+      val ret = $c.selectDynamic[HTMLElement](tagName)
       ret.textContent = textContent
       ret
     }
@@ -96,52 +100,48 @@ object HTMLDef {
 
   object $va extends scala.Dynamic {
     def applyDynamic(tagName: String)(htmlL: Node*): HTMLElement = {
-      val ret = document.createElement(tagName).asInstanceOf[HTMLElement]
+      val ret = $c.selectDynamic[HTMLElement](tagName)
       htmlL.foreach(ret.appendChild)
       ret
+    }
+    object t extends scala.Dynamic {
+      def applyDynamic[T <: HTMLElement](tagName: String)(htmlL: Node*): T = {
+        val ret = $c.selectDynamic[T](tagName)
+        htmlL.foreach(ret.appendChild)
+        ret
+      }
+
     }
 
   }
 
   object $attr extends scala.Dynamic {
     def applyDynamic(tagName: String)(htmlL: (Any, Any)*): HTMLElement = {
-      val ret = document.createElement(tagName).asInstanceOf[HTMLElement]
-      ret.$attr(htmlL: _ *)
-      ret
+      $c.selectDynamic[HTMLElement](tagName).$attr(htmlL: _ *)
     }
 
     object t extends scala.Dynamic {
       def applyDynamic[T <: HTMLElement](tagName: String)(htmlL: (Any, Any)*): T = {
-        val ret = document.createElement(tagName).asInstanceOf[T]
-        ret.$attr(htmlL: _ *)
-        ret
+        $c.selectDynamic[T](tagName).$attr(htmlL: _ *)
       }
     }
 
   }
 
-  object $va_t extends scala.Dynamic {
-    def applyDynamic[T <: HTMLElement](tagName: String)(htmlL: Node*): T = {
-      val ret = document.createElement(tagName).asInstanceOf[T]
-      htmlL.foreach(ret.appendChild)
-      ret
-    }
 
-  }
 
   object $l extends scala.Dynamic {
     def applyDynamic(tagName: String)(htmlL: Iterable[Node]): HTMLElement = {
-      val ret = document.createElement(tagName).asInstanceOf[HTMLElement]
+      val ret =  $c.selectDynamic[HTMLElement](tagName)
       htmlL.foreach(ret.appendChild)
       ret
     }
-  }
-
-  object $l_t extends scala.Dynamic {
-    def applyDynamic[T <: HTMLElement](tagName: String)(htmlL: Iterable[Node]): T = {
-      val ret = document.createElement(tagName).asInstanceOf[T]
-      htmlL.foreach(ret.appendChild)
-      ret
+    object t extends scala.Dynamic {
+      def applyDynamic[T <: HTMLElement](tagName: String)(htmlL: Iterable[Node]): T = {
+        val ret = $c.selectDynamic[T](tagName)
+        htmlL.foreach(ret.appendChild)
+        ret
+      }
     }
   }
 

@@ -3,7 +3,7 @@ package bon.jo.test
 
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Entities.{KeyWord, Memo, MemoKeywords, MemoType}
-import bon.jo.test.HTMLDef.{$attr, $c, $l, $l_t, $ref, $t, $va, HtmlOps}
+import bon.jo.test.HTMLDef.{$attr, $c, $l, $ref, $t, $va, HtmlOps}
 import bon.jo.test.HtmlRep._
 import bon.jo.test.MemoLists.MemoListJS
 import org.scalajs.dom.html.{Anchor, Div, Input, Span, Button}
@@ -110,7 +110,7 @@ class ViewsDef() {
 
   class MKCpnt(memo: MemoKeywords, lisCpnt: MemoListView) {
 
-    val kwDiv: Div = $l_t div memo.keyWords.html
+    val kwDiv: Div = $l.t div memo.keyWords.html
     var l: List[HTMLElement] = List(memo.memo.htmlp(Some(lisCpnt)),
       $t h3 "tags", kwDiv
     )
@@ -127,7 +127,7 @@ class ViewsDef() {
           edit._class = "btn-edit btn btn-primary"
       })
     }
-    val html: Div = $l_t div l
+    val html: Div = $l.t div l
 
 
   }

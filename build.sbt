@@ -8,7 +8,8 @@ enablePlugins(ScalaJSPlugin)
 val sharedSettings = Seq(version := "0.1.1-SNAPSHOT",
   organization := "bon.jo",
   scalaVersion := "2.13.4",
-  libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % "test"
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % "test",
+  scalacOptions ++= Seq("-deprecation", "-feature")
 )
 name := "memo"
 // or any other Scala version >= 2.11.12

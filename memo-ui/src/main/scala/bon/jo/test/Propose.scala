@@ -1,26 +1,17 @@
 package bon.jo.test
 
-import bon.jo.html.HtmlEventDef._
 import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
-import bon.jo.memo.Dao.Id
-import bon.jo.test.HTMLDef.{$l, $t, $va_t, HtmlOps}
+import bon.jo.html.HtmlEventDef._
+import bon.jo.test.HTMLDef.{$l, $va, HtmlOps}
 import bon.jo.test.HtmlRep.ListRep
 import org.scalajs.dom.html.{Button, Div}
-import org.scalajs.dom.{console, raw, window}
-import org.scalajs.dom.raw.{Event, HTMLElement, Node}
+import org.scalajs.dom.raw
+import org.scalajs.dom.raw.{HTMLElement, Node}
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
-import scala.scalajs.js
-import scala.scalajs.js.annotation.JSGlobal
 
-@js.native
-@JSGlobal("$")
-object jquery extends scalajs.js.Any {
-  def apply(str: String): scalajs.js.Dynamic = js.native
 
-  def apply(str: scalajs.js.Any): scalajs.js.Dynamic = js.native
-}
 
 class Propose[A: HtmlRep, B <: raw.HTMLElement](
                                                  list: mutable.ListBuffer[A]
@@ -58,7 +49,7 @@ class Propose[A: HtmlRep, B <: raw.HTMLElement](
   }
 
   def html: Div = {
-    val div: Div = $va_t div(ioHtml.html, btn, seleO)
+    val div: Div = $va.t div(ioHtml.html, btn, seleO)
 
     div
   }

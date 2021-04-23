@@ -1,7 +1,8 @@
 package bon.jo.test
 
-import bon.jo.html.DomShell.{$, $c}
+import bon.jo.html.DomShell.$
 import bon.jo.html.HtmlEventDef.ExH
+import bon.jo.test.HTMLDef.{$ref, $t, $va}
 import org.scalajs.dom.document
 import org.scalajs.dom.html.{Button, Div}
 import org.scalajs.dom.raw.HTMLElement
@@ -28,12 +29,13 @@ object PopUp {
         </div>
       </div>
 
-      val htmlNode = $c[Div](xml)
+      val btn = ViewsDef.closeBtn
+      val htmlNode : Div = $va.t div ($t(message),  $va.t div btn)
       htmlNode.style.position = "fixed"
       htmlNode.style.right = "10em"
       htmlNode.style.top = "2em"
       show(htmlNode)
-      $[Button]("pidb").$click { _ => hide(htmlNode) }
+      btn.$click { _ => hide(htmlNode) }
     }
 
   }

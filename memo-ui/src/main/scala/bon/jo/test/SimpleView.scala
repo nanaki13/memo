@@ -1,19 +1,15 @@
 package bon.jo.test
 
+import bon.jo.html.DomShell.ExtendedHTMLCollection
+import bon.jo.memo.Entities
+import bon.jo.test.HTMLDef.{$c, $l, $ref, $t, $va, HtmlOps}
+import bon.jo.test.HtmlRep._
+import bon.jo.test.SimpleView._
 import org.scalajs.dom.html.{Button, Div, Input, Select, TextArea}
+import org.scalajs.dom.raw
 import org.scalajs.dom.raw.{HTMLElement, HTMLOptionElement}
 
 import scala.collection.mutable.ListBuffer
-import scala.xml.{Elem, Node}
-import HtmlRep._
-import SimpleView._
-import bon.jo.html.DomShell.ExtendedHTMLCollection
-import bon.jo.memo.Dao.Id
-import bon.jo.memo.Entities
-import bon.jo.test.HTMLDef.{$c, $l, $l_t, $ref, $ref_t, $t, $va, $va_t, HtmlOps}
-import org.scalajs.dom.raw
-
-import scala.concurrent.Future
 
 object SimpleView {
   implicit class DSelect(self: Select) {
@@ -23,14 +19,14 @@ object SimpleView {
     def select(v: String): Unit = self.getElementsByTagName("option").map(_.asInstanceOf[HTMLOptionElement]).filter(_.value == v).foreach(_.selected = true)
   }
 
-  def i(classCss: String = "form-control"): Input = ($ref_t input {
+  def i(classCss: String = "form-control"): Input = ($ref.t input {
     r : Input => r._class = classCss
   })
 
   def i: Input = i()
 
   //def ta: TextArea = DomCpnt[TextArea](<textarea  cols="150"  rows="51" ></textarea>)
-  def ta: TextArea = $ref_t textarea { t: TextArea => t.cols = 150; t.rows = 10 }
+  def ta: TextArea = $ref.t textarea { t: TextArea => t.cols = 150; t.rows = 10 }
 
   def b(title: String): Button = ($t button title).$to
 
@@ -57,7 +53,7 @@ abstract class SimpleView[A,P](creationHtml: () => HTMLElement)(implicit v : Xml
   val listHtml: Div = $c.div
 
   val btnInput: Button = b("ajouter")
-  val cpnt: Div = $va_t div( listHtml,creationHtml(),btnInput)
+  val cpnt: Div = $va.t div( listHtml,creationHtml(),btnInput)
 
 
   def +=(p: A,pp:Option[P]): ListBuffer[A] = {

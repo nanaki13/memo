@@ -4,7 +4,7 @@ import bon.jo.html.DomShell.{$, ExtendedElement, ExtendedHTMLCollection}
 import bon.jo.html.GenId
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Dao.Id
-import bon.jo.test.HTMLDef.{$c, $ref, $ref_t, $va, HtmlOps}
+import bon.jo.test.HTMLDef.{$c, $ref, $va, HtmlOps}
 import bon.jo.test.MemoLists.{ListElement, ListElementJS, MemoList, MemoListJS}
 import org.scalajs.dom.html.{Div, Element, Input, Span}
 import org.scalajs.dom.{console, raw}
@@ -29,7 +29,7 @@ class MemoListView() extends GenId {
   }
 
   def checkInput: Input = {
-    $ref_t input ((r: Input) => {
+    $ref.t input ((r: Input) => {
       r._class = ckeckClass
       r.`type` = "checkbox"
     })
@@ -60,7 +60,7 @@ class MemoListView() extends GenId {
   }
 
 
-  private val list : HTMLUListElement = $ref_t ul {
+  private val list : HTMLUListElement = $ref.t ul {
     lUl : HTMLUListElement =>
       lUl.id = id + "l"
   }
