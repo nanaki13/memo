@@ -1,13 +1,14 @@
-package bon.jo.memo
+import bon.jo.memo.{DBProfile, Entities, KeyWordDaoImpl, MemoDBImpl}
 
 import scala.concurrent.{Await, ExecutionContext, Future, duration}
 
 object test2 extends App {
   type DB = DBProfile with MemoDBImpl
-  implicit val db : DB= DBProfile.value
+  implicit val db: DB = DBProfile.value
 
   val dao = new KeyWordDaoImpl()
-  def run(implicit executionContext: ExecutionContext): Unit ={
+
+  def run(implicit executionContext: ExecutionContext): Unit = {
     db.create
 
     val fut = dao create Entities.KeyWord(None, "toto") flatMap {
@@ -21,7 +22,6 @@ object test2 extends App {
     }
     Await.result(fut, duration.Duration.Inf)
   }
-
 
 
 }

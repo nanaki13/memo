@@ -1,16 +1,15 @@
 package bon.jo.test
 
-import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
+import bon.jo.html.DomShell.{ExtendedElement, ExtendedElmt, ExtendedHTMLCollection}
 import bon.jo.html.HtmlEventDef._
-import bon.jo.test.HTMLDef.{$l, $va, HtmlOps}
+import bon.jo.test.HTMLDef.{$attr, $attrns, $l, $ref, $refns, $va, HtmlOps}
 import bon.jo.test.HtmlRep.ListRep
 import org.scalajs.dom.html.{Button, Div}
 import org.scalajs.dom.raw
-import org.scalajs.dom.raw.{HTMLElement, Node}
+import org.scalajs.dom.raw.{Element, HTMLElement, Node}
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
-
 
 
 class Propose[A: HtmlRep, B <: raw.HTMLElement](
@@ -35,22 +34,28 @@ class Propose[A: HtmlRep, B <: raw.HTMLElement](
     list.addAll(a)
   }
 
+
   val btn: Button = {
     val et = SimpleView.b("add")
     et._class = "btn btn-primary"
     et
   }
+
+
   private val seleO = {
     val l = $l div (list.html.toList)
-    l.$attr("data-toggle" -> "tooltip", "data-delay" -> "500",
-      "title" -> "Cliquer sur un tags pour l'ajouter au memo", "data-placement" -> "left")
-    jquery(l).tooltip()
-    l
+    l.$attr( "class" -> "w-25")
   }
 
+  val help: Element = {
+    val r = ViewsDef.help.$attr("data-toggle" -> "tooltip", "data-delay" -> "500",
+      "title" -> "Cliquer sur un tags pour l'ajouter au memo")
+    r.show(false)
+    jquery(r).tooltip()
+    r
+  }
   def html: Div = {
-    val div: Div = $va.t div(ioHtml.html, btn, seleO)
-
+    val div: Div = $va.t div(ioHtml.html, btn, $va div (help, seleO))
     div
   }
 
@@ -78,14 +83,15 @@ class Propose[A: HtmlRep, B <: raw.HTMLElement](
 
   def doFilter(filter: A => Boolean): Unit = {
 
-    (list zip seleO.children).foreach(a => {
+   val s =  (list zip seleO.children).map(a => {
       val h = a._2.asInstanceOf[HTMLElement]
       if (filter(a._1)) {
-        h.show(true)
+        h.show(true);1
       } else {
-        h.show(false)
+        h.show(false);0
       }
-    })
+    }).sum
+    help.show(s > 0)
   }
 }
 

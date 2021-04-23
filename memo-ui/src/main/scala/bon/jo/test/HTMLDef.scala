@@ -1,6 +1,6 @@
 package bon.jo.test
 
-import org.scalajs.dom.{DOMList, document}
+import org.scalajs.dom.{DOMList, Element, document}
 import org.scalajs.dom.raw.{DOMTokenList, HTMLCollection, HTMLElement, Node, Text}
 
 import scala.language.dynamics
@@ -19,7 +19,7 @@ object HTMLDef {
       }
     }
   }
-  implicit class HtmlOps[T <: HTMLElement](t: T) {
+  implicit class HtmlOps[T <: Element](t: T) {
 
     object $classSelect extends scala.Dynamic {
 
@@ -85,8 +85,37 @@ object HTMLDef {
       }
     }
   }
+  object $refns extends scala.Dynamic {
+    def applyDynamic(tagName: String)(ns : String,d: Element => Unit): Element = {
+      val ret = document.createElementNS(ns,tagName)
+      d(ret)
+      ret
+    }
+    object t extends scala.Dynamic {
+      def applyDynamic[T <: Element](tagName: String)(ns : String,d: T => Unit): T = {
+        val ret = document.createElementNS(ns,tagName).asInstanceOf[T]
+        d(ret)
+        ret
+      }
+    }
+  }
+  object $attrns extends scala.Dynamic {
+    def applyDynamic(tagName: String)(ns : String,htmlL: (Any, Any)*): Element = {
+      document.createElementNS(ns,tagName).$attr(htmlL: _ *)
+    }
+  }
 
+  object $attr extends scala.Dynamic {
+    def applyDynamic(tagName: String)(htmlL: (Any, Any)*): HTMLElement = {
+      $c.selectDynamic[HTMLElement](tagName).$attr(htmlL: _ *)
+    }
 
+    object t extends scala.Dynamic {
+      def applyDynamic[T <: HTMLElement](tagName: String)(htmlL: (Any, Any)*): T = {
+        $c.selectDynamic[T](tagName).$attr(htmlL: _ *)
+      }
+    }
+  }
 
   object $t extends scala.Dynamic {
     def apply(str: String): Text = document.createTextNode(str)
@@ -114,21 +143,6 @@ object HTMLDef {
     }
 
   }
-
-  object $attr extends scala.Dynamic {
-    def applyDynamic(tagName: String)(htmlL: (Any, Any)*): HTMLElement = {
-      $c.selectDynamic[HTMLElement](tagName).$attr(htmlL: _ *)
-    }
-
-    object t extends scala.Dynamic {
-      def applyDynamic[T <: HTMLElement](tagName: String)(htmlL: (Any, Any)*): T = {
-        $c.selectDynamic[T](tagName).$attr(htmlL: _ *)
-      }
-    }
-
-  }
-
-
 
   object $l extends scala.Dynamic {
     def applyDynamic(tagName: String)(htmlL: Iterable[Node]): HTMLElement = {

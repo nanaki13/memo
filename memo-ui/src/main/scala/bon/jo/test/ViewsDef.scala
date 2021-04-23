@@ -3,12 +3,11 @@ package bon.jo.test
 
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Entities.{KeyWord, Memo, MemoKeywords, MemoType}
-import bon.jo.test.HTMLDef.{$attr, $c, $l, $ref, $t, $va, HtmlOps}
+import bon.jo.test.HTMLDef.{$attr, $attrns, $c, $l, $ref, $refns, $t, $va, HtmlOps}
 import bon.jo.test.HtmlRep._
 import bon.jo.test.MemoLists.MemoListJS
-import org.scalajs.dom.html.{Anchor, Div, Input, Span, Button}
-import org.scalajs.dom.raw.HTMLElement
-
+import org.scalajs.dom.html.{Anchor, Button, Div, Input, Span}
+import org.scalajs.dom.raw.{Element, HTMLElement}
 
 import scala.:+
 import scala.collection.mutable
@@ -23,14 +22,14 @@ object ViewsDef {
 
   def kwIO() = new IOHtml[Input, KeyWord]($c.input: Input, input => KeyWord(None, input.value))
 
-  class ProposeInput[A](strF: A => String,textCreer : String)(
+  class ProposeInput[A](strF: A => String, textCreer: String)(
     list: mutable.ListBuffer[A]
     , override val ioHtml: IOHtml[Input, A]
     , save: A => Future[Option[A]],
     sel: A => Unit
   )(implicit executionContext: ExecutionContext, htmlRep: HtmlRep[A])
     extends Propose[A, Input](list, ioHtml, save, sel) {
-    btn.textContent=textCreer
+    btn.textContent = textCreer
     ioHtml.html.$keyup {
       v =>
         doFilter(ioHtml.html.value.trim.nonEmpty && strF(_).toLowerCase.contains(ioHtml.html.value.toLowerCase))
@@ -38,10 +37,25 @@ object ViewsDef {
   }
 
   val closeClass = "closeClass"
+
   def closeBtn: Span = {
     (($attr span("type" -> "button", "class" -> s"badge badge-secondary $closeClass", "aria-label" -> "Close")) +=
       $t("×")
       ).$to
+  }
+
+  val svgNs = "http://www.w3.org/2000/svg"
+
+  def help: Element = {
+
+    (
+      $refns.svg(svgNs, { svg: Element =>
+        svg.$attr("width" -> "16", "height" -> "16", "fill" -> "currentColor",
+          "class" -> "bi bi-question-circle", "viewBox" -> "0 0 16 16") ++= (
+          $attrns path(svgNs, "d" -> "M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z")
+          , $attrns path(svgNs, "d" -> "M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z")
+        )
+      }))
   }
 }
 
@@ -101,11 +115,10 @@ class ViewsDef() {
         kw.value
       }
       ret._class = s"badge badge-primary ${ViewsDef.kwClass}"
-      ret +=  ViewsDef.closeBtn
+      ret += ViewsDef.closeBtn
 
 
   }
-
 
 
   class MKCpnt(memo: MemoKeywords, lisCpnt: MemoListView) {
