@@ -29,6 +29,7 @@ object HTMLDef {
     }
     def _class: String = t.classList.mkString(" ")
     def _class_=(s: String): Unit = {
+
       s.split(" ").foreach(t.classList.add)
     }
 
@@ -58,6 +59,11 @@ object HTMLDef {
     }
 
     def ++=(childRens: Node*): T = {
+      childRens foreach +=
+      t
+    }
+
+    def ++=(childRens: List[Node]): T = {
       childRens foreach +=
       t
     }

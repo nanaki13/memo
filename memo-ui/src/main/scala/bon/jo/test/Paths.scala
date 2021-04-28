@@ -4,6 +4,7 @@ object Paths {
 
   import Routing._
 
-  val pCreationMemo: Path = "app" / "memo"
+  val pMemo: Path = "app" / "memo"
+  val pFind: Path = pMemo / "find"
   val pCreationKW: Path = "app" / "keyword"
 }

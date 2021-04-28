@@ -12,9 +12,10 @@ import org.scalajs.dom.html.{Div, Input}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 
-class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: Div, val memoKeywWordtx: MemoCtxView)
+class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: Div,
+                                val memoKeywWordtx: MemoCtxView,addMemo : (Entities.MemoKeywords)=>Unit)
                                (implicit idXmlRep: XmlRepParam[MemoKeywords, MemoListView], executionContext: ExecutionContext)
-  extends SimpleView[Entities.MemoKeywords, MemoListView](() =>
+  extends SimpleView[Entities.MemoKeywords](() =>
     $va div(
       $t span "titre",
       memoKeywWordtx.tInput,
@@ -25,19 +26,10 @@ class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: 
       listView,
       $t div "KeyWord : ",
       propose.html
-    )) {
+    ),addMemo) {
 
 
-  val searchParams = new URLSearchParams(org.scalajs.dom.window.location.search)
-  val (limit, offset) = Try {
-    (Option(searchParams.get("limit")).map(_.toInt).getOrElse(-1)
-      , Option(searchParams.get("from")).map(_.toInt).getOrElse(-1))
-  } match {
-    case Failure(_) => (-1, -1)
-    case Success(value) => value
-  }
 
-  def callService: Future[Iterable[MemoKeywords]] = Daos.memoKeyWord.readAll(limit = limit, offset = offset)
 
   def addEventNewMemoKeyWord(iterable: Iterable[KeyWord]): Unit =
 
@@ -45,7 +37,7 @@ class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: 
     btnInput.$click {
       _ => {
         val m = Entities.MemoKeywords(memoKeywWordtx.newMemo, iterable.toSet)
-        val req: Future[Unit] = Daos.memoKeyWord.create(m).map(o => o.foreach(+=(_, Some(new MemoListView()))))
+        val req: Future[Unit] = Daos.memoKeyWord.create(m).map(o => o.foreach(+=))
         req.onComplete {
           case Failure(exception) => throw (exception)
           case Success(_) =>

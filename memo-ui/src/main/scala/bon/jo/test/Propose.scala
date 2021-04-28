@@ -3,7 +3,7 @@ package bon.jo.test
 import bon.jo.html.DomShell.{ExtendedElement, ExtendedElmt, ExtendedHTMLCollection}
 import bon.jo.html.HtmlEventDef._
 import bon.jo.test.HTMLDef.{$attr, $attrns, $l, $ref, $refns, $va, HtmlOps}
-import bon.jo.test.HtmlRep.ListRep
+import bon.jo.test.HtmlRep.{HtmlCpnt, ListRep}
 import org.scalajs.dom.html.{Button, Div}
 import org.scalajs.dom.raw
 import org.scalajs.dom.raw.{Element, HTMLElement, Node}
@@ -26,25 +26,25 @@ class Propose[A: HtmlRep, B <: raw.HTMLElement](
     val l = a.iterator.toList
 
     l.foreach(b => {
-      val h = rep.html(b)
-      h.show(false)
-      seleO.appendChild(h)
-      h.$click { _ => sel(b) }
+      val h = rep.html(b).list
+      h foreach(_.show(false))
+      seleO ++= h
+      h foreach (_.$click { _ => sel(b) })
     })
     list.addAll(a)
   }
 
 
   val btn: Button = {
-    val et = SimpleView.b("add")
-    et._class = "btn btn-primary"
-    et
+    SimpleView.bsButton("add")
+
   }
 
+  def wrap(a :HtmlCpnt) =  $ref div{ d => d ++= a.list}
 
   private val seleO = {
-    val l = $l div (list.html.toList)
-    l.$attr( "class" -> "w-25")
+     $l div (list.html.toList.map{wrap})
+
   }
 
   val help: Element = {
@@ -61,12 +61,13 @@ class Propose[A: HtmlRep, B <: raw.HTMLElement](
 
   def read: Iterable[A] = list
 
-  def +=(b: A): Node = {
+  def +=(b: A): Iterable[HTMLElement] = {
     list += b
     val h = rep.html(b)
-    seleO.appendChild(h)
-    h.$click { _ => sel(b) }
-    h
+    val html = wrap(h)
+    seleO += html
+    html.$click { _ => sel(b) }
+    html.children.map(_.asInstanceOf[HTMLElement])
   }
 
   btn.$click {

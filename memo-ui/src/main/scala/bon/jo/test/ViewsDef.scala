@@ -3,13 +3,14 @@ package bon.jo.test
 
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Entities.{KeyWord, Memo, MemoKeywords, MemoType}
-import bon.jo.test.HTMLDef.{$attr, $attrns, $c, $l, $ref, $refns, $t, $va, HtmlOps}
+import HTMLDef.{$attr, $attrns, $c, $l, $ref, $refns, $t, $va, HtmlOps}
 import bon.jo.test.HtmlRep._
+import bon.jo.test.HtmlRep.HtmlCpnt._
 import bon.jo.test.MemoLists.MemoListJS
+import org.scalajs.dom.console
 import org.scalajs.dom.html.{Anchor, Button, Div, Input, Span}
 import org.scalajs.dom.raw.{Element, HTMLElement}
 
-import scala.:+
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.scalajs.js.JSON
@@ -64,108 +65,114 @@ class ViewsDef() {
 
   implicit val memoXml: XmlRepParam[Memo, MemoListView] = {
     (memo, mList) =>
-      $va div($ref h1 {
-        _ += ($ref a {
+      (() => List($ref div { h1Title =>
+        h1Title += ($ref a {
           lienTilre =>
             lienTilre._class = "a-title"
             lienTilre.textContent = memo.title
             lienTilre.asInstanceOf[Anchor].href = s"/app/memo/${memo.id.getOrElse(0)}"
         })
+        h1Title._class = "card-title"
       }
         , $ref div {
-        tpeDiv =>
-          tpeDiv._class = "m-type"
-          tpeDiv += ($t div
-            s"""Type : ${
-              memo.memoType match {
-                case MemoType.Text => "Text"
-                case MemoType.Json => "List"
+          bdy =>
+            bdy._class = "card-body"
+            bdy ++= (
+              $ref div {
+                tpeDiv =>
+                  tpeDiv._class = "m-type"
+                  tpeDiv += ($t div
+                    s"""Type : ${
+                      memo.memoType match {
+                        case MemoType.Text => "Text"
+                        case MemoType.Json => "List"
+                      }
+                    }""")
+
               }
-            }""")
+              ,
+              $ref div {
+                cnt =>
+                  cnt._class = "m-content"
 
-      }
-        , $t h2 "Contenu",
-        $ref div {
-          cnt =>
-            cnt._class = "m-content"
+                  memo.memoType match {
+                    case MemoType.Text => cnt.textContent = memo.content
+                    case MemoType.Json =>
+                      Try {
+                        mList.foreach(ml => {
+                          ml.data = JSON.parse(memo.content).asInstanceOf[MemoListJS]
 
-            memo.memoType match {
-              case MemoType.Text => cnt.textContent = memo.content
-              case MemoType.Json =>
-                Try {
-                  mList.foreach(ml => {
-                    ml.data = JSON.parse(memo.content).asInstanceOf[MemoListJS]
+                          cnt += ml.html
+                          ml.addEvent()
+                        })
 
-                    cnt += ml.html
-                    ml.addEvent()
-                  })
+                        mList
+                      } match {
+                        case Failure(a) => s"Erreur en traitant : ${memo.content}\n$a"
+                        case Success(value) => value.toString()
+                      }
+                  }
+              }
 
-                  mList
-                } match {
-                  case Failure(a) => s"Erreur en traitant : ${memo.content}\n$a"
-                  case Success(value) => value.toString()
-                }
-            }
-        }
-      )
+            )
+        })
+        ).toHtmlCpnt
   }
   implicit val keyWord: HtmlRep[KeyWord] = HtmlRep {
     (kw) =>
       val ret = $t span {
         kw.value
       }
-      ret._class = s"badge badge-primary ${ViewsDef.kwClass}"
+      ret._class = s"badge badge-primary m-1 ${ViewsDef.kwClass}"
       ret += ViewsDef.closeBtn
-
+      (() => (ret)).toHtmlCpnt
 
   }
 
 
-  class MKCpnt(memo: MemoKeywords, lisCpnt: MemoListView) {
+  class MKCpnt(memo: MemoKeywords, lisCpnt: MemoListView) extends HtmlCpnt {
 
-    val kwDiv: Div = $l.t div memo.keyWords.html
-    var l: List[HTMLElement] = List(memo.memo.htmlp(Some(lisCpnt)),
-      $t h3 "tags", kwDiv
-    )
-    memo.memo.memoType match {
-      case MemoType.Json =>
-        l = l :+ ($ref button {
-          save =>
-            save.textContent = "save"
-            save._class = "btn-save btn btn-primary"
-        })
-      case MemoType.Text => l = l :+ ($ref button {
-        edit =>
-          edit.textContent = "edit"
-          edit._class = "btn-edit btn btn-primary"
-      })
+    val kwDiv: Div = $l.t div memo.keyWords.html.flatMap(_.list)
+    val footer = $ref div {
+      ff =>
+        ff._class = "card-footer"
+        ff ++= ($t h3 "tags", kwDiv)
+        memo.memo.memoType match {
+          case MemoType.Json =>
+            ff += ($ref button {
+              save =>
+                save.textContent = "save"
+                save._class = "btn-save btn btn-primary"
+            })
+          case MemoType.Text => ff += ($ref button {
+            edit =>
+              edit.textContent = "edit"
+              edit._class = "btn-edit btn btn-primary"
+          })
+        }
+
     }
-    val html: Div = $l.t div l
+    var l: List[HTMLElement] = memo.memo.htmlp(Some(lisCpnt)).list :+ footer
+
+
+    //      scalajs.js.special.debugger()
+    //      console.log(ret)
+    //      ret
+    def get: List[HTMLElement] = l
+    // html._class = "card-body"
 
 
   }
+
 
   implicit val memoKeyWordXml: XmlRepParam[MemoKeywords, MemoListView] = {
 
 
     (memo, lisCpnt) => {
-      var l: List[HTMLElement] = List(memo.memo.htmlp(lisCpnt),
-        $t h3 "tags", $l div memo.keyWords.html
-      )
-      memo.memo.memoType match {
-        case MemoType.Json =>
-          l = l :+ ($ref button {
-            save =>
-              save.textContent = "save"
-              save._class = "btn-save btn btn-primary"
-          })
-        case MemoType.Text => l = l :+ ($ref button {
-          edit =>
-            edit.textContent = "edit"
-            edit._class = "btn-edit btn btn-primary"
-        })
-      }
-      $l div l
+      (lisCpnt.map { lisCp =>
+        (new MKCpnt(memo, lisCp))
+      } getOrElse (() => Nil).toHtmlCpnt)
+
     }
 
   }

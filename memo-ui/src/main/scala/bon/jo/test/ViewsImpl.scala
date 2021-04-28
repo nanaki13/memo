@@ -4,8 +4,9 @@ import bon.jo.html.HtmlEventDef._
 import bon.jo.memo.Entities
 import bon.jo.memo.Entities.KeyWord
 import bon.jo.test.HTMLDef._
+import bon.jo.test.HtmlRep.PrXmlId
 import bon.jo.test.SimpleView.i
-import org.scalajs.dom.html.Input
+import org.scalajs.dom.html.{Div, Input}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
@@ -16,27 +17,16 @@ import scala.util.{Failure, Success}
 
 
 class ViewsImpl(implicit executionContext: ExecutionContext) {
-//  implicit val idMemo: Id[Entities.Memo] = m => "m" + m.id.getOrElse(m.title)
-//  implicit val idK: Id[KeyWord] = m => "k" + m.id.getOrElse(m.value)
-//  implicit val idMemoKw: Id[Entities.MemoKeywords] = m => "mk" + m.memo.id.getOrElse(m.memo.title)
+
 
   val viewsDef: ViewsDef = ViewsDef()
 
   import viewsDef.keyWord
 
-  object mCtx extends MemoCtxView
-
-
-  val keywWordI: Input = i
-
-  object keyWordView extends SimpleView[Entities.KeyWord,Nothing](() => $va div ($va span($t("titre :")
-    , keywWordI))) {
-//    def fillFromService: Future[Iterable[KeyWord]] = Daos.keyWordDao.readAll()
-//      .map(m => {
-//        m.foreach(+=)
-//        m
-//      })
-  }
+   val keywWordI: Input = i
+  val kewWordDiv: Div = $c.div[Div]
+  object keyWordView extends SimpleView[Entities.KeyWord](() => $va div ($va span($t("titre :")
+    , keywWordI)), (kw)=> kewWordDiv ++= kw.html.list )
 
   def addKwEvent: Unit =
     keyWordView.btnInput.$click{ _=>

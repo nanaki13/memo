@@ -20,15 +20,29 @@ object SimpleView {
   }
 
   def i(classCss: String = "form-control"): Input = ($ref.t input {
-    r : Input => r._class = classCss
+    r: Input => r._class = classCss
   })
 
   def i: Input = i()
 
   //def ta: TextArea = DomCpnt[TextArea](<textarea  cols="150"  rows="51" ></textarea>)
-  def ta: TextArea = $ref.t textarea { t: TextArea => t.cols = 150; t.rows = 10 }
+  def ta: TextArea = $ref.t textarea { t: TextArea => t.rows = 10; t._class = "w-100" }
 
   def b(title: String): Button = ($t button title).$to
+
+  sealed trait BsModifier{
+    def name : String = toString.toLowerCase()
+  }
+  object BsModifier{
+    case object Primary extends BsModifier
+    case object Secondary extends BsModifier
+  }
+
+  def bsButton(title: String,mod : BsModifier = BsModifier.Primary): Button = {
+    val et = SimpleView.b(title)
+    et._class = s"btn btn-${mod.name}"
+    et
+  }
 
   def s[A](elemnts: Iterable[A])(implicit kv: (A => String, A => String)): Select =
 
@@ -45,20 +59,20 @@ object SimpleView {
   def s[A](implicit elemnts: Entities.EnumComp[A]): Select = s(elemnts.values)((k => k.toString, a => a.toString))
 }
 
-abstract class SimpleView[A,P](creationHtml: () => HTMLElement)(implicit v : XmlRepParam[A,P]) {
+abstract class SimpleView[A](creationHtml: () => HTMLElement, val addImpl: (A) => Unit) {
 
-//  def fillFromService: Future[Iterable[A]]
+  //  def fillFromService: Future[Iterable[A]]
 
-  val as: ListBuffer[A] = ListBuffer()
-  val listHtml: Div = $c.div
+  // val as: ListBuffer[A] = ListBuffer()
+  // val listHtml: Div = $c.div
 
-  val btnInput: Button = b("ajouter")
-  val cpnt: Div = $va.t div( listHtml,creationHtml(),btnInput)
+  val btnInput: Button = bsButton("ajouter")
+  val cpnt: Div = $va.t div(creationHtml(), btnInput)
 
 
-  def +=(p: A,pp:Option[P]): ListBuffer[A] = {
-    listHtml.appendChild(p.htmlp(pp))
-    as += p
+  def +=(p: A): Unit = {
+    addImpl(p)
+    // as += p
   }
-  def +=(p: A): ListBuffer[A] = +=(p,None)
+
 }

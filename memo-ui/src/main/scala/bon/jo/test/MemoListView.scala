@@ -10,7 +10,7 @@ import org.scalajs.dom.html.{Div, Element, Input, Span}
 import org.scalajs.dom.{console, raw}
 import org.scalajs.dom.raw.{HTMLElement, HTMLUListElement}
 import HtmlRep._
-
+import HtmlRep.HtmlCpnt._
 import scalajs.js.JSConverters._
 class MemoListView() extends GenId {
   var data: MemoListJS = new MemoList(Nil.toJSArray)
@@ -37,7 +37,7 @@ class MemoListView() extends GenId {
 
   implicit val listElementidXmlRep: HtmlRep[ListElementJS] = HtmlRep{
     (li) =>
-      $va li( {
+      (()=> $va li( {
         val inp: Input = checkInput
         inp.checked = li.checked
         inp
@@ -50,12 +50,12 @@ class MemoListView() extends GenId {
         val s = ViewsDef.closeBtn
         s._class += s" $deleteClass"
         s
-      })
+      })).toHtmlCpnt
   }
   implicit val idXmlRep: HtmlRep[MemoListJS] = HtmlRep{
     m =>  {
-        m.elements.toList.html.foreach(list += _)
-      list
+        m.elements.toList.html.foreach(list ++= _.list)
+      (() => list).toHtmlCpnt
     }
   }
 
@@ -68,12 +68,13 @@ class MemoListView() extends GenId {
   lazy val html: Div = ($ref div { d =>
     d.id = id
     d._class = "form-group"
-    d ++= (
+    val ll = List(
       $ref label {
         l =>
           l.$attr(("for", tInput.id))
-      }, tInput, data.html
-    )
+      }, tInput
+    ) :++ ( data.html.get)
+    d ++= ll
   }).$to
 
 
@@ -86,10 +87,10 @@ class MemoListView() extends GenId {
     val ev = tInput
     ev.$Action {
       val el: ListElementJS = new ListElement(tInput.value, true)
-      val htmlN = el.newHtml
-      list.appendChild(htmlN)
+      val htmlN = el.html.list
+      list ++= htmlN
 
-       del(htmlN)
+      htmlN.foreach(del)
       tInput.value = ""
     }
     ev.$keyup {

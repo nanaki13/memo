@@ -1,7 +1,7 @@
 package bon.jo.test
 
 import bon.jo.memo.Dao.Id
-import bon.jo.test.HtmlRep.XmlRepParam
+import bon.jo.test.HtmlRep.{HtmlCpnt, XmlRepParam}
 import org.scalajs.dom.raw
 import org.scalajs.dom.raw.HTMLElement
 
@@ -9,35 +9,51 @@ import org.scalajs.dom.raw.HTMLElement
 
 object HtmlRep {
 
-  def apply[A](f : A => HTMLElement):HtmlRep[A] = (a,_)=>f(a)
+  def apply[A](f : A => HtmlCpnt):HtmlRep[A] = (a,_)=>f(a)
 
   implicit class ListRep[A: HtmlRep](seq: Iterable[A]) {
-    def html: Iterable[HTMLElement] = seq.map(_.html)
+    def html: Iterable[HtmlCpnt] = seq.map(_.html)
   }
 
   implicit class PrXmlId[B](b: B) {
-    def newHtml(implicit id: Id[B], v: HtmlRep[B]): raw.HTMLElement = {
-      val ret = html
-      ret.id = id.apply(b).toString
-      ret
-    }
 
+    def html(implicit v: HtmlRep[B]): HtmlCpnt = implicitly[HtmlRep[B]].html(b)
 
-    def html(implicit v: HtmlRep[B]): HTMLElement = implicitly[HtmlRep[B]].html(b)
-
-    def htmlp[P](p: Option[P])(implicit v: XmlRepParam[B, P]): HTMLElement = v.html(b, p)
-
+    def htmlp[P](p: Option[P])(implicit v: XmlRepParam[B, P]): HtmlCpnt = v.html(b, p)
   }
 
 
   trait XmlRepParam[A, P] {
 
-    def html(memo: A, p: Option[P]): HTMLElement
+    def html(memo: A, p: Option[P]): HtmlCpnt
 
+  }
+
+  trait HtmlCpnt{
+    def get : IterableOnce[HTMLElement]
+    def list: List[HTMLElement] = get.iterator.toList
+    def head: HTMLElement = list.head
+  }
+  object HtmlCpnt{
+    def apply[T <: IterableOnce[HTMLElement]](f : ()=>T) : HtmlCpnt = {
+      new HtmlCpnt {
+        override def get: IterableOnce[HTMLElement] = f()
+      }
+    }
+    implicit class FToHtmlCpnt[T <:HTMLElement](f : () =>T){
+        def toHtmlCpnt: HtmlCpnt = {
+          HtmlCpnt.apply[Some[HTMLElement]](() => Some(f()))
+        }
+    }
+    implicit class FLToHtmlCpnt[T <:IterableOnce[HTMLElement]](f : () =>T){
+      def toHtmlCpnt: HtmlCpnt = {
+        HtmlCpnt.apply[IterableOnce[HTMLElement]](() => f())
+      }
+    }
   }
 }
 
 trait HtmlRep[A] extends XmlRepParam[A, Nothing] {
-  def html(memo: A): HTMLElement = html(memo, None)
+  def html(memo: A): HtmlCpnt = html(memo, None)
 }
 
