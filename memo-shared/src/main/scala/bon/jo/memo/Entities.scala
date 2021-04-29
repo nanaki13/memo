@@ -7,6 +7,13 @@ object Entities {
     def this(title: String, content: String, memoType: MemoType) = this(None, title, content, memoType)
   }
 
+  object MemoS {
+    def tupled_(memo: Memo): Option[(Option[Int], String, String, String)] = Memo.unapply(memo).map{z =>
+      (z._1,z._2,z._3,z._4.name)
+    }
+    def untupled_(z: (Option[Int], String, String, String)): Memo = Memo.tupled((z._1,z._2,z._3,MemoType(z._4)))
+  }
+// Option(memo.id,memo.title,memo.content,memo.memoType.name )
   case class KeyWord(id: Option[Int], value: String)
 
   case class MemoKeywordRel(memo: Int, keyWord: Int)
@@ -32,7 +39,7 @@ object Entities {
     def apply(string: String): MemoType = string match {
       case MemoType.Text.name => MemoType.Text
       case MemoType.Json.name => MemoType.Json
-      case _ => throw new IllegalStateException(s"no type $string")
+      case _ => println(s"no type $string");MemoType.Text
     }
 
     override def values: Iterable[MemoType] = List(Text, Json)

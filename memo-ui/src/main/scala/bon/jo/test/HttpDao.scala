@@ -1,13 +1,13 @@
 package bon.jo.test
 
-import bon.jo.app.RequestHttp.{GET, POST, DELETE, PATCH}
+import bon.jo.app.RequestHttp.{DELETE, GET, PATCH, POST}
 import bon.jo.memo.Dao
 import bon.jo.test.HttpDao.ExceptionServeur
-
 
 import scala.scalajs.js
 import scala.scalajs.js.JSON
 import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent.Future
 object HttpDao {
 
   case class ExceptionServeur(str: String, o: Int) extends Exception(str)
@@ -36,9 +36,10 @@ trait HttpDao[A, ID,JS <:  js.Any] extends Dao[A, ID] {
 
   def url(id: ID): String = s"$url/$id"
 
+  def getMany(url : String): FL = GET.send(url, headers = hearders).map(_.bodyAsJson.map(readerMany).getOrElse(Nil))
   override def read(a: ID): FO = GET.send(url(a), headers = hearders).map(_.bodyAsJson.map(_.asInstanceOf[JS]).map(readerOne))
 
-  override def readAll(limit : Int,offset : Int): FL = GET.send(s"$url?limit=$limit&offset=$offset", headers = hearders).map(_.bodyAsJson.map(readerMany).getOrElse(Nil))
+  override def readAll(limit : Int,offset : Int): FL = getMany(s"$url?limit=$limit&offset=$offset")
 
   override def delete(a: ID): FB = DELETE.sendAndMapStatus(url(a), headers = hearders) {
     case 204 => true

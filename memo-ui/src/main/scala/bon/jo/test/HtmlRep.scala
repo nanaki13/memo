@@ -1,7 +1,7 @@
 package bon.jo.test
 
 import bon.jo.memo.Dao.Id
-import bon.jo.test.HtmlRep.{HtmlCpnt, XmlRepParam}
+import bon.jo.test.HtmlRep.{HtmlCpnt, HtmlRepParam}
 import org.scalajs.dom.raw
 import org.scalajs.dom.raw.HTMLElement
 
@@ -19,11 +19,12 @@ object HtmlRep {
 
     def html(implicit v: HtmlRep[B]): HtmlCpnt = implicitly[HtmlRep[B]].html(b)
 
-    def htmlp[P](p: Option[P])(implicit v: XmlRepParam[B, P]): HtmlCpnt = v.html(b, p)
+    def htmlp[P](p: Option[P])(implicit v: HtmlRepParam[B, P]): HtmlCpnt = v.html(b, p)
+    def htmlp[P](p: P)(implicit v: HtmlRepParam[B, P]): HtmlCpnt = v.html(b, Some(p))
   }
 
 
-  trait XmlRepParam[A, P] {
+  trait HtmlRepParam[A, P] {
 
     def html(memo: A, p: Option[P]): HtmlCpnt
 
@@ -53,7 +54,7 @@ object HtmlRep {
   }
 }
 
-trait HtmlRep[A] extends XmlRepParam[A, Nothing] {
+trait HtmlRep[A] extends HtmlRepParam[A, Nothing] {
   def html(memo: A): HtmlCpnt = html(memo, None)
 }
 

@@ -12,11 +12,13 @@ import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 
-trait RestRoutes[A] extends ReqResConv[A] with CORSHandler {
+
+
+trait RestRoutes[A] extends ReqResConv[A] {
 
 
 
-  implicit val dao: Dao[A, Int]
+  val dao: Dao[A, Int]
   implicit val marshallerBoolean: ToResponseMarshaller[Boolean] = Marshaller.strict(b => Marshalling.Opaque {
     () =>
       if (b) {
@@ -32,11 +34,13 @@ trait RestRoutes[A] extends ReqResConv[A] with CORSHandler {
       f
     } {
       case Success(value) => complete(value)
-      case Failure(ex) => complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
+      case Failure(ex) => ex.printStackTrace(); complete(InternalServerError, s"An error occurred: ${ex.getMessage}")
     }
   }
+  def routes: Route = baseRoute
 
-  val routes: Route = corsHandler {
+
+  def baseRoute: Route =
     concat( path(name / IntNumber){ id =>
       concat(get {
         resolve {
@@ -82,11 +86,18 @@ trait RestRoutes[A] extends ReqResConv[A] with CORSHandler {
           }
         })
     })
-  }
+
+
+
 }
 
 object RestRoutes {
 
+  trait CustomRoute{
+    self : RestRoutes[_] =>
+    def custom : Route
+    override def routes : Route = concat(custom,baseRoute)
+  }
   case class RestRoutesImpl[A](name: String)(
                                              implicit val dao: Dao[A, Int],
                                              val formats: Formats,

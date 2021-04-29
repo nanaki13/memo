@@ -5,6 +5,7 @@ import slick.ast.{BaseTypedType, TypedType}
 import slick.jdbc.JdbcType
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.ClassTag
 
 
 trait MemoDBImpl {
@@ -13,17 +14,19 @@ trait MemoDBImpl {
   import self.profile.api._
 
   //implicit val memotTypreCv : TypedType[MemoType]
-  implicit val memoTypeCol: JdbcType[MemoType] with BaseTypedType[MemoType] = MappedColumnType.base[MemoType,String](_.toString,MemoType(_))
+
   class Memos(tag: Tag) extends Table[Memo](tag, "MEMO") {
+ //   implicit val memoTypeCol: JdbcType[MemoType] with BaseTypedType[MemoType] = MappedColumnType.base[MemoType,String](_.toString,MemoType(_))
     def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
 
     def content = column[String]("CONTENT",O.Length(1024*10))
 
     def title = column[String]("TITLE")
 
-    def memoType = column[MemoType]("MEMO_TYPE")
+    def memoType = column[String]("MEMO_TYPE")
 
-    def * = (id.?, title, content,memoType) <> (Memo.tupled, Memo.unapply)
+
+    def * = (id.?, title, content,memoType) <>[Memo] (MemoS.untupled_ ,MemoS.tupled_ )
 
     def idx = index("idx_content", content, unique = true)
   }

@@ -12,7 +12,7 @@ import bon.jo.test.Routing.IntPath
 import bon.jo.test.HtmlRep._
 import org.scalajs.dom.html.{Button, Div, Input}
 import org.scalajs.dom.raw.HTMLElement
-import org.scalajs.dom.{console, raw, window}
+import org.scalajs.dom.{console, document, raw, window}
 import HTMLDef.{$c, _}
 
 import scala.collection.mutable
@@ -22,6 +22,7 @@ import scala.scalajs.js.JSON
 import scala.util.{Failure, Success, Try}
 import scala.xml.Node
 import SimpleView.DSelect
+import bon.jo.test.FindViewDef._
 import bon.jo.test.ViewsDef.ProposeInput
 import org.scalajs.dom.experimental.URLSearchParams
 
@@ -42,7 +43,7 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
   }
 
 
-  override def xml: Node = <div id="root" class="container">
+  override def xml: Node = <div id="root" class="container mt-5 p-2">
 
   </div>
 
@@ -172,6 +173,7 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
 
     private def div = $ref div { e => e._class = "card-deck pb-1" }
 
+    def clean(): Unit = me.$classSelect("card-deck").foreach(_.removeFromDom())
     def +=(h: HTMLElement): Unit = {
       if (cnt % 3 == 0) {
         current = div
@@ -199,6 +201,7 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
           Daos.memoKeyWord.read(id).foreach {
             case Some(value) =>
               addMemo(value, allKeyWord)
+
             case None =>
           }
         case Target.FindMemo => findMemo()
@@ -241,23 +244,10 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
     memoKeywWord.addEventNewMemoKeyWord(currentKeyWord)
   }
 
-  case class FindParam(
-                        query: String
-                      )
 
-  class FindView(val findParam: FindParam) extends HtmlCpnt {
-    override def get: Iterable[HTMLElement] = List(SimpleView.i,SimpleView.bsButton("Chercher"))
-  }
-  implicit object FindViewProvider extends HtmlRep[FindParam] {
-    override def html(memo: FindParam, p: Option[Nothing]): HtmlCpnt = new FindView(memo)
-  }
-
-  def findMemo()(implicit p: HTMLElement, kws: Iterable[KeyWord]): Unit = {
-    p ++= FindParam("test").html.list
-    allMemos.onComplete {
-      case Failure(exception) => throw exception
-      case Success(d) => d.foreach(addMemo(_, kws))
-    }
+  //implicit val e: FindView.FindViewProvider.type = FindView.FindViewProvider
+  def findMemo()(implicit p: HTMLElement, kws: Iterable[KeyWord],  ec : ExecutionContext): Unit = {
+    p ++= FindParam("Chercher").htmlp(FindViewCtx(this,kws,ec)).list
   }
 
   val searchParams = new URLSearchParams(org.scalajs.dom.window.location.search)
@@ -271,6 +261,7 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
 
   def allMemos: Future[Iterable[MemoKeywords]] = Daos.memoKeyWord.readAll(limit = limit, offset = offset)
 }
+
 
 
 

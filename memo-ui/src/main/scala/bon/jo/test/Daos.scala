@@ -1,14 +1,20 @@
 package bon.jo.test
 
 import bon.jo.memo.Entities.{MemoKeywords, MemoType}
-import bon.jo.memo.{BaseRoute, Entities}
+import bon.jo.memo.{BaseRoute, Entities, MemoKWDao}
+import bon.jo.test.Daos.memoKeyWord
 import org.scalajs.dom.console
 
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters._
 import scala.language.dynamics
+import scala.scalajs.js.URIUtils.{decodeURIComponent, encodeURIComponent}
 object Daos {
 
+  implicit class UrlOps(string: String){
+    def encode: String = encodeURIComponent(string)
+    def decode: String = decodeURIComponent(string)
+  }
   trait MemoJs extends js.Object{
     val id: Int
     val title: String
@@ -65,10 +71,12 @@ object Daos {
     override val url: String = s"/${BaseRoute.keywordRoute}"
   }
 
-  object memoKeyWord extends HttpDao[Entities.MemoKeywords, Int,MemoKeywordsJs] {
+  object memoKeyWord extends HttpDao[Entities.MemoKeywords, Int,MemoKeywordsJs] with MemoKWDao {
     override val writer: Entities.MemoKeywords => MemoKeywordsJs =  MemoKeywordsJs.apply
     override val readerOne: MemoKeywordsJs => Entities.MemoKeywords =js => Entities.MemoKeywords(memoDao.readerOne(js.memo),keyWordDao.readerMany(js.keyWords).toSet)
     override val url: String = s"/${BaseRoute.memoKeyWordRoute}"
+
+    override def findByKeyWord(kws: String): FL = getMany(s"$url/${BaseRoute.find}?query=${kws.encode}")
   }
 
 

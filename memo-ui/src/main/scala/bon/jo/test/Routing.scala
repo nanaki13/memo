@@ -66,6 +66,7 @@ object Routing {
 
   implicit class PFromStr(str: String) {
     def /(o: String): Path = Path(List(str, o))
+    def  p =  Path(str :: Nil)
   }
 
   object Path {

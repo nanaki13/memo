@@ -1,18 +1,35 @@
 package bon.jo.memo
 
 
+import bon.jo.memo.Dao.StringQuery
 import bon.jo.memo.Entities.MemoKeywordRel
 
 import scala.concurrent.ExecutionContext.Implicits._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class MemoKeyWordsDaoImpl(implicit val profile: DBProfile.DB,
                           memoDaoImpl: MemoDaoImpl,
-                          keyWordDaoImpl: KeyWordDaoImpl) extends DaoImpl with Dao[Entities.MemoKeywords, Int] {
+                          keyWordDaoImpl: KeyWordDaoImpl) extends DaoImpl with MemoKWDao with  Dao[Entities.MemoKeywords, Int] with StringQuery {
 
   import profile._
   import profile.profile.api._
 
+
+  def completeMemo(m : Iterable[Entities.Memo]) = {
+    val mAp = m.map((mm)=>mm.id.get -> mm).toMap
+    val q = (keyswords join memoKeywords on (_.id === _.idKeyWord)).filter(_._2.idMemo inSet  m.flatMap(_.id)).result
+    for (f <- db.run(q)) yield {
+
+        val idOtKw: Map[Int, Seq[Entities.KeyWord]] = f.groupMap(_._2.memo)(_._1)
+      mAp.map(e =>Entities.MemoKeywords(e._2, idOtKw.getOrElse(e._1,Nil).toSet))
+
+
+
+    }
+  }
+  override def readAll(a: Iterable[Int])(implicit executionContext: ExecutionContext): FL = {
+    ???
+  }
   override def readAll(limit: Int, offset: Int): FL = {
     (for (a <- (for {
       memos <- memoDaoImpl.readAll(limit, offset)
@@ -27,6 +44,15 @@ class MemoKeyWordsDaoImpl(implicit val profile: DBProfile.DB,
   }
 
 
+  def findIdMemoQuery(idKw: Iterable[Int]): Query[Rep[Int], Int, Seq] = for{
+    k <- keyswords  if ((k.id inSet   idKw.toList) )
+    mk <- memoKeywords if (k.id === mk.idKeyWord  )
+  } yield mk.idMemo
+
+
+
+
+  def findIdMemo(idKw: Iterable[Int]) :FIL = db.run(findIdMemoQuery(idKw).result)
   override def create(a: Entities.MemoKeywords): FO = {
     memoDaoImpl.create(a.memo).flatMap {
       case Some(nMemo) =>
@@ -90,28 +116,19 @@ class MemoKeyWordsDaoImpl(implicit val profile: DBProfile.DB,
   }
 
 
+
+
   def findLike(query: String): FL = {
-
-    def joinQ = keyswords join
-      memoKeywords on
-      (_.id === _.idKeyWord) join
-      memos on (_._2.idMemo === _.id)
-
-    def filter = joinQ filter {
-      e => e._1._1.value.like(s"%$query%")
-    }
-
-    def mapDistinct = (filter map (_._2)).distinct
-
-    (db.run(mapDistinct.result)) flatMap { memo =>
-      Future.sequence {
-        for (mm <- memo) yield {
-          val q = memoKeywords join keyswords on
-            ((m, k) => m.idKeyWord === k.id && m.idMemo === mm.id) map
-            (_._2)
-          db.run(q.result) map { kws => Entities.MemoKeywords(mm, kws.toSet) }
-        }
-      }
-    }
+    (for {
+      idm <- keyWordDaoImpl.findId(query).map(findIdMemo)
+      id <- idm
+      a <- memoDaoImpl.readAll(id)
+    }yield {
+       completeMemo(a)
+    }).flatten
   }
+
+  override def find(q: String): FL = findLike(q)
+
+  override def findByKeyWord(kws: String): FL = findLike(kws)
 }

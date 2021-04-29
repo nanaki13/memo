@@ -63,7 +63,7 @@ object ViewsDef {
 class ViewsDef() {
 
 
-  implicit val memoXml: XmlRepParam[Memo, MemoListView] = {
+  implicit val memoXml: HtmlRepParam[Memo, MemoListView] = {
     (memo, mList) =>
       (() => List($ref div { h1Title =>
         h1Title += ($ref a {
@@ -165,7 +165,7 @@ class ViewsDef() {
   }
 
 
-  implicit val memoKeyWordXml: XmlRepParam[MemoKeywords, MemoListView] = {
+  implicit val memoKeyWordXml: HtmlRepParam[MemoKeywords, MemoListView] = {
 
 
     (memo, lisCpnt) => {

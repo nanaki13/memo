@@ -14,7 +14,7 @@ import scala.concurrent.ExecutionContextExecutor
 import scala.io.StdIn
 
 
-object WebServer extends App {
+object WebServer extends App with CORSHandler  {
   println(new File(".").getAbsolutePath)
   implicit val profile: DBProfile.DB = DBProfile.value
   private implicit val system: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "my-system")
@@ -37,9 +37,9 @@ object WebServer extends App {
   )
 
   private implicit val df: Formats = DefaultFormats + Custom
-  private val memoRoute = RestRoutes[Entities.Memo](BaseRoute.memoRoute)
+  private val memoRoute = RestRoutes[Entities.MemoKeywords](BaseRoute.memoRoute)
   private val keywordRoute = RestRoutes[Entities.KeyWord](BaseRoute.keywordRoute)
-  private val memoKeywWordRoute = RestRoutes[Entities.MemoKeywords](BaseRoute.memoKeyWordRoute)
+  private val memoKeywWordRoute = new MemoKwRoute(BaseRoute.memoKeyWordRoute)
 
   profile.create.onComplete {
     {
@@ -51,7 +51,8 @@ object WebServer extends App {
         val uiEndPoint = pathPrefix("app") {
           getFromFile("memo-ui/index.html")
         }
-        val routes = concat(memoRoute.routes, keywordRoute.routes, memoKeywWordRoute.routes, staticFile,uiEndPoint)
+        def rService = corsHandler(concat(memoRoute.routes, keywordRoute.routes, memoKeywWordRoute.routes))
+        val routes =  concat(rService , staticFile,uiEndPoint)
 
         val bindingFuture = Http().newServerAt("0.0.0.0", 8080).bind(routes)
         println(s"Server online at http://localhost:8080/\nPress RETURN to stop...")

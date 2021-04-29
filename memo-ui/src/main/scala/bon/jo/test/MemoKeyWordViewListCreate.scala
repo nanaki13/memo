@@ -5,7 +5,7 @@ import bon.jo.memo.Dao.Id
 import bon.jo.memo.Entities
 import bon.jo.memo.Entities.{KeyWord, MemoKeywords}
 import bon.jo.test.HTMLDef.{$t, $va}
-import bon.jo.test.HtmlRep.XmlRepParam
+import bon.jo.test.HtmlRep.HtmlRepParam
 import org.scalajs.dom.experimental.URLSearchParams
 import org.scalajs.dom.html.{Div, Input}
 
@@ -14,7 +14,7 @@ import scala.util.{Failure, Success, Try}
 
 class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: Div,
                                 val memoKeywWordtx: MemoCtxView,addMemo : (Entities.MemoKeywords)=>Unit)
-                               (implicit idXmlRep: XmlRepParam[MemoKeywords, MemoListView], executionContext: ExecutionContext)
+                               (implicit idXmlRep: HtmlRepParam[MemoKeywords, MemoListView], executionContext: ExecutionContext)
   extends SimpleView[Entities.MemoKeywords](() =>
     $va div(
       $t span "titre",

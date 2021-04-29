@@ -1,18 +1,20 @@
 package bon.jo.memo
 
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 trait Dao[A, ID] {
   type FO = Future[Option[A]]
   type FL = Future[Iterable[A]]
   type FB = Future[Boolean]
+  type FIL = Future[Iterable[ID]]
 
   def create(a: A): FO
 
   def update(a: A, idOpt: Option[ID] = None): FO
 
   def read(a: ID): FO
+  def readAll(a: Iterable[ID])(implicit executionContext: ExecutionContext): FL = Future.sequence( a.map(read)).map(_.flatten)
 
   def readAll(limit: Int = -1, offset: Int = -1): FL
 
@@ -30,7 +32,13 @@ trait Dao[A, ID] {
 
 
 object Dao {
-
+  trait StringQuery extends CustomDao[String]{
+    self :  Dao[_,_]  =>
+  }
+  trait CustomDao[Q]{
+    se : Dao[_,_] =>
+    def find(q : Q) : se.FL
+  }
   trait Id[A] extends (A => Any) {
     def apply(a: A): Any
 
@@ -66,6 +74,8 @@ object Dao {
 
 
     override def readAll(limit: Int, offset: Int): FL = dao.readAll(limit: Int, offset: Int)
+
+    override def readAll(a: Iterable[ID])(implicit executionContext: ExecutionContext): FL = dao.readAll(a)
   }
 
   def okFuture[A](a: A): Future[A] = Future.successful(a)
@@ -111,6 +121,7 @@ object Dao {
     })
 
   }
+
 
 
 }

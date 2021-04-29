@@ -2,10 +2,8 @@ package bon.jo.memo
 
 
 
-import slick.lifted.AbstractTable
-
 import scala.concurrent.ExecutionContext.Implicits._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 class KeyWordDaoImpl(implicit val profile: DBProfile.DB) extends DaoImpl with Dao[Entities.KeyWord, Int] {
 
@@ -21,6 +19,8 @@ class KeyWordDaoImpl(implicit val profile: DBProfile.DB) extends DaoImpl with Da
         }
     }
   }
+
+  def findId(query : String):FIL = db.run(keyswords.filter(_.value.like(s"%$query%")).map(_.id).result)
 
   override def readAll(limit : Int,offset : Int): FL =  {
 
@@ -53,6 +53,8 @@ class KeyWordDaoImpl(implicit val profile: DBProfile.DB) extends DaoImpl with Da
     case 0 => false
     case _ => throw new IllegalStateException("plus d'une ligne a été supprimer")
   }
+
+  override def readAll(a: Iterable[Int])(implicit executionContext: ExecutionContext): FL = db.run(keyswords.filter(_.id inSet  a).result)
 }
 
 

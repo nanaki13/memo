@@ -1,7 +1,7 @@
 package bon.jo.memo
 
 import scala.concurrent.ExecutionContext.Implicits._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
 
 
@@ -46,6 +46,8 @@ class MemoDaoImpl(implicit val profile: DBProfile.DB) extends  DaoImpl with Dao[
   }
 
   override def readAll(limit : Int,offset : Int): FL =  db.run(applyLimit(memos,limit,offset).result)
+
+  override def readAll(a: Iterable[Int])(implicit executionContext: ExecutionContext): FL = db.run(memos.filter(_.id inSet  a).result)
 }
 
 

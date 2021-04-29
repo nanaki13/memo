@@ -1,10 +1,12 @@
 package bon.jo.test
 
-object Paths {
+import bon.jo.memo.BaseRoute
+
+object Paths  {
 
   import Routing._
-
-  val pMemo: Path = "app" / "memo"
-  val pFind: Path = pMemo / "find"
-  val pCreationKW: Path = "app" / "keyword"
+  val appPath: Path = "app".p
+  val pMemo: Path = appPath / BaseRoute.memoRoute
+  val pFind: Path = pMemo / BaseRoute.find
+  val pCreationKW: Path = appPath / BaseRoute.keywordRoute
 }
