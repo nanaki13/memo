@@ -41,7 +41,8 @@ lazy val `memo-server` =
         "com.typesafe.slick" %% "slick" % SlickVersion,
         "com.typesafe.slick"  %% "slick-hikaricp"       % SlickVersion,
         "org.json4s" %% "json4s-core" % Json4SVersion,
-        "org.json4s" %% "json4s-native" % Json4SVersion
+        "org.json4s" %% "json4s-native" % Json4SVersion,
+        "org.postgresql" % "postgresql" %"42.2.5"
       )
     )
    .dependsOn(`memo-shared`)

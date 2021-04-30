@@ -65,36 +65,28 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
 
   def target: Target = pathToTarget(Routing.urlPath)
 
-  def deleteEvent(kw: KeyWord, htmlKw: HTMLElement)(implicit lubber: ListBuffer[KeyWord]): Unit = {
-
-    htmlKw.$classSelect(ViewsDef.closeClass).foreach { btnClose =>
-      btnClose.asInstanceOf[HTMLElement].$click {
-        _ =>
-          lubber -= kw
-          htmlKw.removeFromDom()
-      }
-    }
 
 
-  }
+  def addMemo(value: Entities.MemoKeywords): Unit = {
+    import view.viewsDef.KewWordHtml.WithClose._
 
-  def addMemo(value: Entities.MemoKeywords, allKeyWord: Iterable[KeyWord]): Unit = {
-    import view.viewsDef.keyWord
-    val ctx = new MemoCtxView
-    val cpnt = new view.viewsDef.MKCpnt(value, ctx.memoList)
+    val cpnt = new view.viewsDef.MKCpnt(value,proposeView)
     implicit val keyWordsBuffer: ListBuffer[KeyWord] = ListBuffer.from(value.keyWords.toList)
 
+//    def addKeyWord(selected: KeyWord): Unit = {
+//      keyWordsBuffer += selected
+//      val htmlKW = selected.html.list
+//      cpnt.kwDiv ++= htmlKW
+//      deleteEvent(selected, htmlKW.head)
+//
+//    }
 
-    val propose = new ProposeInput[KeyWord](_.value, "Creer/Chercher tags")(ListBuffer(),
-      ViewsDef.kwIO(), Daos.keyWordDao.create, selected => {
-        keyWordsBuffer += selected
-        val htmlKW = selected.html.list
-        cpnt.kwDiv ++= htmlKW
-        deleteEvent(selected, htmlKW.head)
+//    val propose = new ProposeInput[KeyWord](_.value, "Creer/Chercher tags")(
+//      ViewsDef.kwIO(), Daos.keyWordDao.create, proposeView, addKeyWord)
 
-      })
-    propose.addAll(allKeyWord)
-    cpnt.footer ++= propose.html
+
+//    cpnt.footer ++= propose.html
+
     val html = cpnt.get
 
 
@@ -102,68 +94,7 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
     div._class = "card"
     memosCOnr += div
 
-    keyWordsBuffer zip cpnt.kwDiv.$classSelect(ViewsDef.kwClass).map(_.asInstanceOf[HTMLElement]) foreach {
-      deleteEvent _ tupled _
-    }
-    html.foreach(_.$classSelect.`btn-save`.map(_.asInstanceOf[Button]).foreach(b => {
-      b.$click { _ =>
-        val ret = value.memo.memoType match {
-          case MemoType.Text => value
-          case MemoType.Json => value.copy(memo = value.memo.copy(
-            content = JSON.stringify(ctx.memoList.read().pure()))
-            , keyWords = keyWordsBuffer.toSet
-          )
-        }
-        Daos.memoKeyWord.update(ret).onComplete {
-          case Failure(exception) => console.log(exception); PopUp("Sauvegarde KO")
-          case Success(value) => PopUp("Sauvegarde OK")
 
-        }
-      }
-    }
-    ))
-
-    html.foreach(_.$classSelect.`btn-edit`.map(_.asInstanceOf[Button]).foreach(b => {
-      val orgText = b.innerText
-      b.$click { _ =>
-
-        if (b.innerText != "save") {
-          b.innerText = "save"
-
-          html.foreach(_.$classSelect.`a-title`.map(_.asInstanceOf[HTMLElement]).foreach { a =>
-            a.parentElement += ctx.tInput
-            ctx.tInput.value = value.memo.title
-          })
-          html.foreach(_.$classSelect.`m-content`.map(_.asInstanceOf[HTMLElement]).foreach { a =>
-            a.parentElement += ctx.contentInput
-            ctx.contentInput.value = value.memo.content
-            a.parentElement += (ctx.memoList.html)
-            ()
-          })
-          html.foreach(_.$classSelect.`m-type`.map(_.asInstanceOf[HTMLElement]).foreach { a =>
-            a += (ctx.memoType)
-            ctx.memoType.select(value.memo.memoType.toString)
-          })
-          ctx.makeSwitchView()
-          ctx.memoList.addEvent()
-        } else {
-          val nMoemo = ctx.newMemo.copy(value.memo.id)
-          Daos.memoKeyWord.update(value.copy(memo = nMoemo)).onComplete {
-            case Failure(exception) => console.log(exception)
-            case Success(value) =>
-              PopUp("Sauvegarde OK")
-              b.innerText = orgText
-              ctx.memoList.html.removeFromDom()
-              ctx.memoType.removeFromDom()
-              ctx.tInput.removeFromDom()
-              ctx.contentInput.removeFromDom()
-          }
-
-        }
-
-
-      }
-    }))
     ()
   }
 
@@ -174,6 +105,7 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
     private def div = $ref div { e => e._class = "card-deck pb-1" }
 
     def clean(): Unit = me.$classSelect("card-deck").foreach(_.removeFromDom())
+
     def +=(h: HTMLElement): Unit = {
       if (cnt % 3 == 0) {
         current = div
@@ -189,6 +121,7 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
 
     implicit val pa: HTMLElement = p
     Daos.keyWordDao.readAll().map(implicit allKeyWord => {
+      proposeView.addAll(allKeyWord)
       target match {
         case Target.MemoCreation => memoCreationLoad()
         case Target.KeyWordK =>
@@ -200,7 +133,7 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
         case Target.ReadMemo(id) =>
           Daos.memoKeyWord.read(id).foreach {
             case Some(value) =>
-              addMemo(value, allKeyWord)
+              addMemo(value)
 
             case None =>
           }
@@ -219,16 +152,31 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
     p.addChild[raw.HTMLHeadingElement](<h1>page non trouvé</h1>)
   }
 
+  import view.viewsDef._
+
+  private val proposeView = {
+    import view.viewsDef.KewWordHtml._
+    ProposeView[KeyWord]()
+  }
+  private val keyWordToHtml = ViewsDef.kwIO()
 
   def memoCreationLoad()(implicit p: HTMLElement, kws: Iterable[KeyWord]): Unit = {
+    val lView: Div = $c.div
     val memoKeywWord: MemoKeyWordViewListCreate = {
-      import view.viewsDef._
-      val lView: Div = $c.div
 
-      val propose = new ProposeInput[KeyWord](_.value, "Creer/Chercher tags")(ListBuffer(),
-        ViewsDef.kwIO(), Daos.keyWordDao.create, addToCurrentKW(_, lView))
 
-      new MemoKeyWordViewListCreate(propose, lView, new MemoCtxView, addMemo(_, kws))
+      def addToCurrentKW_(keyWord: KeyWord): raw.Node = {
+        import view.viewsDef.KewWordHtml.WithClose._
+        addToCurrentKW(keyWord, lView)
+      }
+
+      val propose = {
+        import view.viewsDef.KewWordHtml.WithClose._
+        new ProposeInput[KeyWord](_.value, "Creer/Chercher tags")(
+          keyWordToHtml, Daos.keyWordDao.create, proposeView,addToCurrentKW_)
+      }
+
+      new MemoKeyWordViewListCreate(propose, lView, new MemoCtxView, addMemo)
     }
     p.appendChild(memoKeywWord.cpnt);
     memoKeywWord.memoKeywWordtx.memoType.selectFirst()
@@ -238,16 +186,17 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
 
     allMemos.onComplete {
       case Failure(exception) => throw exception
-      case Success(d) => d.foreach(addMemo(_, kws))
+      case Success(d) => d.foreach(addMemo)
     }
-    memoKeywWord.propose.addAll(kws)
+
+
     memoKeywWord.addEventNewMemoKeyWord(currentKeyWord)
   }
 
 
   //implicit val e: FindView.FindViewProvider.type = FindView.FindViewProvider
-  def findMemo()(implicit p: HTMLElement, kws: Iterable[KeyWord],  ec : ExecutionContext): Unit = {
-    p ++= FindParam("Chercher").htmlp(FindViewCtx(this,kws,ec)).list
+  def findMemo()(implicit p: HTMLElement, kws: Iterable[KeyWord], ec: ExecutionContext): Unit = {
+    p ++= FindParam("Chercher").htmlp(FindViewCtx(this, kws, ec)).list
   }
 
   val searchParams = new URLSearchParams(org.scalajs.dom.window.location.search)

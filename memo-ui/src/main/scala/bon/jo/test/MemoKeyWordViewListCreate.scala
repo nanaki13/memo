@@ -14,7 +14,7 @@ import scala.util.{Failure, Success, Try}
 
 class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: Div,
                                 val memoKeywWordtx: MemoCtxView,addMemo : (Entities.MemoKeywords)=>Unit)
-                               (implicit idXmlRep: HtmlRepParam[MemoKeywords, MemoListView], executionContext: ExecutionContext)
+                               (implicit executionContext: ExecutionContext)
   extends SimpleView[Entities.MemoKeywords](() =>
     $va div(
       $t span "titre",

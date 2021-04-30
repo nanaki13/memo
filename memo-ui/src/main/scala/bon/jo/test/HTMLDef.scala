@@ -1,13 +1,20 @@
 package bon.jo.test
 
-import org.scalajs.dom.{DOMList, Element, document}
-import org.scalajs.dom.raw.{DOMTokenList, HTMLCollection, HTMLElement, Node, Text}
+import org.scalajs.dom.{DOMList, Element, console, document}
+import org.scalajs.dom.raw.{DOMTokenList, Element, HTMLCollection, HTMLElement, MouseEvent, Node, Text}
 
 import scala.language.dynamics
+import scala.scalajs.js
 
 object HTMLDef {
+  type Ev =Iterable[( Element,js.Function1[MouseEvent, _])]
   implicit class DomlistOps[T](domList : DOMList[T]) extends Iterable[T]{
-    override def iterator: Iterator[T] = new Iterator[T] {
+
+    def cp: List[T] = {
+      _iterator.toList
+    }
+     def _iterator: Iterator[T] = new Iterator[T] {
+
       val l = domList.length
       var _index =0
       override def hasNext: Boolean = _index < l
@@ -18,6 +25,8 @@ object HTMLDef {
         ret
       }
     }
+
+    override def iterator: Iterator[T] = cp.iterator
   }
   implicit class HtmlOps[T <: Element](t: T) {
 
@@ -38,6 +47,13 @@ object HTMLDef {
     def $list(htmlList: Iterable[HTMLElement]): T = {
       htmlList.foreach(t appendChild _)
       t
+    }
+    def safeRm(): Option[Node] = {
+      if(!js.isUndefined(t.parentNode)) {
+        Some(t.parentNode.removeChild(t))
+      }else{
+        None
+      }
     }
 
     def $attr(keyValue: (Any, Any)*): T = {
