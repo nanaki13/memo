@@ -73,7 +73,7 @@ lazy val `memo-server` =
         "org.postgresql" % "postgresql" %"42.2.5"
       ),
       stage := {
-       ( `memo-ui`.js / Compile / fastOptJS).value
+       ( `memo-ui`.js / Compile / fullOptJS).value
         stage.value
       }
     ).enablePlugins(JavaAppPackaging)
