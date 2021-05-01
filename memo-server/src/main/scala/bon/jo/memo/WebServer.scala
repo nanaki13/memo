@@ -17,6 +17,7 @@ import scala.io.StdIn
 object WebServer extends App with CORSHandler  {
   println(new File(".").getAbsolutePath)
   implicit val profile: DBProfile.DB = DBProfile.value
+  println(profile)
   private implicit val system: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "my-system")
   // needed for the future flatMap/onComplete in the end
   private implicit val executionContext: ExecutionContextExecutor = system.executionContext

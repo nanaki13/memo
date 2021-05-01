@@ -15,15 +15,15 @@ trait MemoDBImpl {
 
   //implicit val memotTypreCv : TypedType[MemoType]
 
-  class Memos(tag: Tag) extends Table[Memo](tag, "MEMO") {
+  class Memos(tag: Tag) extends Table[Memo](tag, "memo") {
  //   implicit val memoTypeCol: JdbcType[MemoType] with BaseTypedType[MemoType] = MappedColumnType.base[MemoType,String](_.toString,MemoType(_))
-    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+    def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
 
-    def content = column[String]("CONTENT",O.Length(1024*10))
+    def content = column[String]("content",O.Length(1024*10))
 
-    def title = column[String]("TITLE")
+    def title = column[String]("title")
 
-    def memoType = column[String]("MEMO_TYPE")
+    def memoType = column[String]("memo_type")
 
 
     def * = (id.?, title, content,memoType) <>[Memo] (MemoS.untupled_ ,MemoS.tupled_ )
@@ -31,10 +31,10 @@ trait MemoDBImpl {
     def idx = index("idx_content", content, unique = true)
   }
 
-  class KeysWords(tag: Tag) extends Table[KeyWord](tag, "KEYS_WORD") {
-    def id = column[Int]("ID", O.PrimaryKey, O.AutoInc)
+  class KeysWords(tag: Tag) extends Table[KeyWord](tag, "keys_word") {
+    def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
 
-    def value = column[String]("VALUE")
+    def value = column[String]("value")
 
     def * = (id.?, value) <> (KeyWord.tupled, KeyWord.unapply)
 
@@ -42,15 +42,15 @@ trait MemoDBImpl {
   }
 
 
-  class MemoKeywordsTable(tag: Tag) extends Table[MemoKeywordRel](tag, "MEMO_KEYS_WORD") {
+  class MemoKeywordsTable(tag: Tag) extends Table[MemoKeywordRel](tag, "memo_keys_word") {
 
-    def idMemo = column[Int]("ID_MEMO")
+    def idMemo = column[Int]("id_memo")
 
-    def idKeyWord = column[Int]("ID_KEY_WORD")
+    def idKeyWord = column[Int]("id_key_word")
 
-    def memoFk = foreignKey("MEMO_FK", idMemo, memos)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+    def memoFk = foreignKey("memo_fk", idMemo, memos)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
-    def keyWordFk = foreignKey("KEYWORD_FK", idMemo, keyswords)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+    def keyWordFk = foreignKey("keyword_fk", idMemo, keyswords)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
     def * = (idMemo, idKeyWord) <> (MemoKeywordRel.tupled, MemoKeywordRel.unapply)
 
@@ -63,7 +63,7 @@ trait MemoDBImpl {
 
   val allinOrder = List(memos, keyswords, memoKeywords)
 
-  def create(implicit db: DBProfile, executionContext: ExecutionContext): Future[List[Unit]] = Future.sequence(allinOrder.map(_.schema.createIfNotExists).map(db.db.run))
+  def create(implicit db: DBProfile, executionContext: ExecutionContext): Future[List[Unit]] = Future.sequence(allinOrder.map(_.schema.create).map(db.db.run).map(_.recover(_ => ())))
 
 
 }

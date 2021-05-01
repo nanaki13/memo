@@ -7,8 +7,10 @@ object DBProfile {
   type DB =  DBProfile with MemoDBImpl
    val value: DB = ConfigFactory.load().getString("memodb.driver") match {
     case "org.sqlite.JDBC" => Impl(slick.jdbc.SQLiteProfile)
-
-    case _ => ???
+    case "org.postgresql.Driver" => Impl(slick.jdbc.PostgresProfile)
+    case e  =>
+      println(e)
+       ???
   }
   case class Impl( profile: JdbcProfile) extends DBProfile with MemoDBImpl
 }

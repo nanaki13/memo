@@ -10,13 +10,22 @@ class KeyWordDaoImpl(implicit val profile: DBProfile.DB) extends DaoImpl with Da
   import profile._
   import profile.profile.api._
   override def create(a: Entities.KeyWord): FO = {
-    db.run(keyswords += a) flatMap {
+
+    db.run(keyswords += a).recoverWith{
+      case e =>
+        e.printStackTrace()
+        db.run(keyswords += a.copy(id = Some(1)))
+    } flatMap  {
       r =>
         if (r == 1) {
           db.run(keyswords.filter(_.value === a.value).sortBy(_.id.reverse).result.headOption)
         } else {
           Future.successful(None)
         }
+    } recover{
+      e =>
+        e.printStackTrace()
+        None
     }
   }
 

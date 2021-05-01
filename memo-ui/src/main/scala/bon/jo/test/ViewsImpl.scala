@@ -21,7 +21,7 @@ class ViewsImpl(implicit executionContext: ExecutionContext) {
 
   val viewsDef: ViewsDef = ViewsDef()
 
-  import viewsDef.keyWord
+  import viewsDef.KewWordHtml.WithClose._
 
    val keywWordI: Input = i
   val kewWordDiv: Div = $c.div[Div]
