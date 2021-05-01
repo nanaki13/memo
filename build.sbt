@@ -71,7 +71,11 @@ lazy val `memo-server` =
         "org.json4s" %% "json4s-core" % Json4SVersion,
         "org.json4s" %% "json4s-native" % Json4SVersion,
         "org.postgresql" % "postgresql" %"42.2.5"
-      )
+      ),
+      stage := {
+       ( `memo-ui`.js / Compile / fastOptJS).value
+        stage.value
+      }
     ).enablePlugins(JavaAppPackaging)
    .dependsOn(`memo-shared`.jvm)
 lazy val `memo-ui` =
