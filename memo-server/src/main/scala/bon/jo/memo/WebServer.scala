@@ -74,7 +74,7 @@ object WebServer extends App with CORSHandler {
   val defPort = 8080
   def getPort = Try {
     println(args.toList)
-    if (args.length > 1) {
+    if (args.length > 0) {
       args(0).toInt
     } else {
       defPort
