@@ -8,13 +8,14 @@ import bon.jo.memo.Entities.MemoType
 import org.json4s.{CustomSerializer, DefaultFormats, Formats, JString}
 
 import java.io.File
+import scala.util.{Failure, Success, Try}
 //import slick.jdbc.H2Profile.api.Database
 
 import scala.concurrent.ExecutionContextExecutor
 import scala.io.StdIn
 
 
-object WebServer extends App with CORSHandler  {
+object WebServer extends App with CORSHandler {
   println(new File(".").getAbsolutePath)
   implicit val profile: DBProfile.DB = DBProfile.value
   println(profile)
@@ -28,11 +29,12 @@ object WebServer extends App with CORSHandler  {
   private implicit object keyWordDao extends KeyWordDaoImpl()
 
   private implicit object memoKeyWordDao extends MemoKeyWordsDaoImpl()
+
   implicit object Custom extends CustomSerializer[MemoType](
     _ => ( {
       case JString(v) => MemoType(v)
     }, {
-      case s  : MemoType=> JString(s.name)
+      case s: MemoType => JString(s.name)
     }
     )
   )
@@ -52,10 +54,13 @@ object WebServer extends App with CORSHandler  {
         val uiEndPoint = pathPrefix("app") {
           getFromFile("memo-ui/index.html")
         }
-        def rService = corsHandler(concat(memoRoute.routes, keywordRoute.routes, memoKeywWordRoute.routes))
-        val routes =  concat(rService , staticFile,uiEndPoint)
 
-        val bindingFuture = Http().newServerAt("0.0.0.0", 8080).bind(routes)
+        def rService = corsHandler(concat(memoRoute.routes, keywordRoute.routes, memoKeywWordRoute.routes))
+
+        val routes = concat(rService, staticFile, uiEndPoint)
+
+
+        val bindingFuture = Http().newServerAt("0.0.0.0", getPort).bind(routes)
         println(s"Server online at http://localhost:8080/\nPress RETURN to stop...")
         StdIn.readLine() // let it run until user presses return
         bindingFuture
@@ -65,5 +70,16 @@ object WebServer extends App with CORSHandler  {
     }
   }
 
+  val defPort = 8080
+  def getPort = Try {
+    if (args.length > 1) {
+      args(0).toInt
+    } else {
+      defPort
+    }
+  } match {
+    case Failure(exception) => defPort
+    case Success(value) => value
+  }
 
 }
