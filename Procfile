@@ -1,0 +1,1 @@
+  web: memo-server/target/universal/stage/bin/web-server $PORT
