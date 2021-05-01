@@ -52,14 +52,30 @@ lazy val `memo-ui` =
     .crossType(CrossType.Pure) // [Pure, Full, Dummy], default: CrossType.Full
     .settings(sharedSettings)
     .settings(libraryDependencies ++= Seq("org.scala-js" %%% "scalajs-dom" % "1.1.0", "org.scala-lang.modules" %%% "scala-xml" % "2.0.0-M1"
-      , "bon.jo" %%% "html-app" % "0.1.1-SNAPSHOT"
-
     ))
+    .settings(
+      scalaJSUseMainModuleInitializer := true
+    ).dependsOn(`htmlApp`,`memo-shared`) // defined in sbt-scalajs-crossproject
+
+lazy val `phy-shared` = {
+  // select supported platforms
+
+  crossProject(JSPlatform, JVMPlatform)
+    .crossType(CrossType.Pure).in(file("."))  // [Pure, Full, Dummy], default: CrossType.Full
+    .settings(sharedSettings)
+
+    .jvmSettings(libraryDependencies += "org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided")
+}
+
+lazy val `htmlApp` =
+// select supported platforms
+  crossProject(JSPlatform)
+    .crossType(CrossType.Pure) // [Pure, Full, Dummy], default: CrossType.Full
+    .settings(sharedSettings)
+    .settings(libraryDependencies ++= Seq("org.scala-js" %%% "scalajs-dom" % "1.1.0", "org.scala-lang.modules" %%% "scala-xml" % "2.0.0-M1"
+    )).dependsOn(`phy-shared`)
 
     .settings(
       scalaJSUseMainModuleInitializer := true
 
     ).dependsOn(`memo-shared`) // defined in sbt-scalajs-crossproject
-
-
-
