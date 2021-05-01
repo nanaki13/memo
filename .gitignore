@@ -1,3 +1,7 @@
 **/target
 target
 .idea
+**/*.iml
+**/*.log
+/memo.db
+/.bsp/sbt.json
