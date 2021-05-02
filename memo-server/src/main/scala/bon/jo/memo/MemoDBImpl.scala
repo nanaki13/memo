@@ -50,7 +50,7 @@ trait MemoDBImpl {
 
     def memoFk = foreignKey("memo_fk", idMemo, memos)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
-    def keyWordFk = foreignKey("keyword_fk", idMemo, keyswords)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
+    def keyWordFk = foreignKey("keyword_fk", idKeyWord, keyswords)(_.id, onUpdate = ForeignKeyAction.Restrict, onDelete = ForeignKeyAction.Cascade)
 
     def * = (idMemo, idKeyWord) <> (MemoKeywordRel.tupled, MemoKeywordRel.unapply)
 

@@ -1,4 +1,4 @@
-package bon.jo.test
+package bon.jo.memo.ui
 
 object Target {
 

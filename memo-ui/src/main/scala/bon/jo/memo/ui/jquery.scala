@@ -1,4 +1,4 @@
-package bon.jo.test
+package bon.jo.memo.ui
 
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSGlobal

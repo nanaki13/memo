@@ -1,4 +1,4 @@
-package bon.jo.test
+package bon.jo.memo.ui
 
 import org.scalajs.dom.window
 

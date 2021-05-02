@@ -1,4 +1,4 @@
-package bon.jo.test
+package bon.jo.memo.ui
 
 import bon.jo.app.User
 import bon.jo.game.html.Template
@@ -8,8 +8,8 @@ import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Dao.Id
 import bon.jo.memo.Entities
 import bon.jo.memo.Entities.{KeyWord, MemoKeywords, MemoType}
-import bon.jo.test.Routing.IntPath
-import bon.jo.test.HtmlRep._
+import Routing.IntPath
+import HtmlRep._
 import org.scalajs.dom.html.{Button, Div, Input}
 import org.scalajs.dom.raw.HTMLElement
 import org.scalajs.dom.{console, document, raw, window}
@@ -22,10 +22,10 @@ import scala.scalajs.js.JSON
 import scala.util.{Failure, Success, Try}
 import scala.xml.Node
 import SimpleView.DSelect
-import bon.jo.test.FindViewDef._
-import bon.jo.test.ViewsDef.ProposeInput
+import FindViewDef._
+import ViewsDef.ProposeInput
 import org.scalajs.dom.experimental.URLSearchParams
-
+import scalajs.js.JSConverters._
 
 case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Template with XmlTemplate {
 
@@ -36,10 +36,16 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
   val currentKeyWord: mutable.ListBuffer[KeyWord] = scala.collection.mutable.ListBuffer[KeyWord]()
   //
 
-  def addToCurrentKW(keyWord: KeyWord, listView: Div)(implicit v: HtmlRep[KeyWord]): raw.Node = {
+  def addToCurrentKW(keyWord: KeyWord, listView: Div)(implicit v: HtmlRep[KeyWord,ViewsDef.KewWordHtml]): Unit = {
     currentKeyWord += keyWord
+    val cpnt :ViewsDef.KewWordHtml=  keyWord.html
 
-    listView.html.appendChild(keyWord.html.head)
+    listView.appendChild(cpnt.head)
+    cpnt.close.$click{_ => {
+      currentKeyWord -= keyWord
+      listView.removeChild(cpnt.head)
+    }}
+
   }
 
 
@@ -68,24 +74,11 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
 
 
   def addMemo(value: Entities.MemoKeywords): Unit = {
-    import view.viewsDef.KewWordHtml.WithClose._
 
     val cpnt = new view.viewsDef.MKCpnt(value,proposeView)
+
     implicit val keyWordsBuffer: ListBuffer[KeyWord] = ListBuffer.from(value.keyWords.toList)
 
-//    def addKeyWord(selected: KeyWord): Unit = {
-//      keyWordsBuffer += selected
-//      val htmlKW = selected.html.list
-//      cpnt.kwDiv ++= htmlKW
-//      deleteEvent(selected, htmlKW.head)
-//
-//    }
-
-//    val propose = new ProposeInput[KeyWord](_.value, "Creer/Chercher tags")(
-//      ViewsDef.kwIO(), Daos.keyWordDao.create, proposeView, addKeyWord)
-
-
-//    cpnt.footer ++= propose.html
 
     val html = cpnt.get
 
@@ -93,18 +86,33 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
     val div = $l div (html)
     div._class = "card"
     memosCOnr += div
+    cpnt.postDelete = cpnt.postDelete :+ (() => {
+      memosCOnr.remove(div)
 
+    })
 
     ()
   }
 
   object memosCOnr {
+    def remove(div: HTMLElement): Unit = {
+      val  p = div.parentElement
+      div.safeRm()
+      cnt-=1
+      if(p.children.isEmpty){
+        p.safeRm()
+      }
+    }
+
     private var cnt = 0
     private var current: HTMLElement = _
 
-    private def div = $ref div { e => e._class = "card-deck pb-1" }
+    private def div = $ref div { e => e._class = "cd card-deck pb-1" }
 
-    def clean(): Unit = me.$classSelect("card-deck").foreach(_.removeFromDom())
+    def clean(): Unit = {
+      me.$classSelect("cd").foreach(_.removeFromDom())
+      cnt = 0
+    }
 
     def +=(h: HTMLElement): Unit = {
       if (cnt % 3 == 0) {
@@ -120,25 +128,35 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
   override def init(p: HTMLElement): Unit = {
 
     implicit val pa: HTMLElement = p
+    val spi = ViewsDef.spinner
+    p.appendChild(spi)
     Daos.keyWordDao.readAll().map(implicit allKeyWord => {
       proposeView.addAll(allKeyWord)
-      target match {
+      val trPage = target match {
         case Target.MemoCreation => memoCreationLoad()
         case Target.KeyWordK =>
           p.appendChild(view.keyWordView.cpnt)
           allKeyWord.foreach { kw =>
             view.keyWordView.+=(kw)
-            view.addKwEvent
           }
+          view.addKwEvent
+          Future.successful(())
         case Target.ReadMemo(id) =>
-          Daos.memoKeyWord.read(id).foreach {
+          Daos.memoKeyWord.read(id).map {
             case Some(value) =>
               addMemo(value)
 
             case None =>
           }
-        case Target.FindMemo => findMemo()
-        case Target._404 => _404Load()
+        case Target.FindMemo =>
+          findMemo()
+          Future.successful(())
+        case Target._404 =>
+          _404Load()
+          Future.successful(())
+      }
+      trPage.onComplete {
+        _ =>  p.removeChild(spi)
       }
 
     })
@@ -152,45 +170,47 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
     p.addChild[raw.HTMLHeadingElement](<h1>page non trouvé</h1>)
   }
 
-  import view.viewsDef._
+
 
   private val proposeView = {
-    import view.viewsDef.KewWordHtml._
-    ProposeView[KeyWord]()
+    import   ViewsDef.KewWordHtml._
+    ProposeView[KeyWord,HtmlCpnt]()
   }
   private val keyWordToHtml = ViewsDef.kwIO()
 
-  def memoCreationLoad()(implicit p: HTMLElement, kws: Iterable[KeyWord]): Unit = {
+  def memoCreationLoad()(implicit p: HTMLElement, kws: Iterable[KeyWord]): Future[Unit] = {
     val lView: Div = $c.div
+
     val memoKeywWord: MemoKeyWordViewListCreate = {
 
 
-      def addToCurrentKW_(keyWord: KeyWord): raw.Node = {
-        import view.viewsDef.KewWordHtml.WithClose._
+      def addToCurrentKW_(keyWord: KeyWord): Unit = {
+        import   ViewsDef.KewWordHtml.WithClose._
         addToCurrentKW(keyWord, lView)
       }
 
       val propose = {
-        import view.viewsDef.KewWordHtml.WithClose._
         new ProposeInput[KeyWord](_.value, "Creer/Chercher tags")(
           keyWordToHtml, Daos.keyWordDao.create, proposeView,addToCurrentKW_)
       }
 
-      new MemoKeyWordViewListCreate(propose, lView, new MemoCtxView, addMemo)
+      new MemoKeyWordViewListCreate(propose, lView, new MemoCtxView(None), addMemo)
     }
+
     p.appendChild(memoKeywWord.cpnt);
     memoKeywWord.memoKeywWordtx.memoType.selectFirst()
 
     memoKeywWord.memoKeywWordtx.makeSwitchView()
     memoKeywWord.memoKeywWordtx.memoList.addEvent()
 
-    allMemos.onComplete {
-      case Failure(exception) => throw exception
-      case Success(d) => d.foreach(addMemo)
-    }
+
 
 
     memoKeywWord.addEventNewMemoKeyWord(currentKeyWord)
+    allMemos.map {
+      d =>
+        d.foreach(addMemo)
+    }
   }
 
 

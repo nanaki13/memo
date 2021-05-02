@@ -1,18 +1,20 @@
-package bon.jo.test
-
+package bon.jo.memo.ui
 
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Entities.{KeyWord, Memo, MemoKeywords, MemoType}
 import HTMLDef.{$attr, $attrns, $c, $l, $ref, $refns, $t, $va, Ev, HtmlOps}
-import bon.jo.test.HtmlRep._
-import bon.jo.test.HtmlRep.HtmlCpnt._
-import bon.jo.test.MemoLists.MemoListJS
+import HtmlRep._
+import HtmlRep.HtmlCpnt._
+import MemoLists.MemoListJS
 import org.scalajs.dom.console
 import org.scalajs.dom.html.{Anchor, Button, Div, Input, Span}
 import org.scalajs.dom.raw.{Element, HTMLElement}
 import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
-import bon.jo.test.ViewsDef.ProposeInput
-import bon.jo.test.SimpleView.DSelect
+import ViewsDef.ProposeInput
+import SimpleView.DSelect
+import MemoLists.MemoListJS
+import bon.jo.memo.Dao.FB
+
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,9 +34,9 @@ object ViewsDef {
 
     override val ioHtml: IOHtml[Input, A]
     , save: A => Future[Option[A]],
-    proposeView: ProposeView[A], sel: A => Unit
-  )(implicit executionContext: ExecutionContext, htmlRep: HtmlRep[A])
-    extends Propose[A, Input](ioHtml, save, proposeView) {
+    proposeView: ProposeView[A, _], sel: A => Unit
+  )(implicit executionContext: ExecutionContext)
+    extends Propose[A, Input](ioHtml, proposeView) {
     btn.textContent = textCreer
     ioHtml.html.$keyup {
       v =>
@@ -49,9 +51,28 @@ object ViewsDef {
         events = Some(createAllEvent(sel))
 
     }
+
+    btn.$click {
+      _ =>
+        save(ioHtml.toValue).recover {
+          case _ => None
+        }.foreach {
+          case None => PopUp("Marche pas...")
+          case Some(value) => {
+            val els = proposeView.+=(value)
+            clickEvent(els.head, value)(sel)
+          }
+        }
+
+    }
   }
 
   val closeClass = "closeClass"
+
+  def spinner = $ref div { r =>
+    r._class = "spinner-border"
+    r.$attr("role" -> "status")
+  }
 
   def closeBtn: Span = {
     (($attr span("type" -> "button", "class" -> s"badge badge-secondary $closeClass", "aria-label" -> "Close")) +=
@@ -72,12 +93,44 @@ object ViewsDef {
         )
       }))
   }
+
+  trait KewWordHtml extends HtmlCpnt with UpdatableHtmlCpnt[KeyWord] {
+    val close = ViewsDef.closeBtn
+
+    def kw(): KeyWord
+
+    override val get: IterableOnce[HTMLElement] = {
+      val ret = KewWordHtml.keyWordWith.html(kw())
+      val html = ret.get
+      html.iterator.toList.head += close
+      html
+    }
+  }
+
+  object KewWordHtml {
+    object WithClose {
+      implicit val keyWordWithClose: HtmlRep[KeyWord, KewWordHtml] = (memo: KeyWord) =>
+        () => memo
+    }
+
+    implicit val keyWordWith: HtmlRep[KeyWord, HtmlCpnt] = (kw: KeyWord) => {
+      HtmlCpnt {
+        () => {
+          val ret = $t span {
+            kw.value
+          }
+          ret._class = s"badge badge-primary m-1 ${ViewsDef.kwClass}"
+          Some(ret)
+        }
+      }
+    }
+  }
 }
 
 class ViewsDef() {
 
 
-  class MemoCpnt(val memo: Memo, val mList: Option[MemoListView]) extends HtmlCpnt with TypedHtml[Memo] {
+  class MemoCpnt(val memo: Memo, val mList: Option[MemoListView]) extends HtmlCpnt with UpdatableHtmlCpnt[Memo] {
     def lienTilre_(memo: Memo) = $ref a {
       lienTilre =>
         lienTilre._class = "a-title"
@@ -138,10 +191,11 @@ class ViewsDef() {
           content
         )
     }
-    val html = List($ref div { h1Title =>
+    val title = $ref div { h1Title =>
       h1Title += (lienTilre)
       h1Title._class = "card-title"
     }
+    val html = List(title
       , body)
 
     override def get: IterableOnce[HTMLElement] = html
@@ -159,60 +213,34 @@ class ViewsDef() {
           console.log(m.content)
 
           console.log(c.childNodes)
-         // content.innerHTML = c.innerHTML
+          // content.innerHTML = c.innerHTML
           c.childNodes.foreach {
-            p => if(!scalajs.js.isUndefined(p)) {
-              console.log(p)
-              content.appendChild(p)
-            }
+            p =>
+              if (!scalajs.js.isUndefined(p)) {
+                console.log(p)
+                content.appendChild(p)
+              }
 
           }
       }
     }
   }
 
-  implicit val memoXml: HtmlRepParam[Memo, MemoListView] = {
+  implicit val memoXml: HtmlRepParam[Memo, MemoListView, MemoCpnt] = {
     (memo, mList) => new MemoCpnt(memo, mList)
   }
 
-  object KewWordHtml {
-    object WithClose {
-      implicit val keyWordWithClose: HtmlRep[KeyWord] = HtmlRep {
-        (kw) =>
 
-          val ret = keyWordWith.html(kw)
-          val html = ret.get
-          html.iterator.toList.head += ViewsDef.closeBtn
-          console.log(ret.head)
-          ret
+  class MKCpnt(memoInitial: MemoKeywords, proposeView: ProposeView[KeyWord, HtmlCpnt])(implicit val executionContext: ExecutionContext) extends HtmlCpnt with UpdatableHtmlCpnt[MemoKeywords] with Deletable {
 
-      }
-    }
 
-    implicit val keyWordWith: HtmlRep[KeyWord] = HtmlRep {
-      (kw) =>
-        val ret = $t span {
-          kw.value
-        }
-        ret._class = s"badge badge-primary m-1 ${ViewsDef.kwClass}"
-        (() => (ret)).toHtmlCpnt
+    val ctx = new MemoCtxView(Some(memoInitial))
 
-    }
-  }
 
-  implicit val cv: HtmlCpnt => MemoCpnt = _.asInstanceOf[MemoCpnt]
-
-  class MKCpnt(memoInitial: MemoKeywords, proposeView: ProposeView[KeyWord])(implicit executionContext: ExecutionContext) extends HtmlCpnt with TypedHtml[MemoKeywords] {
-
-    private var currentMemo = memoInitial
-
-    val ctx = new MemoCtxView
-    ctx.memoType.select(currentMemo.memo.memoType.toString)
-
-    import KewWordHtml.WithClose._
+    import ViewsDef.KewWordHtml.WithClose._
 
     val kwDiv: Div = $l.t div memoInitial.keyWords.html.flatMap(_.list)
-    console.log(kwDiv)
+
     val saveButton: Button = $ref.t button {
       save: Button =>
         save.textContent = "save"
@@ -230,7 +258,9 @@ class ViewsDef() {
         ff._class = "card-footer"
         ff ++= ($t h3 "tags", kwDiv, propose.html)
     }
-    val cpnt = memoInitial.memo.typedHtml(Some(ctx.memoList))
+    val cpnt: MemoCpnt = memoInitial.memo.htmlp(Some(ctx.memoList))
+    deleteButton.style.cssFloat = "right"
+    cpnt.title.appendChild(deleteButton)
     cpnt.body ++= (saveButton, editButton)
     val l: List[HTMLElement] = cpnt.list :+ footer
     implicit val keyWordsBuffer: ListBuffer[KeyWord] = ListBuffer.from(memoInitial.keyWords.toList)
@@ -264,64 +294,72 @@ class ViewsDef() {
       cpnt.update(value.map(_.memo))
     }
 
-    def displayButton(): Unit = {
-      currentMemo.memo.memoType match {
-        case MemoType.Text => editButton.show(true)
-        case MemoType.Json => editButton.show(true)
-      }
-    }
 
-    def save() = {
-      currentMemo = currentMemo.copy(memo = ctx.newMemo.copy(id = currentMemo.memo.id), keyWords = keyWordsBuffer.toSet)
-      Daos.memoKeyWord.update(currentMemo).onComplete {
-        case Failure(exception) => console.log(exception); PopUp("Sauvegarde KO")
-        case Success(value) => PopUp("Sauvegarde OK")
+    def save(): Future[Unit] = {
+
+      ctx.currentMemoOption = ctx.currentMemoOption.map { currentMemo =>
+        currentMemo.copy(memo = ctx.newMemo.copy(id = currentMemo.memo.id), keyWords = keyWordsBuffer.toSet)
+      }
+      ctx.currentMemoOption.map { currentMemo =>
+        Daos.memoKeyWord.update(currentMemo).map { value =>
+          PopUp("Sauvegarde OK")
           //  ctx.memoList.html.safeRm()
           ctx.memoType.safeRm()
           ctx.tInput.safeRm()
           ctx.contentInput.safeRm()
           update(value)
-      }
-      displayButton()
+        } recover {
+          case exception => console.log(exception); PopUp("Sauvegarde KO")
+        }
+      } getOrElse(Future.failed(new IllegalStateException("")))
+
     }
 
     keyWordsBuffer zip kwDiv.$classSelect(ViewsDef.kwClass).map(_.asInstanceOf[HTMLElement]) foreach {
       deleteEvent _ tupled _
     }
 
+    def madeSpinner(b : Button,clkAction :() =>Future[_])={
+      b.$click { _ =>
+        val sp = ViewsDef.spinner
+        val tmp = b.innerHTML
+        b.innerHTML = ""
+        b += sp
+        b.disabled = true
+        clkAction().onComplete(_ =>{
+          b.removeChild(sp)
+          b.innerHTML = tmp
+          b.disabled = false
+        })
+        }
+      }
 
-    saveButton.$click { _ =>
-      save()
-    }
+    madeSpinner(saveButton,save)
+
 
     editButton.$click { _ =>
+      ctx.initialInput()
       l.foreach(_.$classSelect.`a-title`.map(_.asInstanceOf[HTMLElement]).foreach { a =>
         a.parentElement += ctx.tInput
-        ctx.tInput.value = currentMemo.memo.title
+
       })
       l.foreach(_.$classSelect.`m-content`.map(_.asInstanceOf[HTMLElement]).foreach { a =>
 
         a.parentElement.insertBefore(ctx.contentInput, saveButton)
         a.parentElement.insertBefore(ctx.memoList.html, saveButton)
-        currentMemo.memo.memoType match {
-          case MemoType.Text =>
-            ctx.contentInput.value = currentMemo.memo.content
-            ctx.contentInput.show(true)
-            ctx.memoList.html.show(false)
-          case MemoType.Json =>
-        }
+
 
         ()
       })
       l.foreach(_.$classSelect.`m-type`.map(_.asInstanceOf[HTMLElement]).foreach { a =>
         a += (ctx.memoType)
-        ctx.memoType.select(currentMemo.memo.memoType.toString)
+
       })
       ctx.makeSwitchView()
       ctx.memoList.addEvent()
     }
-    displayButton()
 
+    override def delete(): FB = Daos.memoKeyWord.delete(memoInitial.memo.id.get)
 
   }
 

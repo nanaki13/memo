@@ -1,11 +1,11 @@
-package bon.jo.test
+package bon.jo.memo.ui
 
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Dao.Id
 import bon.jo.memo.Entities
 import bon.jo.memo.Entities.{KeyWord, MemoKeywords}
-import bon.jo.test.HTMLDef.{$t, $va}
-import bon.jo.test.HtmlRep.HtmlRepParam
+import HTMLDef.{$t, $va, HtmlOps}
+import HtmlRep.HtmlRepParam
 import org.scalajs.dom.experimental.URLSearchParams
 import org.scalajs.dom.html.{Div, Input}
 
@@ -16,7 +16,7 @@ class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: 
                                 val memoKeywWordtx: MemoCtxView,addMemo : (Entities.MemoKeywords)=>Unit)
                                (implicit executionContext: ExecutionContext)
   extends SimpleView[Entities.MemoKeywords](() =>
-    $va div(
+    ($va div(
       $t span "titre",
       memoKeywWordtx.tInput,
       $t span "type :",
@@ -26,7 +26,7 @@ class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: 
       listView,
       $t div "KeyWord : ",
       propose.html
-    ),addMemo) {
+    )) := ( _._class="col" ) ,addMemo) {
 
 
 

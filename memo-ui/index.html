@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Memo</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" crossorigin="anonymous">
     <link rel="stylesheet" href="/ui/assets/css/index.css">
@@ -12,7 +13,11 @@
 <script type="text/javascript">
     const conf =  { prod : false };
 </script>
-<app-test></app-test>
+<app-test>
+    <div class="spinner-border" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</app-test>
 
 <script type="text/javascript" src="/ui/.js/target/scala-2.13/memo-ui-fastopt.js"></script>
 

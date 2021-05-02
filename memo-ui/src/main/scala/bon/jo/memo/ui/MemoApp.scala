@@ -1,4 +1,4 @@
-package bon.jo.test
+package bon.jo.memo.ui
 
 import bon.jo.app.HtmlApp
 import bon.jo.game.html.Template

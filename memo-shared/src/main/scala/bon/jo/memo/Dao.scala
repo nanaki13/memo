@@ -1,12 +1,14 @@
 package bon.jo.memo
 
+import bon.jo.memo.Dao.FB
+
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
 trait Dao[A, ID] {
   type FO = Future[Option[A]]
   type FL = Future[Iterable[A]]
-  type FB = Future[Boolean]
+
   type FIL = Future[Iterable[ID]]
 
   def create(a: A): FO
@@ -32,6 +34,7 @@ trait Dao[A, ID] {
 
 
 object Dao {
+  type FB = Future[Boolean]
   trait StringQuery extends CustomDao[String]{
     self :  Dao[_,_]  =>
   }

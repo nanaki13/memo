@@ -87,11 +87,15 @@ class MemoKeyWordsDaoImpl(implicit val profile: DBProfile.DB,
           val keys = e.flatten
           val relation = keys.toSeq.map(k => MemoKeywordRel(nMemo.id.get, k.id.get))
           val delete = memoKeywords.filter(_.idMemo === a.memo.id).delete
-          val cRel = relation.map(memoKeywords += _)
-          val createAction = DBIO.sequence(cRel)
-          db.run(delete).flatMap(e => {
-            db.run(createAction).map { _ =>
+          val cRel = memoKeywords ++= relation
+         // val createAction = DBIO.sequence(cRel)
+          db.run(delete).recover{
+            case z => println("delete");throw z
+          }.flatMap(e => {
+            db.run(cRel).map { _ =>
               Some(Entities.MemoKeywords(nMemo, keys))
+            }.recover{
+              case z => println("createAction");throw z
             }
           })
 

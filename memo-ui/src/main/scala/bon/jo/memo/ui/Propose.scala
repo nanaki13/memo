@@ -1,9 +1,12 @@
-package bon.jo.test
+package bon.jo.memo.ui
 
 import bon.jo.html.DomShell.{ExtendedElement, ExtendedElmt, ExtendedHTMLCollection}
 import bon.jo.html.HtmlEventDef._
-import bon.jo.test.HTMLDef.{$attr, $attrns, $c, $l, $ref, $refns, $va, Ev, HtmlOps}
-import bon.jo.test.HtmlRep.{HtmlCpnt, ListRep}
+import HTMLDef.{$attr, $attrns, $c, $l, $ref, $refns, $va, Ev, HtmlOps}
+import HtmlRep.{HtmlCpnt, ListRep}
+import bon.jo.memo.ui.HTMLDef.$va.t
+import HTMLDef.{$c, $ref, $va}
+import HTMLDef.$va.t
 import org.scalajs.dom.html.{Button, Div}
 import org.scalajs.dom.raw
 import org.scalajs.dom.raw.{Element, HTMLElement, MouseEvent, Node}
@@ -13,10 +16,9 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.scalajs.js
 
 
-class Propose[A: HtmlRep, B <: raw.HTMLElement](
-                                                 val ioHtml: IOHtml[B, A]
-                                                 , save: A => Future[Option[A]],
-                                                 val proposeView: ProposeView[A]
+class Propose[A, B <: raw.HTMLElement](
+                                                 val ioHtml: IOHtml[B, A],
+                                                 val proposeView: ProposeView[A,_]
                                                )(implicit executionContext: ExecutionContext) {
 
 
@@ -35,7 +37,7 @@ class Propose[A: HtmlRep, B <: raw.HTMLElement](
 
 
   val html: Div = {
-    val div: Div = $va.t div(ioHtml.html, btn)
+    val div: Div = t div(ioHtml.html, btn)
     div
   }
 
@@ -52,16 +54,7 @@ class Propose[A: HtmlRep, B <: raw.HTMLElement](
 
 
 
-  btn.$click {
-    _ =>
-      save(ioHtml.toValue).recover {
-        case _ => None
-      }.foreach {
-        case None => PopUp("Marche pas...")
-        case Some(value) => proposeView.+=(value)
-      }
 
-  }
 
 
 
@@ -78,13 +71,12 @@ object ProposeView{
   }
 }
 
-case class ProposeView[A: HtmlRep](
+case class ProposeView[A,C<:HtmlCpnt](
                         seleO : HTMLElement = $c.div ,
                         help : Element = ProposeView.help,
                           list: mutable.ListBuffer[A] =  mutable.ListBuffer.empty[A],
+                      )(implicit rep  : HtmlRep[A,C]){
 
-                      ){
-  val rep: HtmlRep[A] = implicitly[HtmlRep[A]]
   val html: HTMLElement = $va   div (help, seleO)
   def doFilter(filter: A => Boolean): Unit = {
 
@@ -110,13 +102,13 @@ case class ProposeView[A: HtmlRep](
     })
    list.addAll(a)
   }
-  def +=(b: A): Iterable[HTMLElement] = {
+  def +=(b: A): List[HTMLElement] = {
     list += b
     val h = rep.html(b)
-    val html = wrap(h)
-    seleO += html
+    //val html = wrap(h)
+    seleO ++= h.list
 
-    html.children.map(_.asInstanceOf[HTMLElement])
+    h.list
   }
   def wrap(a :HtmlCpnt) =  $ref div{ d => d ++= a.list}
 }

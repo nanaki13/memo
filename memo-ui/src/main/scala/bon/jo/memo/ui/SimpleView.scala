@@ -1,10 +1,13 @@
-package bon.jo.test
+package bon.jo.memo.ui
 
 import bon.jo.html.DomShell.ExtendedHTMLCollection
 import bon.jo.memo.Entities
-import bon.jo.test.HTMLDef.{$c, $l, $ref, $t, $va, HtmlOps}
-import bon.jo.test.HtmlRep._
-import bon.jo.test.SimpleView._
+import HTMLDef.{$c, $l, $ref, $t, $va, HtmlOps}
+import HtmlRep._
+import SimpleView._
+import bon.jo.memo.ui.HTMLDef.$ref.t
+import HTMLDef.{$l, $ref, $t, $va}
+import HTMLDef.$ref.t
 import org.scalajs.dom.html.{Button, Div, Input, Select, TextArea}
 import org.scalajs.dom.raw
 import org.scalajs.dom.raw.{HTMLElement, HTMLOptionElement}
@@ -19,7 +22,7 @@ object SimpleView {
     def select(v: String): Unit = self.getElementsByTagName("option").map(_.asInstanceOf[HTMLOptionElement]).filter(_.value == v).foreach(_.selected = true)
   }
 
-  def i(classCss: String = "form-control"): Input = ($ref.t input {
+  def i(classCss: String = "form-control"): Input = (t input {
     r: Input => r._class = classCss
   })
 
@@ -67,7 +70,12 @@ abstract class SimpleView[A](creationHtml: () => HTMLElement, val addImpl: (A) =
   // val listHtml: Div = $c.div
 
   val btnInput: Button = bsButton("ajouter")
-  val cpnt: Div = $va.t div(creationHtml(), btnInput)
+  val htmlAvecButton = {
+    val h =  creationHtml()
+    h.appendChild(btnInput)
+    h
+  }
+  val cpnt: Div = (($va.t div(htmlAvecButton)):Div) := ( _._class="row" )
 
 
   def +=(p: A): Unit = {

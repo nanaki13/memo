@@ -2,7 +2,7 @@ package bon.jo.app
 
 import bon.jo._
 import bon.jo.game.html.Template
-import bon.jo.test.{MemoApp, MemoTemplate}
+import bon.jo.memo.ui.{MemoApp, MemoTemplate}
 import org.scalajs.dom.document
 import org.scalajs.dom.html.Div
 

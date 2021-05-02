@@ -1,8 +1,8 @@
-package bon.jo.test
+package bon.jo.memo.ui
 
 import bon.jo.memo.Entities.{MemoKeywords, MemoType}
 import bon.jo.memo.{BaseRoute, Entities, MemoKWDao}
-import bon.jo.test.Daos.memoKeyWord
+import Daos.memoKeyWord
 import org.scalajs.dom.console
 
 import scala.scalajs.js
@@ -49,7 +49,7 @@ object Daos {
         memo = MemoJs(m.memo),
         keyWords = m.keyWords.map(KeyWordJs.apply).toJSArray,
       ).asInstanceOf[MemoKeywordsJs]
-      console.log(ret)
+
       ret
     }
   }

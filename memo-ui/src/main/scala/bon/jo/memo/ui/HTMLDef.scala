@@ -1,4 +1,4 @@
-package bon.jo.test
+package bon.jo.memo.ui
 
 import org.scalajs.dom.{DOMList, Element, console, document}
 import org.scalajs.dom.raw.{DOMTokenList, Element, HTMLCollection, HTMLElement, MouseEvent, Node, Text}
@@ -7,16 +7,19 @@ import scala.language.dynamics
 import scala.scalajs.js
 
 object HTMLDef {
-  type Ev =Iterable[( Element,js.Function1[MouseEvent, _])]
-  implicit class DomlistOps[T](domList : DOMList[T]) extends Iterable[T]{
+  type Ev = Iterable[(Element, js.Function1[MouseEvent, _])]
+
+  implicit class DomlistOps[T](domList: DOMList[T]) extends Iterable[T] {
 
     def cp: List[T] = {
       _iterator.toList
     }
-     def _iterator: Iterator[T] = new Iterator[T] {
+
+    def _iterator: Iterator[T] = new Iterator[T] {
 
       val l = domList.length
-      var _index =0
+      var _index = 0
+
       override def hasNext: Boolean = _index < l
 
       override def next(): T = {
@@ -28,6 +31,7 @@ object HTMLDef {
 
     override def iterator: Iterator[T] = cp.iterator
   }
+
   implicit class HtmlOps[T <: Element](t: T) {
 
     object $classSelect extends scala.Dynamic {
@@ -36,7 +40,9 @@ object HTMLDef {
 
       def selectDynamic(clSel: String): HTMLCollection = apply(clSel)
     }
+
     def _class: String = t.classList.mkString(" ")
+
     def _class_=(s: String): Unit = {
 
       s.split(" ").foreach(t.classList.add)
@@ -48,10 +54,11 @@ object HTMLDef {
       htmlList.foreach(t appendChild _)
       t
     }
+
     def safeRm(): Option[Node] = {
-      if(!js.isUndefined(t.parentNode)) {
+      if (t.parentNode != null && !js.isUndefined(t.parentNode)) {
         Some(t.parentNode.removeChild(t))
-      }else{
+      } else {
         None
       }
     }
@@ -84,6 +91,11 @@ object HTMLDef {
       t
     }
 
+    def :=(toMe: T => Unit): T = {
+      toMe(t)
+      t
+    }
+
 
   }
 
@@ -99,6 +111,7 @@ object HTMLDef {
       d(ret)
       ret
     }
+
     object t extends scala.Dynamic {
       def applyDynamic[T <: HTMLElement](tagName: String)(d: T => Unit): T = {
         val ret = $c.selectDynamic[T](tagName)
@@ -107,23 +120,26 @@ object HTMLDef {
       }
     }
   }
+
   object $refns extends scala.Dynamic {
-    def applyDynamic(tagName: String)(ns : String,d: Element => Unit): Element = {
-      val ret = document.createElementNS(ns,tagName)
+    def applyDynamic(tagName: String)(ns: String, d: Element => Unit): Element = {
+      val ret = document.createElementNS(ns, tagName)
       d(ret)
       ret
     }
+
     object t extends scala.Dynamic {
-      def applyDynamic[T <: Element](tagName: String)(ns : String,d: T => Unit): T = {
-        val ret = document.createElementNS(ns,tagName).asInstanceOf[T]
+      def applyDynamic[T <: Element](tagName: String)(ns: String, d: T => Unit): T = {
+        val ret = document.createElementNS(ns, tagName).asInstanceOf[T]
         d(ret)
         ret
       }
     }
   }
+
   object $attrns extends scala.Dynamic {
-    def applyDynamic(tagName: String)(ns : String,htmlL: (Any, Any)*): Element = {
-      document.createElementNS(ns,tagName).$attr(htmlL: _ *)
+    def applyDynamic(tagName: String)(ns: String, htmlL: (Any, Any)*): Element = {
+      document.createElementNS(ns, tagName).$attr(htmlL: _ *)
     }
   }
 
@@ -155,6 +171,7 @@ object HTMLDef {
       htmlL.foreach(ret.appendChild)
       ret
     }
+
     object t extends scala.Dynamic {
       def applyDynamic[T <: HTMLElement](tagName: String)(htmlL: Node*): T = {
         val ret = $c.selectDynamic[T](tagName)
@@ -168,10 +185,11 @@ object HTMLDef {
 
   object $l extends scala.Dynamic {
     def applyDynamic(tagName: String)(htmlL: Iterable[Node]): HTMLElement = {
-      val ret =  $c.selectDynamic[HTMLElement](tagName)
+      val ret = $c.selectDynamic[HTMLElement](tagName)
       htmlL.foreach(ret.appendChild)
       ret
     }
+
     object t extends scala.Dynamic {
       def applyDynamic[T <: HTMLElement](tagName: String)(htmlL: Iterable[Node]): T = {
         val ret = $c.selectDynamic[T](tagName)

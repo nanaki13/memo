@@ -1,8 +1,9 @@
-package bon.jo.test
+package bon.jo.memo.ui
 
 import bon.jo.app.RequestHttp.{DELETE, GET, PATCH, POST}
 import bon.jo.memo.Dao
-import bon.jo.test.HttpDao.ExceptionServeur
+import HttpDao.ExceptionServeur
+import bon.jo.memo.Dao.FB
 
 import scala.scalajs.js
 import scala.scalajs.js.JSON

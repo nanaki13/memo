@@ -1,16 +1,18 @@
-package bon.jo.test
+package bon.jo.memo.ui
 
 import bon.jo.html.DomShell.{$, ExtendedElement, ExtendedHTMLCollection}
 import bon.jo.html.GenId
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Dao.Id
-import bon.jo.test.HTMLDef.{$c, $ref, $va, HtmlOps}
-import bon.jo.test.MemoLists.{ListElement, ListElementJS, MemoList, MemoListJS}
+import HTMLDef.{$c, $ref, $va, HtmlOps}
+import MemoLists.{ListElement, ListElementJS, MemoList, MemoListJS}
 import org.scalajs.dom.html.{Div, Element, Input, Span}
 import org.scalajs.dom.{console, raw}
 import org.scalajs.dom.raw.{HTMLElement, HTMLUListElement}
 import HtmlRep._
 import HtmlRep.HtmlCpnt._
+import HTMLDef.{$c, $ref, $va}
+
 import scalajs.js.JSConverters._
 class MemoListView() extends GenId {
   var data: MemoListJS = new MemoList(Nil.toJSArray)
@@ -35,7 +37,8 @@ class MemoListView() extends GenId {
     })
   }
 
-  implicit val listElementidXmlRep: HtmlRep[ListElementJS] = HtmlRep{
+  type _HtmlRep[A] = HtmlRep[A,HtmlCpnt]
+  implicit val listElementidXmlRep: _HtmlRep[ListElementJS] = {
     (li) =>
       (()=> $va li( {
         val inp: Input = checkInput
@@ -52,7 +55,7 @@ class MemoListView() extends GenId {
         s
       })).toHtmlCpnt
   }
-  implicit val idXmlRep: HtmlRep[MemoListJS] = HtmlRep{
+  implicit val idXmlRep: _HtmlRep[MemoListJS] = {
     m =>  {
         m.elements.toList.html.foreach(list ++= _.list)
       (() => list).toHtmlCpnt
@@ -86,12 +89,15 @@ class MemoListView() extends GenId {
 
     val ev = tInput
     ev.$Action {
-      val el: ListElementJS = new ListElement(tInput.value, true)
-      val htmlN = el.html.list
-      list ++= htmlN
+      if(tInput.value.trim.nonEmpty){
+        val el: ListElementJS = new ListElement(tInput.value.trim, true)
+        val htmlN = el.html.list
+        list ++= htmlN
 
-      htmlN.foreach(del)
-      tInput.value = ""
+        htmlN.foreach(del)
+        tInput.value = ""
+      }
+
     }
     ev.$keyup {
       _ =>
