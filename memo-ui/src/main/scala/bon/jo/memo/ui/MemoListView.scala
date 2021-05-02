@@ -1,24 +1,23 @@
 package bon.jo.memo.ui
 
 import bon.jo.html.DomShell.{$, ExtendedElement, ExtendedHTMLCollection}
-import bon.jo.html.GenId
+import bon.jo.html.{CommonHtml, GenId}
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Dao.Id
-import HTMLDef.{$c, $ref, $va, HtmlOps}
+import bon.jo.html.HTMLDef._
 import MemoLists.{ListElement, ListElementJS, MemoList, MemoListJS}
 import org.scalajs.dom.html.{Div, Element, Input, Span}
 import org.scalajs.dom.{console, raw}
 import org.scalajs.dom.raw.{HTMLElement, HTMLUListElement}
 import HtmlRep._
 import HtmlRep.HtmlCpnt._
-import HTMLDef.{$c, $ref, $va}
 
 import scalajs.js.JSConverters._
 class MemoListView() extends GenId {
   var data: MemoListJS = new MemoList(Nil.toJSArray)
   val tInput: Input = $c.input
   tInput.id = s"$id-i"
-  HTMLDef
+
   implicit val idEl: Id[ListElementJS] = me => s"$id-${me.content}"
 
 
@@ -50,7 +49,7 @@ class MemoListView() extends GenId {
         s.textContent = li.content
         s
       }, {
-        val s = ViewsDef.closeBtn
+        val s = CommonHtml.closeBtn
         s._class += s" $deleteClass"
         s
       })).toHtmlCpnt

@@ -13,7 +13,7 @@ import HtmlRep._
 import org.scalajs.dom.html.{Button, Div, Input}
 import org.scalajs.dom.raw.HTMLElement
 import org.scalajs.dom.{console, document, raw, window}
-import HTMLDef.{$c, _}
+import bon.jo.html.HTMLDef.{$c, _}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -24,7 +24,9 @@ import scala.xml.Node
 import SimpleView.DSelect
 import FindViewDef._
 import ViewsDef.ProposeInput
+import bon.jo.html.CommonHtml
 import org.scalajs.dom.experimental.URLSearchParams
+
 import scalajs.js.JSConverters._
 
 case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Template with XmlTemplate {
@@ -128,7 +130,7 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
   override def init(p: HTMLElement): Unit = {
 
     implicit val pa: HTMLElement = p
-    val spi = ViewsDef.spinner
+    val spi = CommonHtml.spinner
     p.appendChild(spi)
     Daos.keyWordDao.readAll().map(implicit allKeyWord => {
       proposeView.addAll(allKeyWord)

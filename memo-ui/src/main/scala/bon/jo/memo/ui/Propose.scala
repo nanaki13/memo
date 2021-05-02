@@ -2,11 +2,8 @@ package bon.jo.memo.ui
 
 import bon.jo.html.DomShell.{ExtendedElement, ExtendedElmt, ExtendedHTMLCollection}
 import bon.jo.html.HtmlEventDef._
-import HTMLDef.{$attr, $attrns, $c, $l, $ref, $refns, $va, Ev, HtmlOps}
-import HtmlRep.{HtmlCpnt, ListRep}
-import bon.jo.memo.ui.HTMLDef.$va.t
-import HTMLDef.{$c, $ref, $va}
-import HTMLDef.$va.t
+import bon.jo.html.HTMLDef._
+import bon.jo.memo.ui.HtmlRep.HtmlCpnt
 import org.scalajs.dom.html.{Button, Div}
 import org.scalajs.dom.raw
 import org.scalajs.dom.raw.{Element, HTMLElement, MouseEvent, Node}
@@ -37,7 +34,7 @@ class Propose[A, B <: raw.HTMLElement](
 
 
   val html: Div = {
-    val div: Div = t div(ioHtml.html, btn)
+    val div: Div = $va.t div(ioHtml.html, btn)
     div
   }
 

@@ -4,7 +4,7 @@ import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Dao.Id
 import bon.jo.memo.Entities
 import bon.jo.memo.Entities.{KeyWord, MemoKeywords}
-import HTMLDef.{$t, $va, HtmlOps}
+import bon.jo.html.HTMLDef._
 import HtmlRep.HtmlRepParam
 import org.scalajs.dom.experimental.URLSearchParams
 import org.scalajs.dom.html.{Div, Input}
@@ -34,13 +34,13 @@ class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: 
   def addEventNewMemoKeyWord(iterable: Iterable[KeyWord]): Unit =
 
 
-    btnInput.$click {
-      _ => {
+    btnInput.$spinner {
+      () => {
         val m = Entities.MemoKeywords(memoKeywWordtx.newMemo, iterable.toSet)
         val req: Future[Unit] = Daos.memoKeyWord.create(m).map(o => o.foreach(+=))
-        req.onComplete {
-          case Failure(exception) => throw (exception)
-          case Success(_) =>
+          .map(_ =>PopUp(s"${m.memo.title} sauvegarder !"))
+        req.recover {
+          case exception => PopUp("Problème de sauvegarder"); throw (exception)
         }
       }
     }

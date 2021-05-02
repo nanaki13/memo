@@ -1,15 +1,13 @@
 package bon.jo.memo.ui
 
-import bon.jo.memo.Dao.Id
-import HtmlRep.{HtmlCpnt, HtmlRepParam}
-import org.scalajs.dom.raw
-import org.scalajs.dom.raw.HTMLElement
-import HTMLDef.HtmlOps
+import bon.jo.html.CommonHtml
+import bon.jo.html.HTMLDef.HtmlOps
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Dao
+import bon.jo.memo.ui.HtmlRep.{HtmlCpnt, HtmlRepParam}
+import org.scalajs.dom.raw.HTMLElement
 
 import scala.concurrent.ExecutionContext
-import scala.util.Try
 
 
 object HtmlRep {
@@ -53,7 +51,7 @@ object HtmlRep {
   trait Deletable {
     selef: HtmlCpnt =>
     implicit val executionContext: ExecutionContext
-    val deleteButton = ViewsDef.closeBtn
+    val deleteButton = CommonHtml.closeBtn
     deleteButton.$click{ _=>
       doDelete
     }

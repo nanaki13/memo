@@ -1,21 +1,18 @@
 package bon.jo.memo.ui
 
+import bon.jo.html.CommonHtml
+import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
+import bon.jo.html.HTMLDef._
 import bon.jo.html.HtmlEventDef.ExH
+import bon.jo.memo.Dao.FB
 import bon.jo.memo.Entities.{KeyWord, Memo, MemoKeywords, MemoType}
-import HTMLDef.{$attr, $attrns, $c, $l, $ref, $refns, $t, $va, Ev, HtmlOps}
-import HtmlRep._
-import HtmlRep.HtmlCpnt._
-import MemoLists.MemoListJS
+import bon.jo.memo.ui.HtmlRep._
+import bon.jo.memo.ui.MemoLists.MemoListJS
+import bon.jo.memo.ui.ViewsDef.ProposeInput
 import org.scalajs.dom.console
 import org.scalajs.dom.html.{Anchor, Button, Div, Input, Span}
 import org.scalajs.dom.raw.{Element, HTMLElement}
-import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
-import ViewsDef.ProposeInput
-import SimpleView.DSelect
-import MemoLists.MemoListJS
-import bon.jo.memo.Dao.FB
 
-import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 import scala.scalajs.js.JSON
@@ -52,33 +49,23 @@ object ViewsDef {
 
     }
 
-    btn.$click {
-      _ =>
-        save(ioHtml.toValue).recover {
-          case _ => None
-        }.foreach {
+    btn.$spinner {
+      ()=>
+        save(ioHtml.toValue).recover( _ => None).map {
           case None => PopUp("Marche pas...")
           case Some(value) => {
             val els = proposeView.+=(value)
             clickEvent(els.head, value)(sel)
+            PopUp("Ok")
           }
         }
 
     }
   }
 
-  val closeClass = "closeClass"
 
-  def spinner = $ref div { r =>
-    r._class = "spinner-border"
-    r.$attr("role" -> "status")
-  }
 
-  def closeBtn: Span = {
-    (($attr span("type" -> "button", "class" -> s"badge badge-secondary $closeClass", "aria-label" -> "Close")) +=
-      $t("×")
-      ).$to
-  }
+
 
   val svgNs = "http://www.w3.org/2000/svg"
 
@@ -95,7 +82,7 @@ object ViewsDef {
   }
 
   trait KewWordHtml extends HtmlCpnt with UpdatableHtmlCpnt[KeyWord] {
-    val close = ViewsDef.closeBtn
+    val close = CommonHtml.closeBtn
 
     def kw(): KeyWord
 
@@ -202,7 +189,7 @@ class ViewsDef() {
 
 
     override def update(value: Option[Memo]): Unit = {
-      import HTMLDef._
+
       value foreach {
         m =>
 
@@ -279,7 +266,7 @@ class ViewsDef() {
 
     def deleteEvent(kw: KeyWord, htmlKw: HTMLElement)(implicit lubber: ListBuffer[KeyWord]): Unit = {
 
-      htmlKw.$classSelect(ViewsDef.closeClass).foreach { btnClose =>
+      htmlKw.$classSelect(CommonHtml.closeClass).foreach { btnClose =>
         btnClose.asInstanceOf[HTMLElement].$click {
           _ =>
             lubber -= kw
@@ -319,22 +306,9 @@ class ViewsDef() {
       deleteEvent _ tupled _
     }
 
-    def madeSpinner(b : Button,clkAction :() =>Future[_])={
-      b.$click { _ =>
-        val sp = ViewsDef.spinner
-        val tmp = b.innerHTML
-        b.innerHTML = ""
-        b += sp
-        b.disabled = true
-        clkAction().onComplete(_ =>{
-          b.removeChild(sp)
-          b.innerHTML = tmp
-          b.disabled = false
-        })
-        }
-      }
 
-    madeSpinner(saveButton,save)
+
+    saveButton.$spinner(save)
 
 
     editButton.$click { _ =>

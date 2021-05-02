@@ -1,18 +1,13 @@
 package bon.jo.memo.ui
 
 import bon.jo.html.DomShell.ExtendedHTMLCollection
+import bon.jo.html.HTMLDef.$ref.t
+import bon.jo.html.HTMLDef.{$l, $ref, $t, $va, HtmlOps}
 import bon.jo.memo.Entities
-import HTMLDef.{$c, $l, $ref, $t, $va, HtmlOps}
-import HtmlRep._
-import SimpleView._
-import bon.jo.memo.ui.HTMLDef.$ref.t
-import HTMLDef.{$l, $ref, $t, $va}
-import HTMLDef.$ref.t
+import bon.jo.memo.ui.SimpleView._
 import org.scalajs.dom.html.{Button, Div, Input, Select, TextArea}
 import org.scalajs.dom.raw
 import org.scalajs.dom.raw.{HTMLElement, HTMLOptionElement}
-
-import scala.collection.mutable.ListBuffer
 
 object SimpleView {
   implicit class DSelect(self: Select) {

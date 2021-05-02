@@ -1,10 +1,11 @@
 package bon.jo.memo.ui
 
+import bon.jo.html.CommonHtml
 import bon.jo.html.DomShell.ExtendedNode
+import bon.jo.html.HTMLDef.{$c, $t, $va, HtmlOps}
 import bon.jo.html.HtmlEventDef.ExH
-import HTMLDef.{$c, $ref, $t, $va, HtmlOps}
 import org.scalajs.dom.document
-import org.scalajs.dom.html.{Button, Div}
+import org.scalajs.dom.html.Div
 import org.scalajs.dom.raw.HTMLElement
 
 object PopUp {
@@ -31,7 +32,7 @@ object PopUp {
       show(popCnt)
     }
     popCount+=1
-    val btn = ViewsDef.closeBtn
+    val btn = CommonHtml.closeBtn
     btn.style.cssFloat = "right"
     val htmlNode : Div =  $va.t div( $va div btn,$t(message))
     htmlNode._class = "col"

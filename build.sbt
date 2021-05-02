@@ -29,8 +29,8 @@ val SlickVersion = "3.3.2"
 val Json4SVersion = "3.7.0-M10"
 lazy val `memo-server` =
 // select supported platforms
-  crossProject(JVMPlatform)
-    .crossType(CrossType.Pure) // [Pure, Full, Dummy], default: CrossType.Full
+ project
+   //.crossType(CrossType.Pure) // [Pure, Full, Dummy], default: CrossType.Full
     .settings(sharedSettings)
     .settings(
       libraryDependencies ++= Seq(
@@ -45,7 +45,7 @@ lazy val `memo-server` =
         "org.postgresql" % "postgresql" %"42.2.5"
       )
     )
-   .dependsOn(`memo-shared`)
+   .dependsOn(`memo-shared`.jvm)
 lazy val `memo-ui` =
 // select supported platforms
   crossProject(JSPlatform)
