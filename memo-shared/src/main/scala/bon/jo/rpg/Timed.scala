@@ -15,4 +15,6 @@ trait Timed[A] {
   def pos(a: A): Int
 
   def pos_=(a: A, pos: Int): Unit
+
+  def canChoice(a : A):List[Action]
 }

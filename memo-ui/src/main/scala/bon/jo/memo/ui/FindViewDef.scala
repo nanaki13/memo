@@ -2,7 +2,8 @@ package bon.jo.memo.ui
 
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Entities.KeyWord
-import HtmlRep.{HtmlCpnt, HtmlRepParam, UpdatableHtmlCpnt}
+import bon.jo.memo.ui.HtmlRep.{HtmlCpnt, HtmlRepParam}
+import bon.jo.ui.UpdatableCpnt
 import org.scalajs.dom.raw.HTMLElement
 
 import scala.concurrent.ExecutionContext
@@ -13,7 +14,7 @@ object FindViewDef {
                         buttonName: String
                       )
 
-  class FindView(val findParam: FindParam, val ctx: FindViewCtx) extends HtmlCpnt with UpdatableHtmlCpnt[FindParam]{
+  class FindView(val findParam: FindParam, val ctx: FindViewCtx) extends HtmlCpnt with UpdatableCpnt[FindParam]{
     implicit val ec = ctx.ec
     private val input = SimpleView.i
     private val button = SimpleView.bsButton(findParam.buttonName)

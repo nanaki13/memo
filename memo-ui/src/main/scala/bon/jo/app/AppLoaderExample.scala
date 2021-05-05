@@ -3,22 +3,24 @@ package bon.jo.app
 import bon.jo.html.DomShell.ExtendedElement
 import bon.jo.html.HTMLDef.{$c, $ref, $t, $va, HtmlOps}
 import bon.jo.html.HtmlEventDef.ExH
+import bon.jo.memo.ui.HtmlRep.{HtmlCpnt, PrXmlId}
 import bon.jo.memo.ui.{HtmlRep, SimpleView}
-import bon.jo.memo.ui.HtmlRep.{HtmlCpnt, PrXmlId, UpdatableHtmlCpnt}
 import bon.jo.rpg.Action.ActionCtx.{ActionCibled, ActionWithoutCible}
 import bon.jo.rpg.Action.{ActionCtx, MessagePlayer, PlayerMessage, PlayerUI}
 import bon.jo.rpg.BattleTimeLine.TimeLineParam
 import bon.jo.rpg.DoActionTrait.WithAction
-import bon.jo.rpg.{Action, Actions, Timed, TimedTrait}
+import bon.jo.rpg.stat.Perso.{PlayerPersoUI, WithUI}
+import bon.jo.rpg.stat.{GenBaseState, Perso}
+import bon.jo.rpg.{Action, Actions, TimedTrait}
+import bon.jo.ui.UpdatableCpnt
 import org.scalajs.dom.html.{Div, Span}
 import org.scalajs.dom.raw.{HTMLElement, MouseEvent}
 import org.scalajs.dom.{console, document, window}
 
-import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.{Future, Promise}
 import scala.scalajs.js
-import scala.util.{Success, Try}
+import scala.util.Success
 
 object AppLoaderExample extends App {
 
@@ -38,6 +40,94 @@ object AppLoaderExample extends App {
   }
 
 
+  implicit object Pl extends PlayerPersoUI with SimpleMessage{
+
+
+    override def ask(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx] = {
+      println("ask")
+      choice.clear()
+      val p: Promise[Action] = Promise[Action]()
+      d.canChoice.map(a => a-> a.html).foreach {
+        case (action, cpnt) =>
+          lazy val evL: Seq[(js.Function1[MouseEvent, _], HTMLElement)] = cpnt.list.map {
+            e =>
+              val ev = e.$click { _ =>
+                println(action)
+                if(!p.isCompleted){
+                  evL.foreach {
+                    case (value, element) => element.removeEventListener("click", value)
+                  }
+                  p.success(action)
+
+                }
+
+
+                choice.clear()
+              }
+              choice.appendChild(e)
+              (ev, e)
+
+          }
+          evL
+
+      }
+      val ret = Promise[ActionCtx]()
+      p.future.map {
+
+        case action@(Action.Attaque.MainGauche | Action.Attaque.MainDroite) =>
+          val pp = Promise[TimedTrait[_]]()
+          val messagep =  message("cliquer sur un cible")
+          lazy val allEvent: Seq[(HTMLElement, js.Function1[MouseEvent, _])] = d.value match {
+            case p: Perso => cible.flatten { v => {
+              v.value match {
+                case b: Perso => {
+
+                  val eAndView = AppLoaderExample.cpntMap(b.id)
+                  console.log(eAndView)
+                  lazy val hAndEvent: Seq[(HTMLElement, js.Function1[MouseEvent, _])] = eAndView._2.list.map {
+                    h =>
+                      console.log(h)
+                      h._class += " btn btn-primary"
+                      h -> h.$click { _ =>
+                        if(!pp.isCompleted){
+                          allEvent.foreach {
+                            case (element, value) =>
+                              element.removeEventListener("click", value)
+                              element.classList.remove("btn")
+                              element.classList.remove("btn-primary")
+                          }
+                          clear(messagep)
+                          pp.success(b)
+                        }
+
+
+                        // h.removeEventListener("click", c)
+
+                      }
+                  }
+
+
+                  pp.future.foreach(sel => if(!ret.isCompleted){
+                    ret.success(new ActionCibled(action, List(sel)))
+                  })
+                  hAndEvent
+                }
+              }
+            }
+            }
+            case _ => Nil
+
+          }
+          allEvent
+        case action: Action => ret.tryComplete(Success( new ActionWithoutCible(action)))
+
+      }
+      ret.future
+
+    }
+
+    override def cpntMap: Perso => UpdatableCpnt[Perso] = a => AppLoaderExample.cpntMap(a.id)._2
+  }
 
 
 
@@ -46,59 +136,13 @@ object AppLoaderExample extends App {
   //  }
 
 
-  case class Perso(name: String, att: Int, var speed: Int, var life: Int, var action: ActionCtx, id: Int = getid()) {
-    // override def toString: String = name
-  }
-
-  case class Mur()
-
-  implicit object PersoEx extends PersoOps
-
-  implicit object PeroPero extends Timed[Perso] {
-
-    val posCache = mutable.Map[Int, Int]()
 
 
-    override def speed(a: Perso): Int = a.speed
 
-    override def action_=(a: Perso, action: ActionCtx): Unit = a.action = action
-
-    override def action(a: Perso): ActionCtx = a.action
-
-    override def pos(a: Perso): Int = {
-      posCache.getOrElse(a.id, 0)
-    }
-
-    override def pos_=(a: Perso, pos: Int): Unit = posCache(a.id) = pos
-
-    override def simpleName(value: Perso): String = value.name
-  }
-
-
-  trait PersoOps extends Actions[Perso, List[TimedTrait[_]]] with  SimpleMessage{
-    def resolve(a: Perso, action: Action, b: List[TimedTrait[_]]): Unit = {
-      action match {
-        case Action.AttaqueMainGauche | Action.AttaqueMainDroite =>
-          b.map(_.value) match {
-            case List(p: Perso) =>
-              p.life -= a.att
-              message(s"${p.name} a perdu ${a.att} pv, il lui reste ${p.life} pv",5000)
-              cpntMap(p.id)._2.update(Some(p))
-            case _ =>
-          }
-        case Action.Defendre =>
-        case Action.Rien =>
-      }
-
-
-    }
-  }
-
-  val p1 = Perso("Bob", 1, 2, 3, ActionCtx.Rien)
-  val p2 = Perso("Bill", 1, 2, 3, ActionCtx.Rien)
-  val e1 = Perso("Mechant", 1, 2, 3, ActionCtx.Rien)
-  val e2 = Perso("Mechant", 1, 2, 3, ActionCtx.Rien)
-  val m = Mur()
+  val p1 = Perso("Bob",GenBaseState.randomInt(50,25))
+  val p2 = Perso("Bill",GenBaseState.randomInt(50,25))
+  val e1 = Perso("Mechant 1",GenBaseState.randomInt(50,25))
+  val e2 = Perso("Mechant 2",GenBaseState.randomInt(50,25))
 
 
   val yl = TimeLineParam(0, 120, 180)
@@ -106,6 +150,8 @@ object AppLoaderExample extends App {
   yl.add(p2)
   yl.add(e1)
   yl.add(e2)
+  val linkedUI = new WithUI()
+  import linkedUI.value
   implicit val acImpl: Actions[TimedTrait[Any], List[TimedTrait[_]]] = {
     (a: TimedTrait[_], action: Action, b: List[TimedTrait[_]]) =>
       a.value match {
@@ -113,10 +159,10 @@ object AppLoaderExample extends App {
       }
   }
 
-  class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableHtmlCpnt[Perso] {
+  class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso] {
     val nameDiv = $t span (perso.name)
-    val lifeDiv = $t span (perso.life.toString)
-    val attDiv = $t span (perso.att.toString)
+    val lifeDiv = $t span (perso.hp.toString)
+    val attDiv = $t span (perso.str.toString)
 
     override val get: IterableOnce[HTMLElement] = {
       val ret = $va div(
@@ -136,8 +182,8 @@ object AppLoaderExample extends App {
       value match {
         case Some(value) =>
           nameDiv.innerText = value.name
-          lifeDiv.innerText = value.life.toString
-          attDiv.innerText = value.att.toString
+          lifeDiv.innerText = value.hp.toString
+          attDiv.innerText = value.str.toString
         case None =>
       }
     }
@@ -183,92 +229,6 @@ object AppLoaderExample extends App {
     }
     def clear(str : MEsageImpl) : Unit={
       messageDiv.removeChild(str.str)
-    }
-  }
-  implicit object Pl extends PlayerUI with SimpleMessage{
-
-
-    override def ask(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx] = {
-      println("ask")
-      choice.clear()
-      val p: Promise[Action] = Promise[Action]()
-      actionChoice.foreach {
-        case (action, cpnt) =>
-          lazy val evL: Seq[(js.Function1[MouseEvent, _], HTMLElement)] = cpnt.list.map {
-            e =>
-              val ev = e.$click { _ =>
-                println(action)
-                if(!p.isCompleted){
-                  evL.foreach {
-                    case (value, element) => element.removeEventListener("click", value)
-                  }
-                  p.success(action)
-
-                }
-
-
-              choice.clear()
-              }
-              choice.appendChild(e)
-              (ev, e)
-
-          }
-          evL
-
-      }
-      val ret = Promise[ActionCtx]()
-      p.future.map {
-
-        case action@(Action.AttaqueMainGauche | Action.AttaqueMainDroite) =>
-          val pp = Promise[TimedTrait[_]]()
-          val messagep =  message("cliquer sur un cible")
-          lazy val allEvent: Seq[(HTMLElement, js.Function1[MouseEvent, _])] = d.value match {
-            case p: Perso => cible.flatten { v => {
-              v.value match {
-                case b: Perso => {
-
-                  val eAndView = cpntMap(b.id)
-                  console.log(eAndView)
-                  lazy val hAndEvent: Seq[(HTMLElement, js.Function1[MouseEvent, _])] = eAndView._2.list.map {
-                    h =>
-                      console.log(h)
-                      h._class += " btn btn-primary"
-                      h -> h.$click { _ =>
-                        if(!pp.isCompleted){
-                          allEvent.foreach {
-                            case (element, value) =>
-                              element.removeEventListener("click", value)
-                              element.classList.remove("btn")
-                              element.classList.remove("btn-primary")
-                          }
-                          clear(messagep)
-                          pp.success(b)
-                        }
-
-
-                        // h.removeEventListener("click", c)
-
-                      }
-                  }
-
-
-                  pp.future.foreach(sel => if(!ret.isCompleted){
-                    ret.success(new ActionCibled(action, List(sel)))
-                  })
-                  hAndEvent
-                }
-              }
-            }
-            }
-            case _ => Nil
-
-          }
-          allEvent
-        case action: Action => ret.tryComplete(Success( new ActionWithoutCible(action)))
-
-      }
-      ret.future
-
     }
   }
 

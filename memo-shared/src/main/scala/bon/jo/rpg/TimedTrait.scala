@@ -18,6 +18,8 @@ trait TimedTrait[A] {
 
   def speed: Int = workerTimed.speed(value)
 
+  def canChoice: List[Action]= workerTimed.canChoice(value)
+
   def action_=(action: ActionCtx): Unit = workerTimed.action_=(value, action)
 
   def action: ActionCtx = workerTimed.action(value)

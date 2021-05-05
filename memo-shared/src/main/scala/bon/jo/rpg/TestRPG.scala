@@ -1,25 +1,14 @@
 package bon.jo.rpg
 
-import bon.jo.rpg.Action.ActionCtx
+import bon.jo.rpg.Action.{ActionCtx, PlayerUIStdIn}
 import bon.jo.rpg.Action.PlayerUIStdIn.value
 import bon.jo.rpg.BattleTimeLine.TimeLineParam
 import bon.jo.rpg.DoActionTrait.WithAction
+import bon.jo.rpg.stat.Perso.{PeroPero, PersoOps, WithUI}
+import bon.jo.rpg.stat.{Actor, GenBaseState, Perso}
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 object TestRPG extends App {
   var id = 0
@@ -29,73 +18,17 @@ object TestRPG extends App {
     id
   }
 
+  import PlayerUIStdIn.value
+
+  val ui = new WithUI()
 
 
 
 
-  //  trait ActionOps[A] {
-  //    def resolveAction[B](a : A, action: Action, B : B):Unit
-  //  }
+  val p1 = Perso("Bob", GenBaseState.randomInt(50, 10))
+  val p2 = Perso("Bill", GenBaseState.randomInt(50, 10))
 
-
-
-
-
-
-
-
-
-  case class Perso(name: String, att: Int, var speed: Int, var life: Int, var action: ActionCtx, id: Int = getid()) {
-    // override def toString: String = name
-  }
-
-  case class Mur()
-
-  implicit object PersoEx extends PersoOps
-
-  implicit object PeroPero extends Timed[Perso] {
-
-    val posCache = mutable.Map[Int, Int]()
-
-
-    override def speed(a: Perso): Int = a.speed
-
-    override def action_=(a: Perso, action: ActionCtx): Unit = a.action = action
-
-    override def action(a: Perso): ActionCtx = a.action
-
-    override def pos(a: Perso): Int = {
-      posCache.getOrElse(a.id, 0)
-    }
-
-    override def pos_=(a: Perso, pos: Int): Unit = posCache(a.id) = pos
-
-    override def simpleName(value: Perso): String = value.name
-  }
-
-
-  trait PersoOps extends Actions[Perso, List[TimedTrait[_]]] {
-    def resolve(a: Perso, action: Action, b: List[TimedTrait[_]]): Unit = {
-      action match {
-        case Action.AttaqueMainGauche | Action.AttaqueMainDroite =>
-          b.map(_.value) match {
-            case List(p: Perso) =>
-              p.life -= a.att
-              println(s"${p.name} a perdu ${a.att} pv, il lui reste ${p.life} pv")
-          }
-        case Action.Defendre =>
-        case Action.Rien =>
-      }
-
-
-    }
-  }
-
-  val p1 = Perso("Bob", 1, 2, 3, ActionCtx.Rien)
-  val p2 = Perso("Bill", 1, 2, 3, ActionCtx.Rien)
-  val m = Mur()
-
-
+  import ui._
   val yl = TimeLineParam(0, 50, 70)
   yl.add(p1)
   yl.add(p2)
@@ -109,7 +42,6 @@ object TestRPG extends App {
   for (_ <- 1 to 100) {
     yl.nextState
   }
-
 
 
 }

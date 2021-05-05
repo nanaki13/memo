@@ -2,7 +2,11 @@ package bon.jo.rpg
 
 import bon.jo.rpg.Action.{ActionCtx, readCibleRec}
 import bon.jo.rpg.Action.ActionCtx.ActionCibled
+import bon.jo.rpg.Action.PlayerUIStdIn.value
 import bon.jo.rpg.StdinUtil.fromStdin
+import bon.jo.rpg.stat.Perso
+import bon.jo.rpg.stat.Perso.PlayerPersoUI
+import bon.jo.ui.UpdatableCpnt
 
 import scala.concurrent.Future
 
@@ -39,6 +43,8 @@ object Action {
 
   trait PlayerUI extends PlayerMessage{
 
+    type S
+    def cpntMap : S => UpdatableCpnt[S]
     def ask(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx]
 
   }
@@ -62,13 +68,21 @@ object Action {
       override def clear(str: MessagePlayer): Unit = {
 
       }
+
+      override type S = Any
+
+      override def cpntMap: Any => UpdatableCpnt[Any] = e => new UpdatableCpnt[Any] {
+        override def update(value: Option[Any]): Unit = {
+          println(value)
+        }
+      }
     }
   }
   def fromStdIn(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx] = {
     println(s"choisir action de ${d.simpleName}")
     Future.successful( fromStdIn match {
-      case AttaqueMainGauche => AttaqueMainGauche.fromStdIn(cible)
-      case AttaqueMainDroite => AttaqueMainDroite.fromStdIn(cible)
+      case  Attaque.MainGauche =>  Attaque.MainGauche.fromStdIn(cible)
+      case Attaque.MainDroite => Attaque.MainDroite.fromStdIn(cible)
       case Defendre => ActionCtx.Defendre
       case Rien => ActionCtx.Rien
       case _ => ActionCtx.Rien
@@ -77,8 +91,8 @@ object Action {
 
   def unapply(str: String): Option[Action] = {
     str match {
-      case Action.AttaqueMainGauche.name => Some(AttaqueMainGauche)
-      case Action.AttaqueMainDroite.name => Some(AttaqueMainDroite)
+      case Attaque.MainGauche.name => Some( Attaque.MainGauche)
+      case Attaque.MainDroite.name => Some(Attaque.MainDroite)
       case Action.Rien.name => Some(Rien)
       case _ => None
     }
@@ -96,15 +110,16 @@ object Action {
     List(fromStdin(cible, f))
   }
 
-  case object AttaqueMainGauche extends Action
-
-  case object AttaqueMainDroite extends Action
+  case object Attaque extends Action{
+    case object MainDroite extends Action
+    case object MainGauche extends Action
+  }
 
   case object Defendre extends Action
 
   case object Rien extends Action
 
-  val values : List[Action] = List(AttaqueMainDroite, AttaqueMainGauche, Defendre, Rien)
+  val values : List[Action] = List(Attaque.MainDroite, Attaque.MainGauche, Defendre, Rien)
 
 
 }

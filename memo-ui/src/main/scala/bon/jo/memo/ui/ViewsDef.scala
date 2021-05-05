@@ -9,6 +9,7 @@ import bon.jo.memo.Entities.{KeyWord, Memo, MemoKeywords, MemoType}
 import bon.jo.memo.ui.HtmlRep._
 import bon.jo.memo.ui.MemoLists.MemoListJS
 import bon.jo.memo.ui.ViewsDef.ProposeInput
+import bon.jo.ui.UpdatableCpnt
 import org.scalajs.dom.console
 import org.scalajs.dom.html.{Anchor, Button, Div, Input, Span}
 import org.scalajs.dom.raw.{Element, HTMLElement}
@@ -81,7 +82,7 @@ object ViewsDef {
       }))
   }
 
-  trait KewWordHtml extends HtmlCpnt with UpdatableHtmlCpnt[KeyWord] {
+  trait KewWordHtml extends HtmlCpnt with UpdatableCpnt[KeyWord] {
     val close = CommonHtml.closeBtn
 
     def kw(): KeyWord
@@ -117,7 +118,7 @@ object ViewsDef {
 class ViewsDef() {
 
 
-  class MemoCpnt(val memo: Memo, val mList: Option[MemoListView]) extends HtmlCpnt with UpdatableHtmlCpnt[Memo] {
+  class MemoCpnt(val memo: Memo, val mList: Option[MemoListView]) extends HtmlCpnt with UpdatableCpnt[Memo] {
     def lienTilre_(memo: Memo) = $ref a {
       lienTilre =>
         lienTilre._class = "a-title"
@@ -218,7 +219,7 @@ class ViewsDef() {
   }
 
 
-  class MKCpnt(memoInitial: MemoKeywords, proposeView: ProposeView[KeyWord, HtmlCpnt])(implicit val executionContext: ExecutionContext) extends HtmlCpnt with UpdatableHtmlCpnt[MemoKeywords] with Deletable {
+  class MKCpnt(memoInitial: MemoKeywords, proposeView: ProposeView[KeyWord, HtmlCpnt])(implicit val executionContext: ExecutionContext) extends HtmlCpnt with UpdatableCpnt[MemoKeywords] with Deletable {
 
 
     val ctx = new MemoCtxView(Some(memoInitial))

@@ -44,9 +44,7 @@ object HtmlRep {
 
   }
 
-  trait UpdatableHtmlCpnt[T] {
-    def update(value: Option[T]): Unit = {}
-  }
+
 
   trait Deletable {
     selef: HtmlCpnt =>
