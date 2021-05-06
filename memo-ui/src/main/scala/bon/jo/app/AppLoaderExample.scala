@@ -1,20 +1,21 @@
 package bon.jo.app
 
-import bon.jo.html.DomShell.ExtendedElement
-import bon.jo.html.HTMLDef.{$c, $ref, $t, $va, HtmlOps}
+import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
+import bon.jo.html.HTMLDef.{$c, $l, $ref, $t, $va, HtmlOps}
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.ui.HtmlRep.{HtmlCpnt, PrXmlId}
 import bon.jo.memo.ui.{HtmlRep, SimpleView}
 import bon.jo.rpg.Action.ActionCtx.{ActionCibled, ActionWithoutCible}
-import bon.jo.rpg.Action.{ActionCtx, MessagePlayer, PlayerMessage, PlayerUI}
+import bon.jo.rpg.Action.{ActionCtx, MessagePlayer, PlayerMessage}
 import bon.jo.rpg.BattleTimeLine.TimeLineParam
 import bon.jo.rpg.DoActionTrait.WithAction
+import bon.jo.rpg.stat.AnyRefBaseStat.Impl
 import bon.jo.rpg.stat.Perso.{PlayerPersoUI, WithUI}
-import bon.jo.rpg.stat.{GenBaseState, Perso}
-import bon.jo.rpg.{Action, Actions, TimedTrait}
+import bon.jo.rpg.stat.{Actor, AnyRefBaseStat, Perso}
+import bon.jo.rpg.{Action, ActionResolver, TimedTrait}
 import bon.jo.ui.UpdatableCpnt
 import org.scalajs.dom.html.{Div, Span}
-import org.scalajs.dom.raw.{HTMLElement, MouseEvent}
+import org.scalajs.dom.raw.{HTMLElement, MouseEvent, Node}
 import org.scalajs.dom.{console, document, window}
 
 import scala.concurrent.ExecutionContext.Implicits._
@@ -40,7 +41,7 @@ object AppLoaderExample extends App {
   }
 
 
-  implicit object Pl extends PlayerPersoUI with SimpleMessage{
+  implicit object HtmlUi extends PlayerPersoUI with SimpleMessage{
 
 
     override def ask(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx] = {
@@ -74,7 +75,7 @@ object AppLoaderExample extends App {
       val ret = Promise[ActionCtx]()
       p.future.map {
 
-        case action@(Action.Attaque.MainGauche | Action.Attaque.MainDroite) =>
+        case action@(Action.Attaque.MainGauche | Action.Attaque.MainDroite | Action.Soin) =>
           val pp = Promise[TimedTrait[_]]()
           val messagep =  message("cliquer sur un cible")
           lazy val allEvent: Seq[(HTMLElement, js.Function1[MouseEvent, _])] = d.value match {
@@ -87,14 +88,16 @@ object AppLoaderExample extends App {
                   lazy val hAndEvent: Seq[(HTMLElement, js.Function1[MouseEvent, _])] = eAndView._2.list.map {
                     h =>
                       console.log(h)
-                      h._class += " btn btn-primary"
+                  //    h._class += " btn btn-primary"
+                      h.style.cursor="pointer"
                       h -> h.$click { _ =>
                         if(!pp.isCompleted){
                           allEvent.foreach {
                             case (element, value) =>
                               element.removeEventListener("click", value)
-                              element.classList.remove("btn")
-                              element.classList.remove("btn-primary")
+                              h.style.cursor=""
+//                              element.classList.remove("btn")
+//                              element.classList.remove("btn-primary")
                           }
                           clear(messagep)
                           pp.success(b)
@@ -115,7 +118,8 @@ object AppLoaderExample extends App {
               }
             }
             }
-            case _ => Nil
+            case Action.Defendre | Action.Rien => Nil
+
 
           }
           allEvent
@@ -135,24 +139,28 @@ object AppLoaderExample extends App {
   //    def resolveAction[B](a : A, action: Action, B : B):Unit
   //  }
 
+  println("Avant P1 !")
 
 
 
+  val p1 = Actor.randomActor(Perso("Bob",_))
+  println("Avant P1 !")
+  p1.leftHand = Some(Actor.randomWeapon())
+  p1.leftHand.foreach(e => e.action = e.action :+ Action.Soin)
+  val p2 = Perso("Bill",AnyRefBaseStat.randomInt(50,25))
+  val e1 = Perso("Mechant 1",AnyRefBaseStat.randomInt(50,25))
+  val e2 = Perso("Mechant 2",AnyRefBaseStat.randomInt(50,25))
 
-  val p1 = Perso("Bob",GenBaseState.randomInt(50,25))
-  val p2 = Perso("Bill",GenBaseState.randomInt(50,25))
-  val e1 = Perso("Mechant 1",GenBaseState.randomInt(50,25))
-  val e2 = Perso("Mechant 2",GenBaseState.randomInt(50,25))
-
-
-  val yl = TimeLineParam(0, 120, 180)
+  val l = List(p1,p2,e1,e2)
+  l.foreach(_.randomWeapon())
+  val yl = TimeLineParam(0, 200, 260)
   yl.add(p1)
   yl.add(p2)
   yl.add(e1)
   yl.add(e2)
   val linkedUI = new WithUI()
   import linkedUI.value
-  implicit val acImpl: Actions[TimedTrait[Any], List[TimedTrait[_]]] = {
+  implicit val acImpl: ActionResolver[TimedTrait[Any], List[TimedTrait[_]]] = {
     (a: TimedTrait[_], action: Action, b: List[TimedTrait[_]]) =>
       a.value match {
         case e: Perso => e.resolve(action, b.value)
@@ -160,20 +168,66 @@ object AppLoaderExample extends App {
   }
 
   class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso] {
-    val nameDiv = $t span (perso.name)
-    val lifeDiv = $t span (perso.hp.toString)
-    val attDiv = $t span (perso.str.toString)
 
+    def caracrCont(name : String,value : Any):  (String,ChildParent) ={
+      val ref =  $t span (value.toString)
+      val cont =  $va div($t span (s"$name:"), ref)
+      (name,ChildParent(ref,cont))
+    }
+//    def caracrContP(name : String,value : Product): (String,ChildParent) ={
+//      val p : Option[String] = value.productElementNames.zipWithIndex.find(_._1 == name).map(_._2).map(value.productElement).map(_.toString)
+//      val ref =  $t span  p.getOrElse("")
+//      val cont =  $va div($t span (s"$name:"), ref)
+//      (name,ChildParent(ref,cont))
+//    }
+
+    def caracrAllContMap(map: Iterable[(String, Any)]): Iterable[ (String,ChildParent)] = {
+      map.map {
+        caracrCont _ tupled _
+      }
+    }
+
+    def caracrAllContP(value : Product): Iterable[ (String,ChildParent)] ={
+      val map = value.productElementNames.zipWithIndex.map(e => (e._1 ->value.productElement(e._2))).toList
+      caracrAllContMap(map)
+    }
+    case class ChildParent(child : HTMLElement,parent:HTMLElement)
+    val nameDiv = $t span (perso.name) :={
+      _ += ($t span (s"   lvl : ${perso.lvl}"))
+    }
+
+    val htmlCarac: AnyRefBaseStat[Option[ChildParent]] =AnyRefBaseStat(caracrAllContP(perso.stat.to[Impl[Int]](e =>AnyRefBaseStat(e))))
+
+   def htmlList: List[ChildParent] = htmlCarac.productIterator.flatMap(_.asInstanceOf[Option[ChildParent]]).toList
+
+    val armR: List[ChildParent] = perso.rightHand.map(caracrAllContP).map{ e =>
+      AnyRefBaseStat(e).toPropList.flatten
+    } getOrElse Nil
+    val armL: List[ChildParent] = perso.leftHand.map(caracrAllContP).map{ e =>
+      AnyRefBaseStat(e).toPropList.flatten
+    } getOrElse Nil
+    import bon.jo.rpg.stat.BaseState.ImplicitCommon._
+    val lcomputedStat = caracrAllContP(perso.twoAndStat().to[AnyRefBaseStat[Int]]).map(_._2).map(_.parent).toList
+
+    def contStat: List[HTMLElement] = htmlList map (_.parent)
+
+    def contArmL: List[HTMLElement] = armL map (_.parent)
+    def contArmR: List[HTMLElement] = armR map (_.parent)
+    def statWithMod: List[HTMLElement] = armR map (_.parent)
+    def row(col : Iterable[List[Node]]): HTMLElement ={
+      val cols = col.map(e => ($l div e):={_._class = "col"})
+      $l div(cols):={_._class = "row"}
+    }
     override val get: IterableOnce[HTMLElement] = {
       val ret = $va div(
        $va div ( ($va h5 (nameDiv)) := { me =>
          me._class = "card-title"
-       } , $va div($t span ("pv:"), lifeDiv),
-        $va div($t span ("att:"), attDiv)):= { me =>
+       } ,
+        $va div (row(List( $t("stat") +: contStat ,$t("L") +: contArmL  ,$t("G") +:contArmR,$t("stat+") +: lcomputedStat)) )) := { me =>
         me._class = "card-body"
       }
       )
-      ret._class = "card bg-secondary"
+      ret._class = "card bg bg-light"
 
       Option(ret)
     }
@@ -182,8 +236,8 @@ object AppLoaderExample extends App {
       value match {
         case Some(value) =>
           nameDiv.innerText = value.name
-          lifeDiv.innerText = value.hp.toString
-          attDiv.innerText = value.str.toString
+          htmlCarac.hp.foreach(_.child.innerText = value.hp.toString)
+       //   attDiv.innerText = value.str.toString
         case None =>
       }
     }
@@ -236,11 +290,11 @@ object AppLoaderExample extends App {
     val tlView :Div= $c.div
     tlView.style.position="absolute"
     tlView.style.top = "10px"
-    tlView.style.right = s"${el.action+10}px"
+    tlView.style.right = s"0"
     val htmlName = el.timedObjs.map(_.simpleName).map(t => $t span t)
     htmlName.map {
       e =>
-        e.style.width = "0"
+
         e.style.position = "absolute"
         e
     }.foreach(e => tlView.appendChild({
@@ -256,7 +310,13 @@ object AppLoaderExample extends App {
       s2.style.backgroundColor = "red"
       s2.style.height = "1em"
       s2.style.display="inline-block"
-      in ++= (s1,s2)
+      val s3 : Span = $c.span
+      s3.style.width=s"12em"
+      s3.style.backgroundColor = "green"
+      s3.style.opacity = "0"
+      s3.style.height = "1em"
+      s3.style.display="inline-block"
+      in ++= (s1,s2,s3)
       in
     }))
 
@@ -267,12 +327,14 @@ object AppLoaderExample extends App {
       }
     }
   }
-  val messageDiv = $t div ""
+  val messageDiv = $t div "" :={d =>
+    d.style.color="white"
+  }
   val choice: Div = $c.div
   val cpnt = yl.timedObjs.map(_.value).map(_.asInstanceOf[Perso]).map(e => e -> e.html)
   val cpntMap = cpnt.map(e => e._1.id -> e).toMap
   val actionChoice: Seq[(Action, ImuutableHtmlCpnt)] = Action.values.map(e => (e, e.html))
-  document.body.clear()
+  //document.body.clear()
  // document.body.classList.add( " bg-dark")
   val root = $ref div{
     d =>
@@ -280,7 +342,10 @@ object AppLoaderExample extends App {
       d.style.height=s"${window.innerHeight}px"
 
   }
-  document.body += root
+  document.getElementsByTagName("app-rpg").foreach{e =>
+    e.innerHTML=""
+    e += root
+  }
   val row = $ref div {_._class = "row"}
   def col =$ref div {e =>
     e._class = "col-2"
@@ -307,7 +372,7 @@ object AppLoaderExample extends App {
       //    cpnt.foreach {
       //      case (perso, cpnt) => cpnt.update(Some(perso))
       //    }
-    }, 100)
+    }, 25)
     int
 
   }

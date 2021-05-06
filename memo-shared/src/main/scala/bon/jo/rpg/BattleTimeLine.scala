@@ -53,7 +53,7 @@ object BattleTimeLine {
     }
 
     var resume : ()=>Unit = ()=>{}
-    def nextState(implicit acImpl: Actions[TimedTrait[Any], List[TimedTrait[_]]], ui: PlayerUI, ec: ExecutionContext) = {
+    def nextState(implicit acImpl: ActionResolver[TimedTrait[Any], List[TimedTrait[_]]], ui: PlayerUI, ec: ExecutionContext) = {
 
       if (pause == 0) {
         updateAll

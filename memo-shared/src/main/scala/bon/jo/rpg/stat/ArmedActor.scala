@@ -3,6 +3,7 @@ package bon.jo.rpg.stat
 import bon.jo.rpg.Action
 import bon.jo.rpg.Action.ActionCtx
 import bon.jo.rpg.stat.Actor.{ActorBaseStats, WeaponBaseState}
+import bon.jo.rpg.stat.AnyRefBaseStat.r
 import bon.jo.rpg.stat.BaseState.ImplicitCommon._
 
 trait ArmedActor {
@@ -12,20 +13,36 @@ trait ArmedActor {
 
   def twoHand = leftHand == rightHand
 
-  def leftArmedStat(): GenBaseState[Float] = {
+  def leftArmedStat(): AnyRefBaseStat[Float] = {
     this growPercent leftHand.getOrElse(BaseState.`0`)
   }
 
-  def rightArmedStat(): GenBaseState[Float] = {
+  def rightArmedStat(): AnyRefBaseStat[Float] = {
     this growPercent rightHand.getOrElse(BaseState.`0`)
   }
 
-  def twoAndStat(): GenBaseState[Float] = this growPercent (rightHand.getOrElse(BaseState.`0`) + leftHand.getOrElse(BaseState.`0`))
+  def twoAndStat(): AnyRefBaseStat[Float] = this growPercent (rightHand.getOrElse(BaseState.`0`) + leftHand.getOrElse(BaseState.`0`))
 
-  def action: List[Action] = leftHand.map(_.action) flatMap {
-    e =>
-      rightHand.map(_.action ++ e)
-  } getOrElse (Nil)
+  def mapAttaque(ret: Action): Action => Action ={
+    case  Action.Attaque => ret
+    case a : Action => a
+  }
+  def leftHandAction = leftHand.map(e=>e.action.map(mapAttaque(Action.Attaque.MainGauche))).getOrElse(Nil)
+  def rightHandAction = rightHand.map(e=>e.action.map(mapAttaque(Action.Attaque.MainGauche))).getOrElse(Nil)
+  def action: List[Action] = leftHandAction ++ rightHandAction :+ Action.Defendre
 
   var actionCtx: Option[ActionCtx] = None
+
+  def randomSoin(weapon: Actor.Weapon): WeaponBaseState = {
+    if(r.nextDouble()>0.5){
+      weapon.action = weapon.action :+ Action.Soin
+    }
+
+    weapon
+  }
+
+  def randomWeapon() = {
+    leftHand = Some(randomSoin(Actor.randomWeapon()))
+    rightHand = Some(randomSoin(Actor.randomWeapon()))
+  }
 }

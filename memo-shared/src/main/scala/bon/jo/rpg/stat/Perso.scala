@@ -2,7 +2,7 @@ package bon.jo.rpg.stat
 
 import bon.jo.rpg.Action.{ActionCtx, PlayerUI}
 import bon.jo.rpg.stat.Perso.getid
-import bon.jo.rpg.{Action, Actions, Timed, TimedTrait}
+import bon.jo.rpg.{Action, ActionResolver, Timed, TimedTrait}
 
 import scala.collection.mutable
 
@@ -21,7 +21,7 @@ object Perso {
     implicit object o extends PersoOps {
       override val ui: PlayerUI = playerUI
     }
-    implicit val value :  Actions[Perso, List[TimedTrait[_]]] = o
+    implicit val value :  ActionResolver[Perso, List[TimedTrait[_]]] = o
   }
 
 
@@ -30,7 +30,7 @@ object Perso {
     val posCache = mutable.Map[Int, Int]()
 
 
-    override def speed(a: Perso): Int = a.vit
+    override def speed(a: Perso): Int = (a.viv / 10f).round
 
     override def action_=(a: Perso, action: ActionCtx): Unit = a.actionCtx = Some(action)
 
@@ -48,7 +48,7 @@ object Perso {
   }
 
 
-  trait PersoOps extends Actions[Perso, List[TimedTrait[_]]] {
+  trait PersoOps extends ActionResolver[Perso, List[TimedTrait[_]]] {
     val ui : PlayerUI
     def resolve(a: Perso, action: Action, b: List[TimedTrait[_]]): Unit = {
       action match {
@@ -62,13 +62,25 @@ object Perso {
           }
         case Action.Defendre =>
         case Action.Rien =>
+        case Action.Soin=>
+          b.map(_.value) match {
+            case List(p: Perso) =>
+              p.hpVar += (a.mag * 0.7f).round
+              ui.message(s"${p.name} a été soigné de ${a.mag * 0.7f} pv, il a maintenant ${p.hp} pv",5000)
+              ui.cpntMap(p.asInstanceOf[ui.S]).update(Some(p.asInstanceOf[ui.S]))
+            case _ =>
+          }
       }
 
 
     }
   }
 
+  def apply( name: String, stat : AnyRefBaseStat[Int], id: Int = getid()): Perso ={
+    new Perso(name,stat,id)
+  }
+
 }
-case class Perso(name: String, stat : GenBaseState[Int], id: Int = getid()) extends Actor(stat)
+ class Perso(val name: String,val stat : AnyRefBaseStat[Int],val id: Int = getid()) extends Actor(stat)
 
 

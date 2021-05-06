@@ -1,5 +1,5 @@
 package bon.jo.rpg
 
-trait Actions[A, B] {
+trait ActionResolver[A, B] {
   def resolve(a: A, action: Action, b: B): Unit
 }

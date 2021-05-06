@@ -114,7 +114,7 @@ object Action {
     case object MainDroite extends Action
     case object MainGauche extends Action
   }
-
+  case object Soin extends Action
   case object Defendre extends Action
 
   case object Rien extends Action

@@ -3,7 +3,7 @@ package bon.jo.rpg
 trait DoActionTrait[A] {
   def value: A
 
-  def resolve[B](action: Action, b: B)(implicit acImpl: Actions[A, B]) = acImpl.resolve(value, action, b)
+  def resolve[B](action: Action, b: B)(implicit acImpl: ActionResolver[A, B]) = acImpl.resolve(value, action, b)
 }
 
 object DoActionTrait {
