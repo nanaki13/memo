@@ -27,7 +27,7 @@ object HtmlRep {
   }
 
 
-  trait HtmlRepParam[A, P, C <: HtmlCpnt] {
+  trait HtmlRepParam[-A, P, C <: HtmlCpnt] {
     def html(memo: A, p: Option[P]): C
   }
 
@@ -36,7 +36,10 @@ object HtmlRep {
 
     def get: IterableOnce[HTMLElement]
 
-    def list: List[HTMLElement] = get.iterator.toList
+    def list: List[HTMLElement] = {
+      val g = get
+      g.iterator.toList
+    }
 
     def head: HTMLElement = list.head
 
@@ -94,7 +97,7 @@ object HtmlRep {
 
 
 
-trait HtmlRep[A, C <: HtmlCpnt] extends HtmlRepParam[A, Nothing, C] {
+trait HtmlRep[-A, C <: HtmlCpnt] extends HtmlRepParam[A, Nothing, C] {
   override def html(memo: A, p: Option[Nothing]): C = html(memo)
 
   def html(memo: A): C

@@ -6,5 +6,5 @@ import org.scalajs.dom.raw.HTMLElement
 trait ImuutableHtmlCpnt extends HtmlCpnt {
   def create(): IterableOnce[HTMLElement]
 
-  override val get: IterableOnce[HTMLElement] = create()
+  override lazy val get: IterableOnce[HTMLElement] = create()
 }

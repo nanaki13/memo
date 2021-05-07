@@ -7,7 +7,7 @@ object raw {
   val Actor: stat.Actor.type = stat.Actor
   type Alg[A] = stat.Alg[A]
   val Alg: stat.Alg.type = stat.Alg
-  type AnyRefBaseStat[A] = stat.AnyRefBaseStat[A]
+  type AnyRefBaseStat[+A] = stat.AnyRefBaseStat[A]
   type FloatBaseStat = stat.AnyRefBaseStat[Float]
   type IntBaseStat = stat.AnyRefBaseStat[Int]
   type StringBaseStat = stat.AnyRefBaseStat[String]

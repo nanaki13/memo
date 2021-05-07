@@ -4,11 +4,11 @@ import bon.jo.rpg.stat.BaseState.ImplicitCommon._
 import bon.jo.rpg.stat.raw.StringBaseStat
 import bon.jo.common.Affects.Affect
 import scala.util.Random
-trait AnyRefBaseStat[A] extends Product {
+trait AnyRefBaseStat[+A] extends Product {
 
 
-  def growPercent(percent: AnyRefBaseStat[A])
-                 (implicit cv: A => Float, s: AnyRefBaseStat[A] => AnyRefBaseStat[Float]): AnyRefBaseStat[Float] = {
+  def growPercent[B](percent: AnyRefBaseStat[B])
+                 (implicit cv: B => Float,cv2: A => Float, s: AnyRefBaseStat[A] => AnyRefBaseStat[Float], s2: AnyRefBaseStat[B] => AnyRefBaseStat[Float]): AnyRefBaseStat[Float] = {
 
     this * (BaseState.`1f` + (percent / (100f)))
 
@@ -25,9 +25,7 @@ trait AnyRefBaseStat[A] extends Product {
       f(res),
       f(chc))
   }
-  def toPropList: List[A] = {
-    productIterator.map(_.asInstanceOf[A]).toList
-  }
+  def toPropList: List[A] = List(hp,sp,viv,str,mag,vit,psy,res,chc)
   def toIterator: Iterator[(String,A)]={
     productElementNames.zipWithIndex.map(e => e._1 -> e.productElement(e._2).asInstanceOf[A])
   }
@@ -195,7 +193,7 @@ trait AnyRefBaseStat[A] extends Product {
   override def toString = s"GenBaseState($hp, $sp, $viv, $str, $mag, $vit, $psy, $res, $chc)"
 }
 object AnyRefBaseStat{
-  def productElementNames = raw.BaseState.`0`.productElementNames
+  def productElementNames: Iterator[String] = raw.BaseState.`0`.productElementNames
   val names : StringBaseStat = apply(productElementNames.map(e => (e , e)).toList)
   val r = new Random()
 

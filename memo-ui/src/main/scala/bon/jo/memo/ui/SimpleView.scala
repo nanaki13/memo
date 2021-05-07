@@ -7,9 +7,19 @@ import bon.jo.memo.Entities
 import bon.jo.memo.ui.SimpleView._
 import org.scalajs.dom.html.{Button, Div, Input, Select, TextArea}
 import org.scalajs.dom.raw
-import org.scalajs.dom.raw.{HTMLElement, HTMLOptionElement}
+import org.scalajs.dom.raw.{HTMLElement, HTMLOptionElement, Node}
 
 object SimpleView {
+
+
+  def row(col: Iterable[List[Node]]): HTMLElement = {
+    val cols = col.map(e => ($l div e) := {
+      _._class = "col"
+    })
+    $l div (cols) := {
+      _._class = "row"
+    }
+  }
   implicit class DSelect(self: Select) {
 
     def selectFirst(): Unit = self.firstElementChild.asInstanceOf[raw.HTMLOptionElement].selected = true

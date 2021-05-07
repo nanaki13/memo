@@ -1,7 +1,7 @@
 package bon.jo.common
 
 object Affects {
-  trait AffectOps[A, B] {
+  trait AffectOps[-A, -B] {
     def affect(target: A, a: B):Unit
   }
 
