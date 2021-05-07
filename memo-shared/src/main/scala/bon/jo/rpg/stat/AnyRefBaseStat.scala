@@ -1,8 +1,12 @@
 package bon.jo.rpg.stat
+import bon.jo.common.Affects.AffectOps
 import bon.jo.rpg.stat.BaseState.ImplicitCommon._
-
+import bon.jo.rpg.stat.raw.StringBaseStat
+import bon.jo.common.Affects.Affect
 import scala.util.Random
 trait AnyRefBaseStat[A] extends Product {
+
+
   def growPercent(percent: AnyRefBaseStat[A])
                  (implicit cv: A => Float, s: AnyRefBaseStat[A] => AnyRefBaseStat[Float]): AnyRefBaseStat[Float] = {
 
@@ -10,6 +14,17 @@ trait AnyRefBaseStat[A] extends Product {
 
   }
 
+  def map[B](f : A => B):AnyRefBaseStat[B] = {
+    AnyRefBaseStat.Impl( f(hp),
+      f(sp),
+      f(viv),
+      f(str),
+      f(mag),
+      f(vit),
+      f(psy),
+      f(res),
+      f(chc))
+  }
   def toPropList: List[A] = {
     productIterator.map(_.asInstanceOf[A]).toList
   }
@@ -44,6 +59,13 @@ trait AnyRefBaseStat[A] extends Product {
       op(psy, baseState.psy),
       op(res, baseState.res),
       op(chc, baseState.chc))
+  }
+
+
+  def :=[B] (other : AnyRefBaseStat[B])(implicit v : AffectOps[A,B] )={
+      toPropList zip other.toPropList foreach{
+        case (a, b) => a := b
+      }
   }
 
 
@@ -173,7 +195,8 @@ trait AnyRefBaseStat[A] extends Product {
   override def toString = s"GenBaseState($hp, $sp, $viv, $str, $mag, $vit, $psy, $res, $chc)"
 }
 object AnyRefBaseStat{
-
+  def productElementNames = raw.BaseState.`0`.productElementNames
+  val names : StringBaseStat = apply(productElementNames.map(e => (e , e)).toList)
   val r = new Random()
 
   def randomInt( center : Int,delta : Int): AnyRefBaseStat[Int] = apply[Int](()=>center + (delta*(1d-r.nextGaussian())).round.toInt)
@@ -205,18 +228,18 @@ object AnyRefBaseStat{
       )
     }
 
-    def apply[A](iterable: Iterable[(String,A)]): AnyRefBaseStat[Option[A]] ={
+    def apply[A](iterable: Iterable[(String,A)]): AnyRefBaseStat[A] ={
       val map = iterable.toMap
       Impl(
-        map.get("hp"),
-        map.get("sp"),
-        map.get("viv"),
-        map.get("str"),
-        map.get("mag"),
-        map.get("vit"),
-        map.get("psy"),
-        map.get("res"),
-        map.get("chc")
+        map("hp"),
+        map("sp"),
+        map("viv"),
+        map("str"),
+        map("mag"),
+        map("vit"),
+        map("psy"),
+        map("res"),
+        map("chc")
       )
     }
     def apply[A](c: ()=>A) = {

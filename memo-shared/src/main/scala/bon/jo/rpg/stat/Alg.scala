@@ -9,3 +9,4 @@ trait Alg[A] {
 
   def /(a: A, b: A): A
 }
+object Alg

@@ -5,7 +5,7 @@ import bon.jo.rpg.Action.ActionCtx.ActionCibled
 import bon.jo.rpg.Action.PlayerUIStdIn.value
 import bon.jo.rpg.StdinUtil.fromStdin
 import bon.jo.rpg.stat.Perso
-import bon.jo.rpg.stat.Perso.PlayerPersoUI
+import bon.jo.rpg.stat.Perso.{PersoOps, PlayerPersoUI}
 import bon.jo.ui.UpdatableCpnt
 
 import scala.concurrent.Future
@@ -40,6 +40,10 @@ object Action {
     override def cible: List[TimedTrait[_]] = Nil
   }
 
+  object PlayerUI{
+
+
+  }
 
   trait PlayerUI extends PlayerMessage{
 
@@ -57,7 +61,7 @@ object Action {
 
   trait MessagePlayer
   object PlayerUIStdIn{
-    implicit object value extends PlayerUI {
+    object Value extends PlayerUI {
       type T = MessagePlayer
       override def ask(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx] = fromStdIn(d, cible)
 
@@ -77,6 +81,7 @@ object Action {
         }
       }
     }
+    implicit val value : PlayerUI = Value
   }
   def fromStdIn(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx] = {
     println(s"choisir action de ${d.simpleName}")

@@ -16,17 +16,16 @@ object TestRPG extends App {
     id
   }
 
-  import PlayerUIStdIn.value
+  implicit val v: Action.PlayerUI =  PlayerUIStdIn.value
 
   val ui = new WithUI()
-
-
 
 
   val p1 = new Perso("Bob", AnyRefBaseStat.randomInt(50, 10))
   val p2 = new Perso("Bill", AnyRefBaseStat.randomInt(50, 10))
 
-  import ui._
+
+  import ui.value
   val yl = TimeLineParam(0, 50, 70)
   yl.add(p1)
   yl.add(p2)
@@ -38,6 +37,8 @@ object TestRPG extends App {
   }
 
   for (_ <- 1 to 100) {
+
+
     yl.nextState
   }
 

@@ -1,0 +1,10 @@
+package bon.jo.app
+
+import bon.jo.memo.ui.HtmlRep.HtmlCpnt
+import org.scalajs.dom.raw.HTMLElement
+
+trait ImuutableHtmlCpnt extends HtmlCpnt {
+  def create(): IterableOnce[HTMLElement]
+
+  override val get: IterableOnce[HTMLElement] = create()
+}

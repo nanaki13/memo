@@ -82,7 +82,7 @@ object ViewsDef {
       }))
   }
 
-  trait KewWordHtml extends HtmlCpnt with UpdatableCpnt[KeyWord] {
+  trait KewWordHtml extends HtmlCpnt{
     val close = CommonHtml.closeBtn
 
     def kw(): KeyWord

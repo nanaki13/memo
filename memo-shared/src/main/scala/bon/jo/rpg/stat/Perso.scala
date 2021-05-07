@@ -1,6 +1,7 @@
 package bon.jo.rpg.stat
 
 import bon.jo.rpg.Action.{ActionCtx, PlayerUI}
+import bon.jo.rpg.DoActionTrait.WithAction
 import bon.jo.rpg.stat.Perso.getid
 import bon.jo.rpg.{Action, ActionResolver, Timed, TimedTrait}
 
@@ -17,11 +18,17 @@ object Perso {
   trait PlayerPersoUI extends PlayerUI{
     type S = Perso
   }
-  class WithUI()(implicit val playerUI: PlayerUI){
+  class WithUI()(implicit  playerUI: PlayerUI){
     implicit object o extends PersoOps {
       override val ui: PlayerUI = playerUI
     }
     implicit val value :  ActionResolver[Perso, List[TimedTrait[_]]] = o
+    implicit val acImpl: ActionResolver[TimedTrait[Any], List[TimedTrait[_]]] = {
+      (a: TimedTrait[_], action: Action, b: List[TimedTrait[_]]) =>
+        a.value match {
+          case e: Perso => e.resolve(action, b.value)
+        }
+    }
   }
 
 
