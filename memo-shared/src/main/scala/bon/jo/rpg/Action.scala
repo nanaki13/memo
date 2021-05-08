@@ -8,7 +8,8 @@ import bon.jo.rpg.stat.Perso
 import bon.jo.rpg.stat.Perso.{PersoOps, PlayerPersoUI}
 import bon.jo.ui.UpdatableCpnt
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 sealed trait Action extends Product {
   val name = toString
@@ -40,32 +41,49 @@ object Action {
     override def cible: List[TimedTrait[_]] = Nil
   }
 
-  object PlayerUI{
-
-
+  object PlayerUI {
+    def runSeq(toAsk: Seq[() => Future[Unit]])(implicit ec: ExecutionContext): Future[Unit] = {
+      println(s"runSeq in ${toAsk.size}")
+      if (toAsk.isEmpty) {
+        println("runSeq finih")
+        Future.successful(())
+      }else {
+        toAsk.head().flatMap {
+          _ => runSeq(toAsk.tail)
+        }
+      }
+    }
   }
 
-  trait PlayerUI extends PlayerMessage{
+  trait PlayerUI extends PlayerMessage {
 
     type S
-    def cpntMap : S => UpdatableCpnt[S]
+
+    def cpntMap: S => UpdatableCpnt[S]
+
     def ask(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx]
 
   }
+
   trait PlayerMessage {
     type T <: MessagePlayer
-    def message(str : String,timeToDisplay : Int) : Unit
-    def message(str : String) : MessagePlayer
-    def clear(str : T) : Unit
+
+    def message(str: String, timeToDisplay: Int): Unit
+
+    def message(str: String): MessagePlayer
+
+    def clear(str: T): Unit
   }
 
   trait MessagePlayer
-  object PlayerUIStdIn{
+
+  object PlayerUIStdIn {
     object Value extends PlayerUI {
       type T = MessagePlayer
+
       override def ask(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx] = fromStdIn(d, cible)
 
-      override def message(str: String,timeToDisplay : Int): Unit = println(str)
+      override def message(str: String, timeToDisplay: Int): Unit = println(str)
 
       override def message(str: String): MessagePlayer = new MessagePlayer {}
 
@@ -81,12 +99,14 @@ object Action {
         }
       }
     }
-    implicit val value : PlayerUI = Value
+
+    implicit val value: PlayerUI = Value
   }
+
   def fromStdIn(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx] = {
     println(s"choisir action de ${d.simpleName}")
-    Future.successful( fromStdIn match {
-      case  Attaque.MainGauche =>  Attaque.MainGauche.fromStdIn(cible)
+    Future.successful(fromStdIn match {
+      case Attaque.MainGauche => Attaque.MainGauche.fromStdIn(cible)
       case Attaque.MainDroite => Attaque.MainDroite.fromStdIn(cible)
       case Defendre => ActionCtx.Defendre
       case Rien => ActionCtx.Rien
@@ -96,7 +116,7 @@ object Action {
 
   def unapply(str: String): Option[Action] = {
     str match {
-      case Attaque.MainGauche.name => Some( Attaque.MainGauche)
+      case Attaque.MainGauche.name => Some(Attaque.MainGauche)
       case Attaque.MainDroite.name => Some(Attaque.MainDroite)
       case Action.Rien.name => Some(Rien)
       case _ => None
@@ -115,16 +135,19 @@ object Action {
     List(fromStdin(cible, f))
   }
 
-  case object Attaque extends Action{
+  case object Attaque extends Action {
     case object MainDroite extends Action
+
     case object MainGauche extends Action
   }
+
   case object Soin extends Action
+
   case object Defendre extends Action
 
   case object Rien extends Action
 
-  val values : List[Action] = List(Attaque.MainDroite, Attaque.MainGauche, Defendre, Rien)
+  val values: List[Action] = List(Attaque.MainDroite, Attaque.MainGauche, Defendre, Rien)
 
 
 }

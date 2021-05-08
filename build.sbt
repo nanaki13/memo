@@ -1,9 +1,12 @@
 // shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
 
+import java.lang
 import java.nio.file.Paths
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import scala.sys.process._
 
-
+import Utils.git
 enablePlugins(ScalaJSPlugin)
 val sharedSettings = Seq(version := "0.1.1-SNAPSHOT",
   organization := "bon.jo",
@@ -46,6 +49,9 @@ lazy val `memo-server` =
       )
     )
    .dependsOn(`memo-shared`.jvm)
+
+
+val stagePath = "I:\\work\\github-io\\rpg"
 lazy val `memo-ui` =
 // select supported platforms
   crossProject(JSPlatform)
@@ -57,9 +63,26 @@ lazy val `memo-ui` =
     ))
 
     .settings(
-      scalaJSUseMainModuleInitializer := true
+      scalaJSUseMainModuleInitializer := true,
+      toGitHubIO := {
+
+        val f = ( Compile / fullOptJS).value
+        println(f)
+        //  val source = baseDirectory
+
+          io.IO.copyFile(f.data,file(stagePath).toPath.resolve(f.data.getName).toFile)
+        git commitAndPush stagePath
+      }
 
     ).dependsOn(`memo-shared`) // defined in sbt-scalajs-crossproject
 
 
+ val toGitHubIO = taskKey[Unit]("send to gitub.io")
 
+toGitHubIO := {
+
+  val f = ( Compile / fullOptJS).value
+  print(f)
+//  val source = baseDirectory
+//  io.IO.copyFile()
+}

@@ -87,23 +87,26 @@ object AppLoaderExample extends App {
     // document.body.classList.add( " bg-dark")
 
 
-    val row = $ref div {
-      _._class = "row"
-    }
+//    val row = $ref div {
+//      _._class = "row"
+//    }
+//
+//    def col = $ref div { e =>
+//      e._class = "col"
+//      row += e
+//    }
 
-    def col = $ref div { e =>
-      e._class = "col-2"
-      row += e
-    }
+  //  root += row
 
-    root += row
-    cpnt.flatMap(_._2.get).foreach(e => col += e)
+    root.style.maxWidth="80%"
+    cpnt.flatMap(_._2.get).foreach(e => root += e)
 
 
     root.appendChild(ui.choice)
     root.appendChild(ui.messageDiv)
     val cpntTimeLine = new TimeLineCpnt(yl, linkedUI)
     root.appendChild(cpntTimeLine.tlView)
+    cpntTimeLine.tlView.$userCanDrag()
     cpntTimeLine.doEvent()
 
 

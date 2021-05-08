@@ -1,6 +1,8 @@
 package bon.jo.app
 
+import bon.jo.html.DomShell.ExtendedElement
 import bon.jo.html.HTMLDef.{$c, $t, $va, HtmlOps}
+import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.rpg.BattleTimeLine.TimeLineParam
 import bon.jo.rpg.stat.Perso.WithUI
 import org.scalajs.dom.html.{Div, Span}
@@ -14,9 +16,13 @@ class TimeLineCpnt(val el: TimeLineParam, val withUI: WithUI) {
 
   implicit val ui = withUI.o.ui
   val tlView: Div = $c.div
+  tlView.draggable = true
+
+
   tlView.style.position = "absolute"
   tlView.style.top = "10px"
   tlView.style.right = s"0"
+
   val htmlName = el.timedObjs.map(_.simpleName).map(t => $t span t)
   htmlName.map {
     e =>

@@ -5,7 +5,7 @@ import bon.jo.html.HTMLDef.{$c, $l, $t, $va, HtmlOps}
 import bon.jo.memo.ui.HtmlRep.HtmlCpnt
 import bon.jo.memo.ui.SimpleView.row
 import bon.jo.rpg.stat.AnyRefBaseStat.Impl
-import bon.jo.rpg.stat.raw.{AnyRefBaseStat, Perso}
+import bon.jo.rpg.stat.raw.{AnyRefBaseStat, IntBaseStat, Perso}
 import bon.jo.ui.UpdatableCpnt
 import org.scalajs.dom.html.Span
 import org.scalajs.dom.raw.{HTMLElement, Node}
@@ -29,9 +29,9 @@ class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso] {
 
 
 
-  def caracrAllContP(value: Product): Iterable[(String, ChildParent)] = {
-    val map = value.productElementNames.zipWithIndex.map(e => (e._1 -> value.productElement(e._2))).toList
-    m.caracrAllContMap(map)
+  def caracrAllContP(value: IntBaseStat): AnyRefBaseStat[(String, ChildParent)] = {
+    value.named.map{case (e,b) =>m(e,b : Any)}
+
   }
 
   val nameDiv: Span = $c.span[Span] := spanNameLevel(perso)
@@ -43,20 +43,20 @@ class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso] {
   }
 
 
-  val htmlCarac: AnyRefBaseStat[ChildParent] = AnyRefBaseStat(caracrAllContP(perso.stat.to[Impl[Int]](e => AnyRefBaseStat(e))))
+  val htmlCarac: AnyRefBaseStat[(String,ChildParent)] = caracrAllContP(perso.stat)
 
-  def htmlList: List[ChildParent] = htmlCarac.productIterator.map(_.asInstanceOf[ChildParent]).toList
+  def htmlList: List[ChildParent] = htmlCarac.toPropList.map(_._2)
 
   val armR: List[ChildParent] = perso.rightHand.map(caracrAllContP).map { e =>
-    AnyRefBaseStat(e).toPropList
+    e.toPropList.map(_._2)
   } getOrElse Nil
   val armL: List[ChildParent] = perso.leftHand.map(caracrAllContP).map { e =>
-    AnyRefBaseStat(e).toPropList
+   e.toPropList.map(_._2)
   } getOrElse Nil
 
   import bon.jo.rpg.stat.BaseState.ImplicitCommon._
 
-  val lcomputedStat = caracrAllContP(perso.twoAndStat().to[AnyRefBaseStat[Int]]).map(_._2).map(_.parent).toList
+  val lcomputedStat = caracrAllContP(perso.twoAndStat()).map(_._2).map(_.parent).toPropList
 
   def contStat: List[HTMLElement] = htmlList map (_.parent)
 
@@ -78,7 +78,7 @@ class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso] {
         me.style.fontSize = "0.7em"
       }
       )
-    ret._class = "card bg bg-light"
+    ret._class = "card bg bg-light d-inline-block"
 
     Option(ret)
   }
@@ -88,7 +88,7 @@ class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso] {
       case Some(value) =>
         nameDiv := spanNameLevel(value)
         //  nameDiv.innerText = value.name
-        htmlCarac.hp.child.innerText = value.hp.toString
+        htmlCarac.hp._2.child.innerText = value.hp.toString
       //   attDiv.innerText = value.str.toString
       case None =>
     }

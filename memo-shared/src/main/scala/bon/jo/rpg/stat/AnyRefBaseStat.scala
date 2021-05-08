@@ -4,7 +4,10 @@ import bon.jo.rpg.stat.BaseState.ImplicitCommon._
 import bon.jo.rpg.stat.raw.StringBaseStat
 import bon.jo.common.Affects.Affect
 import scala.util.Random
-trait AnyRefBaseStat[+A] extends Product {
+trait AnyRefBaseStat[+A] {
+  def named: AnyRefBaseStat[(String,A)] = {
+    AnyRefBaseStat(toNameValueList.map(e => (e._1,e)))
+  }
 
 
   def growPercent[B](percent: AnyRefBaseStat[B])
@@ -26,11 +29,12 @@ trait AnyRefBaseStat[+A] extends Product {
       f(chc))
   }
   def toPropList: List[A] = List(hp,sp,viv,str,mag,vit,psy,res,chc)
-  def toIterator: Iterator[(String,A)]={
-    productElementNames.zipWithIndex.map(e => e._1 -> e.productElement(e._2).asInstanceOf[A])
+  def toPropName: List[String] = List("hp","sp","viv","str","mag","vit","psy","res","chc")
+  def toNameValueList: List[(String,A)]={
+    toPropName zip toPropList
   }
   def toMap: Map[String,A]={
-    toIterator.toMap
+    toNameValueList.toMap
   }
 
   def applyFloat(op: (A, Float) => Float, baseState: Float): AnyRefBaseStat[Float] = {
