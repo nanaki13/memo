@@ -11,6 +11,7 @@ import bon.jo.rpg.raw.Action._
 import bon.jo.rpg.raw._
 import bon.jo.rpg.stat.raw.Perso.PlayerPersoUI
 import bon.jo.rpg.stat.raw._
+import bon.jo.rpg.ui.PlayerUI
 import bon.jo.ui.UpdatableCpnt
 import org.scalajs.dom.html.Div
 import org.scalajs.dom.raw.{HTMLElement, MouseEvent}
@@ -116,7 +117,7 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage {
             }
           }
           }
-          case Action.Defendre | Action.Rien => Nil
+          case Action.Garde | Action.Rien => Nil
 
 
         }

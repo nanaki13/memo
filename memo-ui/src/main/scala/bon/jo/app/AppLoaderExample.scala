@@ -82,7 +82,7 @@ object AppLoaderExample extends App {
     import HtmlUi._
     val cpnt = yl.timedObjs.map(_.value).map(_.asInstanceOf[Perso]).map(e => e -> e.html)
     cpntMap = cpnt.map(e => e._1.id -> e).toMap
-    val actionChoice: Seq[(Action, ImuutableHtmlCpnt)] = Action.values.map(e => (e, e.html))
+    val actionChoice: Seq[(Action, ImuutableHtmlCpnt)] = Action.commonValues.map(e => (e, e.html))
     //document.body.clear()
     // document.body.classList.add( " bg-dark")
 

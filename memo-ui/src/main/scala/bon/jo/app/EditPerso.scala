@@ -1,15 +1,16 @@
 package bon.jo.app
 
 import bon.jo.common.Affects
-import bon.jo.html.HTMLDef.{$c, $l, $t, $va, HtmlOps}
+import bon.jo.html.HTMLDef.{$c, $l, $ref, $t, $va, HtmlOps}
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.ui.HtmlRep.{HtmlRepParam, PrXmlId}
 import bon.jo.memo.ui.{HtmlRep, SimpleView}
+import bon.jo.rpg.Action
 import bon.jo.rpg.stat.raw._
 import bon.jo.ui.{ReadableCpnt, UpdatableCpnt}
 import org.scalajs.dom.console
 import org.scalajs.dom.html.Input
-import org.scalajs.dom.raw.HTMLElement
+import org.scalajs.dom.raw.{HTMLElement, HTMLOptionElement}
 
 import scala.collection.mutable
 import scala.util.Random
@@ -19,7 +20,7 @@ object RandomName {
 
   def apply(): String = {
     val r = new Random()
-    val nbSyl = r.nextInt(3)
+    val nbSyl = r.nextInt(5)
     val ret = (for (i <- 0 to nbSyl) yield sylab(r.nextInt(sylab.size))).mkString("")
     ret.head.toUpper +: ret.tail
   }
@@ -44,7 +45,6 @@ object EditPerso extends HtmlRep[IntBaseStat, EditPerso] {
   }
 
   override def html(memo: IntBaseStat): EditPerso = {
-    console.log("html  " + memo)
     new EditPerso(memo)
   }
 
@@ -68,6 +68,12 @@ class EditPersoPerso(initial: Perso,option: Option[mutable.ListBuffer[EditPersoP
 
   val statCpnt = initial.html(repStat)
   val name = $c.input[Input] := (_.value = initial.name)
+  val actionsChoose  = $l select(Action.commonValues.map(s =>{
+    $ref.t.option{o : HTMLOptionElement  =>
+      o.value=s.toString
+      o.innerText = s.toString
+    }: HTMLOptionElement
+  }))
 
   def random() = update(Some(new Perso(RandomName(), AnyRefBaseStat.randomInt(50, 25))))
 
@@ -76,7 +82,7 @@ class EditPersoPerso(initial: Perso,option: Option[mutable.ListBuffer[EditPersoP
   }
 
   override def create(): IterableOnce[HTMLElement] =
-    Some(($l div (SimpleView.row(Some(List(name))) +: statCpnt.list :+ readB)) := { e =>
+    Some(($l div (SimpleView.row(List(List(name,$t span("")),List($t span("action") :={_.style.color ="white"},actionsChoose))) +: statCpnt.list :+ readB)) := { e =>
       e.style.display = "inline-block"
       e._class = "m-5"
     })
@@ -105,11 +111,8 @@ class EditPerso(initial: IntBaseStat) extends ImuutableHtmlCpnt with UpdatableCp
 
   import EditPerso.alg
 
-  console.log("initial " + initial)
-  type HtmlStat = AnyRefBaseStat[HTMLElement]
-  // implicit val cv: HTMLElement => Input = e => e.asInstanceOf[Input]
-  //implicit val cvB: AnyRefBaseStat[HTMLElement] => AnyRefBaseStat[HTMLElement] = e => e
 
+  type HtmlStat = AnyRefBaseStat[HTMLElement]
 
   val inputs: AnyRefBaseStat[Input] = initial.map(e => $c.input[Input] := {
     _.value = e.toString

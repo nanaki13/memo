@@ -1,15 +1,10 @@
 package bon.jo.rpg
 
-import bon.jo.rpg.Action.{ActionCtx, readCibleRec}
 import bon.jo.rpg.Action.ActionCtx.ActionCibled
-import bon.jo.rpg.Action.PlayerUIStdIn.value
+import bon.jo.rpg.Action.{ActionCtx, readCibleRec}
 import bon.jo.rpg.StdinUtil.fromStdin
-import bon.jo.rpg.stat.Perso
-import bon.jo.rpg.stat.Perso.{PersoOps, PlayerPersoUI}
-import bon.jo.ui.UpdatableCpnt
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.Future
 
 sealed trait Action extends Product {
   val name = toString
@@ -21,6 +16,24 @@ sealed trait Action extends Product {
 }
 
 object Action {
+
+
+  case object Attaque extends Action {
+    case object MainDroite extends Action
+
+    case object MainGauche extends Action
+  }
+
+  case object Soin extends Action
+  case object Aoe extends Action
+  case object Garde extends Action
+  case object Evasion extends Action
+  case object Voler extends Action
+  case object  ChangerDequipement extends Action
+  case object Talent
+  case object Rien extends Action
+
+  val commonValues: List[Action] = List(Attaque.MainDroite, Attaque.MainGauche,Voler , Garde,Evasion, Rien)
   trait ActionCtx {
     def action: Action
 
@@ -28,7 +41,7 @@ object Action {
   }
 
   object ActionCtx {
-    case object Defendre extends ActionWithoutCible(Action.Defendre)
+    case object Garde extends ActionWithoutCible(Action.Garde)
 
     case object Rien extends ActionWithoutCible(Action.Rien)
 
@@ -41,74 +54,13 @@ object Action {
     override def cible: List[TimedTrait[_]] = Nil
   }
 
-  object PlayerUI {
-    def runSeq(toAsk: Seq[() => Future[Unit]])(implicit ec: ExecutionContext): Future[Unit] = {
-      println(s"runSeq in ${toAsk.size}")
-      if (toAsk.isEmpty) {
-        println("runSeq finih")
-        Future.successful(())
-      }else {
-        toAsk.head().flatMap {
-          _ => runSeq(toAsk.tail)
-        }
-      }
-    }
-  }
-
-  trait PlayerUI extends PlayerMessage {
-
-    type S
-
-    def cpntMap: S => UpdatableCpnt[S]
-
-    def ask(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx]
-
-  }
-
-  trait PlayerMessage {
-    type T <: MessagePlayer
-
-    def message(str: String, timeToDisplay: Int): Unit
-
-    def message(str: String): MessagePlayer
-
-    def clear(str: T): Unit
-  }
-
-  trait MessagePlayer
-
-  object PlayerUIStdIn {
-    object Value extends PlayerUI {
-      type T = MessagePlayer
-
-      override def ask(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx] = fromStdIn(d, cible)
-
-      override def message(str: String, timeToDisplay: Int): Unit = println(str)
-
-      override def message(str: String): MessagePlayer = new MessagePlayer {}
-
-      override def clear(str: MessagePlayer): Unit = {
-
-      }
-
-      override type S = Any
-
-      override def cpntMap: Any => UpdatableCpnt[Any] = e => new UpdatableCpnt[Any] {
-        override def update(value: Option[Any]): Unit = {
-          println(value)
-        }
-      }
-    }
-
-    implicit val value: PlayerUI = Value
-  }
 
   def fromStdIn(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx] = {
     println(s"choisir action de ${d.simpleName}")
     Future.successful(fromStdIn match {
       case Attaque.MainGauche => Attaque.MainGauche.fromStdIn(cible)
       case Attaque.MainDroite => Attaque.MainDroite.fromStdIn(cible)
-      case Defendre => ActionCtx.Defendre
+      case Garde => ActionCtx.Garde
       case Rien => ActionCtx.Rien
       case _ => ActionCtx.Rien
     })
@@ -125,7 +77,7 @@ object Action {
 
 
   def fromStdIn: Action = {
-    fromStdin(Action.values)
+    fromStdin(Action.commonValues)
   }
 
 
@@ -135,19 +87,16 @@ object Action {
     List(fromStdin(cible, f))
   }
 
-  case object Attaque extends Action {
-    case object MainDroite extends Action
-
-    case object MainGauche extends Action
-  }
-
-  case object Soin extends Action
-
-  case object Defendre extends Action
-
-  case object Rien extends Action
-
-  val values: List[Action] = List(Attaque.MainDroite, Attaque.MainGauche, Defendre, Rien)
 
 
 }
+
+
+
+
+
+
+
+
+
+

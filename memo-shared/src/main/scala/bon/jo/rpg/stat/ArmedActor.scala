@@ -29,7 +29,7 @@ trait ArmedActor {
   }
   def leftHandAction = leftHand.map(e=>e.action.map(mapAttaque(Action.Attaque.MainGauche))).getOrElse(Nil)
   def rightHandAction = rightHand.map(e=>e.action.map(mapAttaque(Action.Attaque.MainDroite))).getOrElse(Nil)
-  def action: List[Action] = leftHandAction ++ rightHandAction :+ Action.Defendre
+  def action: List[Action] = leftHandAction ++ rightHandAction :+ Action.Garde
 
   var actionCtx: Option[ActionCtx] = None
 

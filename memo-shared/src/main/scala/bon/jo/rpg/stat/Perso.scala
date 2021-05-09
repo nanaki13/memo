@@ -1,8 +1,9 @@
 package bon.jo.rpg.stat
 
-import bon.jo.rpg.Action.{ActionCtx, PlayerUI}
+import bon.jo.rpg.Action.ActionCtx
 import bon.jo.rpg.DoActionTrait.WithAction
 import bon.jo.rpg.stat.Perso.getid
+import bon.jo.rpg.ui.PlayerUI
 import bon.jo.rpg.{Action, ActionResolver, Timed, TimedTrait}
 
 import scala.collection.mutable
@@ -67,7 +68,7 @@ object Perso {
               ui.cpntMap(p.asInstanceOf[ui.S]).update(Some(p.asInstanceOf[ui.S]))
             case _ =>
           }
-        case Action.Defendre =>
+        case Action.Garde =>
         case Action.Rien =>
         case Action.Soin=>
           b.map(_.value) match {

@@ -1,8 +1,8 @@
 package bon.jo.rpg
 
 import bon.jo.rpg.DoActionTrait.WithAction
-import TimedTrait._
-import bon.jo.rpg.Action.PlayerUI
+import bon.jo.rpg.TimedTrait._
+import bon.jo.rpg.ui.PlayerUI
 
 import scala.concurrent.{ExecutionContext, Future}
 

@@ -1,10 +1,10 @@
 package bon.jo.rpg
 
-import bon.jo.rpg.Action.PlayerUIStdIn
 import bon.jo.rpg.BattleTimeLine.TimeLineParam
 import bon.jo.rpg.DoActionTrait.WithAction
 import bon.jo.rpg.stat.Perso.{PeroPero, WithUI}
 import bon.jo.rpg.stat.{AnyRefBaseStat, Perso}
+import bon.jo.rpg.ui.{PlayerUI, PlayerUIStdIn}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -16,7 +16,7 @@ object TestRPG extends App {
     id
   }
 
-  implicit val v: Action.PlayerUI =  PlayerUIStdIn.value
+  implicit val v: PlayerUI =  PlayerUIStdIn.value
 
   val ui = new WithUI()
 

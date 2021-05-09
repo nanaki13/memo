@@ -1,7 +1,7 @@
 package bon.jo.app
 
 import bon.jo.html.HTMLDef.{$t, HtmlOps}
-import bon.jo.rpg.Action.PlayerMessage
+import bon.jo.rpg.ui.PlayerMessage
 import org.scalajs.dom.window
 
 trait SimpleMessage extends PlayerMessage {

@@ -61,7 +61,6 @@ class TimeLineCpnt(val el: TimeLineParam, val withUI: WithUI) {
 
   def doEvent() = {
     lazy val int: Int = window.setInterval(() => {
-      console.log("loop")
       if (el.pause == 0) {
         el.nextState
         update
