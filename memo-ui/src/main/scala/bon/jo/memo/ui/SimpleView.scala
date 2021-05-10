@@ -1,8 +1,10 @@
 package bon.jo.memo.ui
 
-import bon.jo.html.DomShell.ExtendedHTMLCollection
+import bon.jo.html.CommonHtml
+import bon.jo.html.DomShell.{ExtendedHTMLCollection, ExtendedNode}
 import bon.jo.html.HTMLDef.$ref.t
 import bon.jo.html.HTMLDef.{$l, $ref, $t, $va, HtmlOps}
+import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Entities
 import bon.jo.memo.ui.SimpleView._
 import org.scalajs.dom.html.{Button, Div, Input, Select, TextArea}
@@ -20,6 +22,23 @@ object SimpleView {
       _._class = "row"
     }
   }
+
+  def badgeClose[A](a: A,f : => Unit)(fString: A => String, modifier: BsModifier): HTMLElement = {
+    val el =  $t span fString(a) := { e =>
+      e._class = s"badge badge-${modifier.name}"
+
+    }
+    val close = CommonHtml.closeBtn
+    close.$click{ _=> {
+      el.removeFromDom()
+      f
+    }}
+    el += close
+    el
+
+
+  }
+
   implicit class DSelect(self: Select) {
 
     def selectFirst(): Unit = self.firstElementChild.asInstanceOf[raw.HTMLOptionElement].selected = true
@@ -38,19 +57,24 @@ object SimpleView {
 
   def b(title: String): Button = ($t button title).$to
 
-  sealed trait BsModifier{
-    def name : String = toString.toLowerCase()
-  }
-  object BsModifier{
-    case object Primary extends BsModifier
-    case object Secondary extends BsModifier
+  sealed trait BsModifier {
+    def name: String = toString.toLowerCase()
   }
 
-  def bsButton(title: String,mod : BsModifier = BsModifier.Primary): Button = {
+  object BsModifier {
+    case object Primary extends BsModifier
+
+    case object Secondary extends BsModifier
+    case object Warning extends BsModifier
+    case object Info extends BsModifier
+  }
+
+  def bsButton(title: String, mod: BsModifier = BsModifier.Primary): Button = {
     val et = SimpleView.b(title)
     et._class = s"btn btn-${mod.name}"
     et
   }
+
 
   def s[A](elemnts: Iterable[A])(implicit kv: (A => String, A => String)): Select =
 
@@ -76,11 +100,11 @@ abstract class SimpleView[A](creationHtml: () => HTMLElement, val addImpl: (A) =
 
   val btnInput: Button = bsButton("ajouter")
   val htmlAvecButton = {
-    val h =  creationHtml()
+    val h = creationHtml()
     h.appendChild(btnInput)
     h
   }
-  val cpnt: Div = (($va.t div(htmlAvecButton)):Div) := ( _._class="row" )
+  val cpnt: Div = (($va.t div (htmlAvecButton)): Div) := (_._class = "row")
 
 
   def +=(p: A): Unit = {

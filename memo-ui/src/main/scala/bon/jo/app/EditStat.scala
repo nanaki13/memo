@@ -42,61 +42,9 @@ object EditStat extends HtmlRep[IntBaseStat, EditStat] {
   implicit val value: HtmlRep[IntBaseStat, EditStat] = this
 }
 
-object EditPersoCpnt extends HtmlRepParam[Perso, mutable.ListBuffer[EditPersoCpnt], EditPersoCpnt] {
-
-  override def html(memo: Perso,option: Option[mutable.ListBuffer[EditPersoCpnt]]): EditPersoCpnt = {
-    new EditPersoCpnt(memo,option)(EditStat)
-  }
-
-  implicit val value: HtmlRepParam[Perso, mutable.ListBuffer[EditPersoCpnt], EditPersoCpnt] = this
 
 
-}
 
-class EditPersoCpnt(initial: Perso, option: Option[mutable.ListBuffer[EditPersoCpnt]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends ImuutableHtmlCpnt with UpdatableCpnt[Perso] with ReadableCpnt[Perso] {
-
-  import EditPersoCpnt.value
-
-  val statCpnt = initial.html(repStat)
-  val name = $c.input[Input] := (_.value = initial.name)
-  val actionsChoose  = $l select(Action.commonValues.map(s =>{
-    $ref.t.option{o : HTMLOptionElement  =>
-      o.value=s.toString
-      o.innerText = s.toString
-    }: HTMLOptionElement
-  }))
-
-  def random() = update(Some(new Perso(RandomName(), AnyRefBaseStat.randomInt(50, 25))))
-
-  statCpnt.redrawButton.$click { _ =>
-    random()
-  }
-
-  override def create(): IterableOnce[HTMLElement] =
-    Some(($l div (SimpleView.row(List(List(name,$t span("")),List($t span("action") :={_.style.color ="white"},actionsChoose))) +: statCpnt.list :+ readB)) := { e =>
-      e.style.display = "inline-block"
-      e._class = "m-5"
-    })
-
-
-  override def update(value: Option[Perso]): Unit = {
-    statCpnt.update(value)
-    value.foreach(e => name.value = e.name)
-  }
-
-
-  override def read: Perso = new Perso(name.value, statCpnt.read)
-
-  val readB = SimpleView.bsButton("copy")
-
-  readB.$click { _ => {
-    val cpnt = read.htmlp(option)
-    option.foreach(_ += cpnt)
-    list.head.parentNode.asInstanceOf[HTMLElement] ++= cpnt.list
-  }
-
-  }
-}
 
 class EditStat(initial: IntBaseStat) extends ImuutableHtmlCpnt with UpdatableCpnt[IntBaseStat] with ReadableCpnt[IntBaseStat] {
 

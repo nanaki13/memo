@@ -33,6 +33,13 @@ object Action {
   case object Talent
   case object Rien extends Action
 
+  def applyFrom(from : List[Action])(string: String) : Option[Action] = {
+    println(string)
+    from.map(e=> {
+      println(e)
+      e
+    }).find(_.name == string)
+  }
   val commonValues: List[Action] = List(Attaque.MainDroite, Attaque.MainGauche,Voler , Garde,Evasion, Rien)
   trait ActionCtx {
     def action: Action
