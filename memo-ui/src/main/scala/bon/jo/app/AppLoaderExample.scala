@@ -112,10 +112,10 @@ object AppLoaderExample extends App {
 
   }
 
-  val persosForGame = mutable.ListBuffer.empty[EditPersoPerso]
+  val persosForGame = mutable.ListBuffer.empty[EditPersoCpnt]
 
   def initChoiXperso = {
-    import EditPersoPerso._
+    import EditPersoCpnt._
 
     val p = Actor.randomActor(Perso(RandomName(), _))
 

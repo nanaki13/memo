@@ -17,7 +17,7 @@ import scala.util.Random
 
 
 
-object EditPerso extends HtmlRep[IntBaseStat, EditPerso] {
+object EditStat extends HtmlRep[IntBaseStat, EditStat] {
   implicit val alg: Alg[HTMLElement] = new Alg[HTMLElement] {
     override def +(a: HTMLElement, b: HTMLElement): HTMLElement = {
       $va div(a, b) := { cont =>
@@ -35,27 +35,27 @@ object EditPerso extends HtmlRep[IntBaseStat, EditPerso] {
     override def /(a: HTMLElement, b: HTMLElement): HTMLElement = ???
   }
 
-  override def html(memo: IntBaseStat): EditPerso = {
-    new EditPerso(memo)
+  override def html(memo: IntBaseStat): EditStat = {
+    new EditStat(memo)
   }
 
-  implicit val value: HtmlRep[IntBaseStat, EditPerso] = this
+  implicit val value: HtmlRep[IntBaseStat, EditStat] = this
 }
 
-object EditPersoPerso extends HtmlRepParam[Perso, mutable.ListBuffer[EditPersoPerso], EditPersoPerso] {
+object EditPersoCpnt extends HtmlRepParam[Perso, mutable.ListBuffer[EditPersoCpnt], EditPersoCpnt] {
 
-  override def html(memo: Perso,option: Option[mutable.ListBuffer[EditPersoPerso]]): EditPersoPerso = {
-    new EditPersoPerso(memo,option)(EditPerso)
+  override def html(memo: Perso,option: Option[mutable.ListBuffer[EditPersoCpnt]]): EditPersoCpnt = {
+    new EditPersoCpnt(memo,option)(EditStat)
   }
 
-  implicit val value: HtmlRepParam[Perso, mutable.ListBuffer[EditPersoPerso], EditPersoPerso] = this
+  implicit val value: HtmlRepParam[Perso, mutable.ListBuffer[EditPersoCpnt], EditPersoCpnt] = this
 
 
 }
 
-class EditPersoPerso(initial: Perso,option: Option[mutable.ListBuffer[EditPersoPerso]])(repStat: HtmlRep[IntBaseStat, EditPerso]) extends ImuutableHtmlCpnt with UpdatableCpnt[Perso] with ReadableCpnt[Perso] {
+class EditPersoCpnt(initial: Perso, option: Option[mutable.ListBuffer[EditPersoCpnt]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends ImuutableHtmlCpnt with UpdatableCpnt[Perso] with ReadableCpnt[Perso] {
 
-  import EditPersoPerso.value
+  import EditPersoCpnt.value
 
   val statCpnt = initial.html(repStat)
   val name = $c.input[Input] := (_.value = initial.name)
@@ -98,9 +98,9 @@ class EditPersoPerso(initial: Perso,option: Option[mutable.ListBuffer[EditPersoP
   }
 }
 
-class EditPerso(initial: IntBaseStat) extends ImuutableHtmlCpnt with UpdatableCpnt[IntBaseStat] with ReadableCpnt[IntBaseStat] {
+class EditStat(initial: IntBaseStat) extends ImuutableHtmlCpnt with UpdatableCpnt[IntBaseStat] with ReadableCpnt[IntBaseStat] {
 
-  import EditPerso.alg
+  import EditStat.alg
 
 
   type HtmlStat = AnyRefBaseStat[HTMLElement]
