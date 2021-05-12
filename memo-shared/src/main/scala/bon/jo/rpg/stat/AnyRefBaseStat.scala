@@ -64,7 +64,8 @@ trait AnyRefBaseStat[+A] {
   }
 
 
-  def :=[B] (other : AnyRefBaseStat[B])(implicit v : AffectOps[A,B] )={
+
+  def :=[B] (other : AnyRefBaseStat[B])(implicit v : AffectOps[A,B] ): Unit ={
       toPropList zip other.toPropList foreach{
         case (a, b) => a := b
       }

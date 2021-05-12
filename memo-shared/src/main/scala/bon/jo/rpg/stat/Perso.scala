@@ -89,6 +89,11 @@ object Perso {
   }
 
 }
- class Perso(val name: String,val stat : AnyRefBaseStat[Int],val id: Int = getid()) extends Actor(stat)
+ class Perso(val name: String,val stat : AnyRefBaseStat[Int],val id: Int = getid()) extends Actor(stat) with StatsWithName{
+   def this(name : String,stat : AnyRefBaseStat[Int], actions : List[Action]) = {
+     this(name,stat)
+     action = actions
+   }
+ }
 
 

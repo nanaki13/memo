@@ -23,11 +23,7 @@ object SimpleView {
     }
   }
 
-  def badgeClose[A](a: A,f : => Unit)(fString: A => String, modifier: BsModifier): HTMLElement = {
-    val el =  $t span fString(a) := { e =>
-      e._class = s"badge badge-${modifier.name}"
-
-    }
+  def withClose(el : HTMLElement,f : => Unit): HTMLElement ={
     val close = CommonHtml.closeBtn
     close.$click{ _=> {
       el.removeFromDom()
@@ -35,6 +31,13 @@ object SimpleView {
     }}
     el += close
     el
+  }
+  def badgeClose[A](a: A,f : => Unit)(fString: A => String, modifier: BsModifier): HTMLElement = {
+    val el =  $t span fString(a) := { e =>
+      e._class = s"badge badge-${modifier.name}"
+
+    }
+    withClose(el,f)
 
 
   }

@@ -15,5 +15,6 @@ object raw {
   type ArmedActor = stat.ArmedActor
   val BaseState: stat.BaseState.type = stat.BaseState
   type Perso = stat.Perso
+  type Weapon = stat.Actor.Weapon
   val Perso: stat.Perso.type = stat.Perso
 }

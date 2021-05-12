@@ -5,6 +5,7 @@ import bon.jo.rpg.stat.Actor.{ActorBaseStats, WeaponBaseState}
 import bon.jo.rpg.stat.BaseState.ImplicitCommon
 import bon.jo.rpg.stat.BaseState.ImplicitCommon._
 
+import scala.reflect.ClassTag
 import scala.util.Random
 
 abstract case class Actor(
@@ -72,14 +73,14 @@ object Actor {
 
   object Implicit {
     implicit val actorFFact: AnyRefBaseStat[Float] => Actor = e => new Actor.Impl(e.to(ImplicitCommon.genFloatToInt))
-    implicit val wFFact: AnyRefBaseStat[Float] => Weapon = e => new Weapon(e.to(ImplicitCommon.genFloatToInt))
+ //   implicit val wFFact: AnyRefBaseStat[Float] => Weapon = e => new Weapon(e.to(ImplicitCommon.genFloatToInt))
     implicit val actorFact: AnyRefBaseStat[Int] => Actor = new Actor.Impl(_)
-    implicit val wFact: AnyRefBaseStat[Int] => Weapon = new Weapon(_)
+ //   implicit val wFact: AnyRefBaseStat[Int] => Weapon = new Weapon(_)
 
   }
 
   def randomActor[A <: Actor](create: AnyRefBaseStat[Int] => A): A = {
-    println("RDA")
+
    // println((BaseState.`1` * AnyRefBaseStat(randomActorVal _)))
     create((BaseState.`1` * AnyRefBaseStat(randomActorVal _)).to[AnyRefBaseStat[Int]])
   }
@@ -112,16 +113,27 @@ object Actor {
 
 
   def randomWeapon(): Weapon = {
-    val ret = (BaseState.`1` * AnyRefBaseStat(randomWeaponVal _)).to[Weapon]
-    ret.action = Action.Attaque :: Nil
-    ret
+    val stat = (BaseState.`1` * AnyRefBaseStat(randomWeaponVal _))
+
+    new Weapon("nom",stat, Action.Attaque :: Nil)
   }
 
-  trait WeaponBaseState extends AnyRefBaseStat[Int] with Lvl {
+  trait WeaponBaseState extends StatsWithName with Lvl {
     var action: List[Action] = List(Action.Attaque)
   }
 
-   class Weapon(
+  object Id{
+    private val cache = scala.collection.mutable.Map[Class[_],Int]()
+    def apply[A](implicit ct : ClassTag[A]):Int = {
+      val id =  cache.get(ct.runtimeClass) match {
+        case Some(value) => value+1
+        case None => 0
+      }
+      cache(ct.runtimeClass) = id
+      id
+    }
+  }
+   class Weapon(    val name : String,
                      override var lvl: Int,
                      override val hp: Int,
                      override val sp: Int,
@@ -131,10 +143,15 @@ object Actor {
                      override val vit: Int,
                      override val psy: Int,
                      override val res: Int,
-                     override val chc: Int
+                     override val chc: Int,val id : Int = Id[Weapon]
                    ) extends AnyRefBaseStat.Impl[Int](hp, sp, viv, str, mag, vit, psy, res, chc) with WeaponBaseState {
-    def this(baseState: AnyRefBaseStat[Int]) = this(1, baseState.hp,
+    def this(name : String,baseState: AnyRefBaseStat[Int]) = this(name,1, baseState.hp,
       baseState.sp,
       baseState.viv, baseState.str, baseState.mag, baseState.vit, baseState.psy, baseState.res, baseState.chc)
+
+     def this(name : String,baseState: AnyRefBaseStat[Int],action : List[Action]) = {
+       this(name,baseState)
+       this.action = action
+     }
   }
 }

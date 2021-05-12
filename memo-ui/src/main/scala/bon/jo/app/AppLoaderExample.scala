@@ -112,10 +112,23 @@ object AppLoaderExample extends App {
 
   }
 
-  val persosForGame = mutable.ListBuffer.empty[EditPersoCpnt]
+  val persosForGame = mutable.ListBuffer.empty[EditStatWithName[Perso]]
+  val weaponForGame = mutable.ListBuffer.empty[EditStatWithName[Weapon]]
 
+  def initChoixArme() = {
+    import EditWeaponCpnt._
+    val p = Actor.randomWeapon()
+    val persoCpnt = p.htmlp(weaponForGame)
+    weaponForGame += persoCpnt
+    val deckCreation = $ref div {
+      r =>
+        r ++= persoCpnt.list
+    }
+    root ++= deckCreation
+  }
   def initChoiXperso = {
     import EditPersoCpnt._
+
 
     val p = Actor.randomActor(Perso(RandomName(), _))
 
@@ -130,15 +143,16 @@ object AppLoaderExample extends App {
     bnt
   }
 
+  initChoixArme()
 
-  initChoiXperso.$click { _ =>
+  /*initChoiXperso.$click { _ =>
     persosForGame.map(_.read).foreach(e => {
       e.randomWeapon()
       yl.add(e)
     })
     root.clear()
     startRpg
-  }
+  }*/
 
 }
 
