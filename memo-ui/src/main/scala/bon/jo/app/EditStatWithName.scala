@@ -26,13 +26,13 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[m
   private val colActioin: Div = $c.div
   private val actionsChoose: HTMLSelectElement = $l.t select Action.commonValues.filter(!initial.action.contains(_)).map(optionF)
 
-  private val actions = ListBuffer[Action]()
+  private val actions = ListBuffer.from(initial.action)
   private def optionF(action: Action) = $ref.t.option { o: HTMLOptionElement =>
     o.value = action.toString
     o.innerText = action.toString
   }: HTMLOptionElement
 
-  def getAction(str: String): Option[Action] = Action.applyFrom(Action.commonValues)(str)
+  def getAction(str: String): Option[Action] = Action.applyFrom((Action.commonValues ++ initial.action).toSet)(str)
 
   private val buttonAddAction = SimpleView.bsButton("+")
 

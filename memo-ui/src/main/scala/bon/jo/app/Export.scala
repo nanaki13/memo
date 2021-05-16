@@ -17,17 +17,17 @@ object Export {
       id = e.id,
       lvl = e.lvl,
       stats = StatJS(e.stats),
-      action = e.action.map(_.name)
+      action = e.action.map(_.name).toJSArray
     )
   }
 
-  object PersoJSConv  {
+  object PersoJS  {
    // type R = PersoJS
 
      def apply(t: Perso): PersoJS = {
       val dPerso = Export.apply(t)
-      dPerso.leftHandWeapon = t.leftHandWeapon.map(WeaponJSConv(_)).orUndefined
-      dPerso.rightHandWeapon = t.rightHandWeapon.map(WeaponJSConv(_)).orUndefined
+      dPerso.leftHandWeapon = t.leftHandWeapon.map(WeaponJS(_)).orUndefined
+      dPerso.rightHandWeapon = t.rightHandWeapon.map(WeaponJS(_)).orUndefined
       dPerso.asInstanceOf[PersoJS]
     }
 
@@ -35,8 +35,8 @@ object Export {
       value.stats match {
         case StatJS(stat) =>
           val action = value.action flatMap Action.unapply
-          val left = value.leftHandWeapon.toOption.flatMap(WeaponJSConv.unapply)
-          val right = value.leftHandWeapon.toOption.flatMap(WeaponJSConv.unapply)
+          val left = value.leftHandWeapon.toOption.flatMap(WeaponJS.unapply)
+          val right = value.leftHandWeapon.toOption.flatMap(WeaponJS.unapply)
           Some(new Perso(value.name, stat, value.lvl, action, left, right, value.id))
         case _ => None
       }
@@ -44,7 +44,7 @@ object Export {
     }
   }
 
-  object WeaponJSConv {
+  object WeaponJS {
 
 
 

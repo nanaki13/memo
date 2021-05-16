@@ -25,5 +25,5 @@ class EditWeaponCpnt(initial: Weapon, option: Option[mutable.ListBuffer[EditStat
 
   override def randomValue: Weapon = new Weapon(RandomName(),1,AnyRefBaseStat[Float](Actor.randomWeaponVal _).map(_.round))
 
-  override def create(name: String, intBaseStat: IntBaseStat, action: List[Action]): Weapon = new Weapon(name,1,intBaseStat,initial.action)
+  override def create(name: String, intBaseStat: IntBaseStat, action: List[Action]): Weapon = new Weapon(name,1,intBaseStat,action)
 }

@@ -1,9 +1,13 @@
 package bon.jo.app
 
 
+import bon.jo.app.AppLoaderExample.WeaponDao
+import bon.jo.app.Export.WeaponJS
 import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
 import bon.jo.html.HTMLDef.{$c, $ref, $t, $va, HtmlOps}
 import bon.jo.html.HtmlEventDef.ExH
+import bon.jo.memo.Dao
+import bon.jo.memo.Dao.FB
 import bon.jo.memo.ui.HtmlRep.PrXmlId
 import bon.jo.memo.ui.SimpleView
 import bon.jo.rpg.raw.BattleTimeLine.TimeLineParam
@@ -16,6 +20,11 @@ import org.scalajs.dom.{console, document, window}
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits._
+import scala.concurrent.Future
+import scala.scalajs.js
+import scala.scalajs.js.JSConverters.JSRichIterableOnce
+import scala.scalajs.js.JSON
+import scala.util.{Failure, Success}
 
 object AppLoaderExample extends App {
 
@@ -87,18 +96,18 @@ object AppLoaderExample extends App {
     // document.body.classList.add( " bg-dark")
 
 
-//    val row = $ref div {
-//      _._class = "row"
-//    }
-//
-//    def col = $ref div { e =>
-//      e._class = "col"
-//      row += e
-//    }
+    //    val row = $ref div {
+    //      _._class = "row"
+    //    }
+    //
+    //    def col = $ref div { e =>
+    //      e._class = "col"
+    //      row += e
+    //    }
 
-  //  root += row
+    //  root += row
 
-    root.style.maxWidth="80%"
+    root.style.maxWidth = "80%"
     cpnt.flatMap(_._2.get).foreach(e => root += e)
 
 
@@ -125,7 +134,66 @@ object AppLoaderExample extends App {
         r ++= persoCpnt.list
     }
     root ++= deckCreation
+    val saveB = SimpleView.bsButton("save")
+    val readB = SimpleView.bsButton("read")
+    saveB.$click { _ =>
+      weaponForGame.map(_.read).map(Export.WeaponJS(_)).map(WeaponDao.create).foreach(console.log(_))
+    }
+    readB.$click { _ =>
+      WeaponDao.readAll().onComplete {
+        case Failure(exception) =>
+        case Success(value) => value.foreach(console.log(_))
+      }
+    }
+    root += saveB
+    root += readB
   }
+
+
+  trait IdDao{
+    val name : String
+    private val _ids = mutable.Set[Int]()
+    def init:Unit = {
+      Option(window.localStorage.getItem(name)) match {
+        case Some(value) => _ids.addAll( JSON.parse(value).asInstanceOf[js.Array[Int]])
+        case None =>
+      }
+    }
+
+    def create(int: Int)={
+      _ids += int
+      window.localStorage.setItem(name,JSON.stringify( _ids.toJSArray))
+    }
+    def all : Set[Int] = _ids.toSet
+  }
+  trait LocalJsDao[A <: js.Object] extends Dao[A, Int]{
+      val name : String
+      val fId : A => Int
+      object ids extends IdDao{val name: String = LocalJsDao.this.name+"id";init}
+    override def create(a: A): FO = {
+      ids.create(fId(a))
+      window.localStorage.setItem(fId(a).toString + name, JSON.stringify(a))
+      console.log( JSON.parse( window.localStorage.getItem(fId(a).toString + name)).asInstanceOf[WeaponJS])
+      Future.successful(Some(a))
+    }
+
+    override def update(a: A, idOpt: Option[Int]): FO = ???
+
+    override def read(a: Int): FO = {
+      Future.successful(Some(JSON.parse( window.localStorage.getItem(a.toString + name)).asInstanceOf[A]))
+    }
+
+    override def readAll(limit: Int, offset: Int): FL = {
+         Future.sequence(ids.all.map(read).toList).map(_.flatten)
+    }
+
+    override def delete(a: Int): FB = ???
+  }
+  object WeaponDao extends LocalJsDao[WeaponJS] {
+      val name = "WeaponDao"
+      val fId: WeaponJS => Int = _.id
+  }
+
   def initChoiXperso = {
     import EditPersoCpnt._
 

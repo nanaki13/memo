@@ -34,8 +34,8 @@ object Action {
   case object Talent extends Action
   case object Rien extends Action
   val all = List(Attaque,MainGauche,MainDroite,Soin,Aoe,Garde,Evasion,Voler,ChangerDequipement,Talent,Rien)
-  def unapply(string: String): Option[Action] = applyFrom(all)(string)
-  def applyFrom(from : List[Action])(string: String) : Option[Action] = {
+  def unapply(string: String): Option[Action] = applyFrom(all.toSet)(string)
+  def applyFrom(from : Set[Action])(string: String) : Option[Action] = {
     println(string)
     from.map(e=> {
       println(e)
