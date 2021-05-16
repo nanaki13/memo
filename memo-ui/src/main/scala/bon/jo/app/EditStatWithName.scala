@@ -21,11 +21,12 @@ import scala.collection.mutable.ListBuffer
 abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[mutable.ListBuffer[EditStatWithName[A]]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends ImuutableHtmlCpnt with UpdatableCpnt[A] with ReadableCpnt[A] {
 
   implicit val rep : HtmlRepParam[A,ListBuffer[EditStatWithName[A]],EditStatWithName[A]] // = new EditWeaponCpnt[A](_,_)(repStat)
-  private val statCpnt = initial.html(repStat)
+  private val statCpnt = initial.stats.html(repStat)
   private val name = $c.input[Input] := (_.value = initial.name)
   private val colActioin: Div = $c.div
   private val actionsChoose: HTMLSelectElement = $l.t select Action.commonValues.filter(!initial.action.contains(_)).map(optionF)
 
+  private val actions = ListBuffer[Action]()
   private def optionF(action: Action) = $ref.t.option { o: HTMLOptionElement =>
     o.value = action.toString
     o.innerText = action.toString
@@ -39,7 +40,8 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[m
     colActioin += {
       SimpleView.badgeClose(a, {
         actionsChoose.appendChild(optionF(a))
-        initial.action = initial.action.filter(_ != a)
+        actions -= a
+
       })(_.name, BsModifier.Warning)
     }
   }
@@ -49,7 +51,7 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[m
   buttonAddAction $click { _ =>
     if(initial.action.size < 4){
       getAction(actionsChoose.value).foreach { a =>
-        initial.action :+= a
+        actions += a
         addToCollAction(a)
         actionsChoose.getElementsByTagName("option").toList.foreach {
           e =>
@@ -90,13 +92,13 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[m
 
 
   override def update(value: Option[A]): Unit = {
-    statCpnt.update(value)
+    statCpnt.update(value.map(_.stats))
     value.foreach(e => name.value = e.name)
   }
 
  def create(name : String,intBaseStat: IntBaseStat,action: List[Action]):A
   override def read: A = {
-    create(name.value, statCpnt.read,initial.action)
+    create(name.value, statCpnt.read,actions.toList)
   }
 
   private val copyButton = SimpleView.bsButton("copy")

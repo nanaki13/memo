@@ -43,7 +43,7 @@ class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso] {
   }
 
 
-  val htmlCarac: AnyRefBaseStat[(String,ChildParent)] = caracrAllContP(perso.stat)
+  val htmlCarac: AnyRefBaseStat[(String,ChildParent)] = caracrAllContP(perso.stats)
 
   def htmlList: List[ChildParent] = htmlCarac.toPropList.map(_._2)
 
@@ -88,7 +88,7 @@ class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso] {
       case Some(value) =>
         nameDiv := spanNameLevel(value)
         //  nameDiv.innerText = value.name
-        htmlCarac.hp._2.child.innerText = value.hp.toString
+        htmlCarac.hp._2.child.innerText = value.stats.hp.toString
       //   attDiv.innerText = value.str.toString
       case None =>
     }

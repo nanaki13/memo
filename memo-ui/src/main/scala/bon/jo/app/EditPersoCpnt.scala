@@ -32,5 +32,5 @@ class EditPersoCpnt(initial: Perso, option: Option[mutable.ListBuffer[EditStatWi
 
   override def randomValue: Perso = Actor.randomActor(e => new Perso(RandomName(),e))
 
-  override def create(name: String, intBaseStat: IntBaseStat, action: List[Action]): Perso = new Perso(name,intBaseStat,initial.action)
+  override def create(name: String, intBaseStat: IntBaseStat, action: List[Action]): Perso = new Perso(name,intBaseStat,lvl = 1,action)
 }

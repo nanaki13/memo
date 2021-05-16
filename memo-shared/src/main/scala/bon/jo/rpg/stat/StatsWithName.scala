@@ -3,8 +3,11 @@ package bon.jo.rpg.stat
 import bon.jo.rpg.Action
 import bon.jo.rpg.stat.raw.IntBaseStat
 
-trait StatsWithName extends IntBaseStat{
+trait StatsWithName {
    // self : IntBaseStat =>
-    def name : String
-    var action : List[Action]
+    val name : String
+    val id : Int
+    val action : List[Action]
+    val stats : IntBaseStat
+
 }

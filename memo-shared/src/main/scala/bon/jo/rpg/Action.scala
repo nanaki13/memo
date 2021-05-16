@@ -1,6 +1,7 @@
 package bon.jo.rpg
 
 import bon.jo.rpg.Action.ActionCtx.ActionCibled
+import bon.jo.rpg.Action.Attaque.{MainDroite, MainGauche}
 import bon.jo.rpg.Action.{ActionCtx, readCibleRec}
 import bon.jo.rpg.StdinUtil.fromStdin
 
@@ -29,10 +30,11 @@ object Action {
   case object Garde extends Action
   case object Evasion extends Action
   case object Voler extends Action
-  case object  ChangerDequipement extends Action
-  case object Talent
+  case object ChangerDequipement extends Action
+  case object Talent extends Action
   case object Rien extends Action
-
+  val all = List(Attaque,MainGauche,MainDroite,Soin,Aoe,Garde,Evasion,Voler,ChangerDequipement,Talent,Rien)
+  def unapply(string: String): Option[Action] = applyFrom(all)(string)
   def applyFrom(from : List[Action])(string: String) : Option[Action] = {
     println(string)
     from.map(e=> {
@@ -73,14 +75,6 @@ object Action {
     })
   }
 
-  def unapply(str: String): Option[Action] = {
-    str match {
-      case Attaque.MainGauche.name => Some(Attaque.MainGauche)
-      case Attaque.MainDroite.name => Some(Attaque.MainDroite)
-      case Action.Rien.name => Some(Rien)
-      case _ => None
-    }
-  }
 
 
   def fromStdIn: Action = {

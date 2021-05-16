@@ -38,5 +38,5 @@ object GenTrait {
   println(a1.leftHand)
   println(a1.rightHand)
   println(a1.rightArmedStat())
-  println(a1.twoAndStat().to[Actor])
+  println(a1.twoAndStat())
 }

@@ -202,6 +202,7 @@ object AnyRefBaseStat{
   val names : StringBaseStat = apply(productElementNames.map(e => (e , e)).toList)
   val r = new Random()
 
+  def apply[A]: (A, A, A, A, A, A, A, A, A) => Impl[A] = Impl.apply[A]
   def randomInt( center : Int,delta : Int): AnyRefBaseStat[Int] = apply[Int](()=>center + (delta*(1d-r.nextGaussian())).round.toInt)
   case class Impl[A](
                       override val hp: A,
@@ -217,7 +218,7 @@ object AnyRefBaseStat{
 
   }
 
-    def apply[A , T ](baseState: AnyRefBaseStat[T])(implicit cv: T => A) = {
+    def apply[A , T ](baseState: AnyRefBaseStat[T])(implicit cv: T => A): Impl[A] = {
        Impl[A](
         cv(baseState.hp),
         cv(baseState.sp),
@@ -230,6 +231,8 @@ object AnyRefBaseStat{
         cv(baseState.chc)
       )
     }
+
+
 
     def apply[A](iterable: Iterable[(String,A)]): AnyRefBaseStat[A] ={
       val map = iterable.toMap
