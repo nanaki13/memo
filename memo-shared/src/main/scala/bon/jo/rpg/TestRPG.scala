@@ -21,8 +21,8 @@ object TestRPG extends App {
   val ui = new WithUI()
 
 
-  val p1 = new Perso("Bob", AnyRefBaseStat.randomInt(50, 10))
-  val p2 = new Perso("Bill", AnyRefBaseStat.randomInt(50, 10))
+  val p1 = new Perso(1,"Bob", AnyRefBaseStat.randomInt(50, 10))
+  val p2 = new Perso(2,"Bill", AnyRefBaseStat.randomInt(50, 10))
 
 
   import ui.value

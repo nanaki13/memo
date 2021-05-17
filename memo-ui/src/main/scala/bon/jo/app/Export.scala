@@ -37,7 +37,7 @@ object Export {
           val action = value.action flatMap Action.unapply
           val left = value.leftHandWeapon.toOption.flatMap(WeaponJS.unapply)
           val right = value.leftHandWeapon.toOption.flatMap(WeaponJS.unapply)
-          Some(new Perso(value.name, stat, value.lvl, action, left, right, value.id))
+          Some(new Perso(value.id,value.name, stat, value.lvl, action, left, right))
         case _ => None
       }
 
@@ -52,7 +52,7 @@ object Export {
       weaponJS.stats match {
         case StatJS(stat) =>
           val action = weaponJS.action flatMap Action.unapply
-          Some(Weapon(weaponJS.name, weaponJS.lvl, stat, action, weaponJS.id))
+          Some(Weapon( weaponJS.id,weaponJS.name, weaponJS.lvl, stat, action))
         case _ => None
       }
 

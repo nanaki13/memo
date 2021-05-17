@@ -96,9 +96,9 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[m
     value.foreach(e => name.value = e.name)
   }
 
- def create(name : String,intBaseStat: IntBaseStat,action: List[Action]):A
+ def create(id : Int, name : String,intBaseStat: IntBaseStat,action: List[Action]):A
   override def read: A = {
-    create(name.value, statCpnt.read,actions.toList)
+    create(initial.id,name.value, statCpnt.read,actions.toList)
   }
 
   private val copyButton = SimpleView.bsButton("copy")

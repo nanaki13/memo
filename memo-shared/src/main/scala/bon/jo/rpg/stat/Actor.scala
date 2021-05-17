@@ -83,7 +83,7 @@ object Actor {
   def randomWeapon(): Weapon = {
     val stat = (BaseState.`1` * AnyRefBaseStat(randomWeaponVal _))
 
-    Weapon("nom",1,stat, Action.Attaque :: Nil)
+    Weapon(0,"nom",1,stat, Action.Attaque :: Nil)
   }
 
   trait WeaponBaseState extends StatsWithName with Lvl
@@ -98,8 +98,11 @@ object Actor {
       cache(ct.runtimeClass) = id
       id
     }
+    def init[A](int: Int)(implicit ct : ClassTag[A]):Unit={
+      cache += ct.runtimeClass -> int
+    }
   }
-   case class Weapon(name : String,lvl : Int,stats: AnyRefBaseStat[Int], action: List[Action]=Action.Attaque :: Nil ,id : Int = Id[Weapon]) extends  WeaponBaseState {
+   case class Weapon(id : Int ,name : String,lvl : Int,stats: AnyRefBaseStat[Int], action: List[Action]=Action.Attaque :: Nil ) extends  WeaponBaseState {
 
   }
 }

@@ -3,19 +3,14 @@ package bon.jo.rpg.stat
 import bon.jo.rpg.Action.ActionCtx
 import bon.jo.rpg.DoActionTrait.WithAction
 import bon.jo.rpg.stat.Actor.WeaponBaseState
-import bon.jo.rpg.stat.Perso.getid
+
 import bon.jo.rpg.ui.PlayerUI
 import bon.jo.rpg.{Action, ActionResolver, Timed, TimedTrait}
 
 import scala.collection.mutable
 
 object Perso {
-  var id = 0
 
-  def getid() = {
-    id += 1
-    id
-  }
 
   trait PlayerPersoUI extends PlayerUI{
     type S = Perso
@@ -85,15 +80,13 @@ object Perso {
     }
   }
 
-  def apply( name: String, stat : AnyRefBaseStat[Int]): Perso ={
-    new Perso(name,stat)
-  }
+
 
 }
- case class Perso( name: String, stats : AnyRefBaseStat[Int],lvl : Int = 1, action : List[Action] = Nil,
+ case class Perso(  id : Int, name: String, stats : AnyRefBaseStat[Int],lvl : Int = 1, action : List[Action] = Nil,
    leftHandWeapon: Option[WeaponBaseState]= None,
 rightHandWeapon: Option[WeaponBaseState] = None
-                   , id: Int = getid()) extends Actor with StatsWithName{
+                  ) extends Actor with StatsWithName{
 
 
    def randomWeapon() = {

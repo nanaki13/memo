@@ -13,14 +13,20 @@ import bon.jo.memo.ui.SimpleView
 import bon.jo.rpg.raw.BattleTimeLine.TimeLineParam
 import bon.jo.rpg.raw.DoActionTrait.WithAction
 import bon.jo.rpg.raw._
+import bon.jo.rpg.stat.Actor.Id
 import bon.jo.rpg.stat.raw.Perso.WithUI
 import bon.jo.rpg.stat.raw._
 import org.scalajs.dom.html.{Div, Span}
-import org.scalajs.dom.{console, document, window}
+import org.scalajs.dom.idb.CursorWithValue
+import org.scalajs.dom.raw.{ErrorEvent, EventTarget, IDBDatabase, IDBFactory, IDBOpenDBRequest, IDBTransaction}
+import org.scalajs.dom.{console, document, idb, window}
 
+import java.lang
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext.Implicits._
-import scala.concurrent.Future
+import scala.concurrent.impl.Promise
+import scala.concurrent.{Future, Promise}
 import scala.scalajs.js
 import scala.scalajs.js.JSConverters.JSRichIterableOnce
 import scala.scalajs.js.JSON
@@ -36,12 +42,7 @@ object AppLoaderExample extends App {
   //  )
   //  loads(apps)
 
-  var id = 0
 
-  def getid() = {
-    id += 1
-    id
-  }
 
 
 
@@ -125,80 +126,175 @@ object AppLoaderExample extends App {
   val weaponForGame = mutable.ListBuffer.empty[EditStatWithName[Weapon]]
 
   def initChoixArme() = {
-    import EditWeaponCpnt._
-    val p = Actor.randomWeapon()
-    val persoCpnt = p.htmlp(weaponForGame)
-    weaponForGame += persoCpnt
-    val deckCreation = $ref div {
-      r =>
-        r ++= persoCpnt.list
-    }
-    root ++= deckCreation
-    val saveB = SimpleView.bsButton("save")
-    val readB = SimpleView.bsButton("read")
-    saveB.$click { _ =>
-      weaponForGame.map(_.read).map(Export.WeaponJS(_)).map(WeaponDao.create).foreach(console.log(_))
-    }
-    readB.$click { _ =>
-      WeaponDao.readAll().onComplete {
-        case Failure(exception) =>
-        case Success(value) => value.foreach(console.log(_))
+    WeaponDao.readIds().map(_.max).map(Id.init[WeaponJS](_)).map{
+      _ =>
+        import EditWeaponCpnt._
+        val p = Actor.randomWeapon().copy(id = Id[WeaponJS])
+        val persoCpnt = p.htmlp(weaponForGame)
+        weaponForGame += persoCpnt
+        val deckCreation = $ref div {
+          r =>
+            r ++= persoCpnt.list
+        }
+        root ++= deckCreation
+        val saveB = SimpleView.bsButton("save")
+        val readB = SimpleView.bsButton("read")
+        saveB.$click { _ =>
+          weaponForGame.map(_.read).map(Export.WeaponJS(_)).map(WeaponDao.create).foreach {
+            e =>
+              e.onComplete {
+                case Failure(exception) => throw exception
+                case Success(value) => console.log(value.get)
+              }
+          }
+        }
+        readB.$click { _ =>
+          WeaponDao.readAll().onComplete {
+            case Failure(exception) =>
+            case Success(value) => value.foreach(console.log(_))
+          }
+        }
+        root += saveB
+        root += readB
+
+    } onComplete {
+      case Failure(exception) => {
+        scalajs.js.special.debugger()
+        console.log(exception)
       }
+      case Success(value) =>
     }
-    root += saveB
-    root += readB
+
   }
 
 
-  trait IdDao{
-    val name : String
+  trait IdDao {
+    val name: String
     private val _ids = mutable.Set[Int]()
-    def init:Unit = {
+
+    def init: Unit = {
       Option(window.localStorage.getItem(name)) match {
-        case Some(value) => _ids.addAll( JSON.parse(value).asInstanceOf[js.Array[Int]])
+        case Some(value) => _ids.addAll(JSON.parse(value).asInstanceOf[js.Array[Int]])
         case None =>
       }
     }
 
-    def create(int: Int)={
+    def create(int: Int) = {
       _ids += int
-      window.localStorage.setItem(name,JSON.stringify( _ids.toJSArray))
+      window.localStorage.setItem(name, JSON.stringify(_ids.toJSArray))
     }
-    def all : Set[Int] = _ids.toSet
+
+    def all: Set[Int] = _ids.toSet
   }
-  trait LocalJsDao[A <: js.Object] extends Dao[A, Int]{
-      val name : String
-      val fId : A => Int
-      object ids extends IdDao{val name: String = LocalJsDao.this.name+"id";init}
+
+  class DBExeception(val error: ErrorEvent) extends RuntimeException()
+
+  implicit class EventDB(val e : EventTarget){
+    def result[A]:A = e.asInstanceOf[js.Dynamic].result.asInstanceOf[A]
+  }
+  trait IndexedDB {
+    val db: IDBFactory = window.indexedDB
+
+
+    def database(storeName: String): Future[IDBDatabase] = {
+      val p = Promise[IDBDatabase]()
+      val open: IDBOpenDBRequest = db.open("dao")
+      open.onupgradeneeded = f => {
+        val dbO = f.target.asInstanceOf[js.Dynamic].result.asInstanceOf[IDBDatabase]
+        dbO.createObjectStore(storeName, js.Dynamic.literal(keyPath = "id"))
+      }
+      open.onsuccess = f => {
+        p.success(f.target.asInstanceOf[js.Dynamic].result.asInstanceOf[IDBDatabase])
+      }
+      open.onerror = f => {
+        p.failure(new DBExeception(f))
+      }
+      p.future
+    }
+
+  }
+
+  trait LocalJsDao[A <: js.Object] extends Dao[A, Int] {
+    val db = new IndexedDB {}
+    val name: String
+    val fId: A => Int
+
+    object ids extends IdDao {
+      val name: String = LocalJsDao.this.name + "id"; init
+    }
+
+    def transaction(mode : String): Future[IDBTransaction] =db.database(name).map{
+      db =>
+        db.transaction(js.Array(name),mode)
+    }
+    def readIds(): Future[List[Int]] = {
+      console.log(name)
+      transaction("readonly").map(_.objectStore(name)).map(_.openCursor()).flatMap{
+        cursor =>
+          val p = Promise[List[Int]]()
+          val b= ListBuffer[Int]()
+          cursor.onsuccess={
+            s =>
+              val c : idb.Cursor =  s.target.result
+              console.log(s.target)
+              if(c == null || js.isUndefined(c)){
+                p.success(b.toList)
+              }else{
+                b += c.key.asInstanceOf[Int]
+                c.continue()
+              }
+          }
+          cursor.onerror=e => p.failure(new DBExeception(e))
+          p.future
+      }
+    }
     override def create(a: A): FO = {
-      ids.create(fId(a))
-      window.localStorage.setItem(fId(a).toString + name, JSON.stringify(a))
-      console.log( JSON.parse( window.localStorage.getItem(fId(a).toString + name)).asInstanceOf[WeaponJS])
-      Future.successful(Some(a))
+      console.log(a)
+      println("create")
+      db.database(name).flatMap {
+        db_ =>
+          val promise = Promise[Option[A]]()
+          val tr = db_.transaction(js.Array(name), "readwrite")
+          tr.onerror = e => {
+            println("error")
+            promise.failure(new DBExeception(e))
+          }
+          tr.oncomplete = s => {
+            println("OK")
+            promise.success(Some(a))
+          }
+
+          tr.objectStore(name).add(a)
+          promise.future
+      }
+   /*   window.localStorage.setItem(fId(a).toString + name, JSON.stringify(a))
+      console.log(JSON.parse(window.localStorage.getItem(fId(a).toString + name)).asInstanceOf[WeaponJS])
+      Future.successful(Some(a))*/
     }
 
     override def update(a: A, idOpt: Option[Int]): FO = ???
 
     override def read(a: Int): FO = {
-      Future.successful(Some(JSON.parse( window.localStorage.getItem(a.toString + name)).asInstanceOf[A]))
+      Future.successful(Some(JSON.parse(window.localStorage.getItem(a.toString + name)).asInstanceOf[A]))
     }
 
     override def readAll(limit: Int, offset: Int): FL = {
-         Future.sequence(ids.all.map(read).toList).map(_.flatten)
+      Future.sequence(ids.all.map(read).toList).map(_.flatten)
     }
 
     override def delete(a: Int): FB = ???
   }
+
   object WeaponDao extends LocalJsDao[WeaponJS] {
-      val name = "WeaponDao"
-      val fId: WeaponJS => Int = _.id
+    val name = "WeaponDao"
+    val fId: WeaponJS => Int = _.id
   }
 
   def initChoiXperso = {
     import EditPersoCpnt._
 
 
-    val p = Actor.randomActor(Perso(RandomName(), _))
+    val p = Actor.randomActor(Perso(Id[Perso],RandomName(), _))
 
     val persoCpnt = p.htmlp(persosForGame)
     persosForGame += persoCpnt
