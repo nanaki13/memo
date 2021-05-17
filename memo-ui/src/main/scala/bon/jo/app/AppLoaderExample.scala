@@ -2,6 +2,7 @@ package bon.jo.app
 
 
 import bon.jo.app.AppLoaderExample.WeaponDao
+import bon.jo.app.EditWeaponCpnt.Implicit.Hrep
 import bon.jo.app.Export.WeaponJS
 import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
 import bon.jo.html.HTMLDef.{$c, $ref, $t, $va, HtmlOps}
@@ -9,7 +10,7 @@ import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.Dao
 import bon.jo.memo.Dao.FB
 import bon.jo.memo.ui.HtmlRep.PrXmlId
-import bon.jo.memo.ui.SimpleView
+import bon.jo.memo.ui.{HtmlRep, SimpleView}
 import bon.jo.rpg.raw.BattleTimeLine.TimeLineParam
 import bon.jo.rpg.raw.DoActionTrait.WithAction
 import bon.jo.rpg.raw._
@@ -18,7 +19,7 @@ import bon.jo.rpg.stat.raw.Perso.WithUI
 import bon.jo.rpg.stat.raw._
 import org.scalajs.dom.html.{Div, Span}
 import org.scalajs.dom.idb.CursorWithValue
-import org.scalajs.dom.raw.{ErrorEvent, EventTarget, IDBDatabase, IDBFactory, IDBOpenDBRequest, IDBTransaction}
+import org.scalajs.dom.raw.{ErrorEvent, EventTarget, IDBDatabase, IDBFactory, IDBOpenDBRequest, IDBRequest, IDBTransaction}
 import org.scalajs.dom.{console, document, idb, window}
 
 import java.lang
@@ -41,12 +42,6 @@ object AppLoaderExample extends App {
   //    "app-test" -> new HtmlAppFactory[MemoTemplate]((app: Div, template: Template) => new MemoApp(app, template), q =>  MemoTemplate(user = q))
   //  )
   //  loads(apps)
-
-
-
-
-
-
 
 
   //  trait ActionOps[A] {
@@ -124,38 +119,60 @@ object AppLoaderExample extends App {
 
   val persosForGame = mutable.ListBuffer.empty[EditStatWithName[Perso]]
   val weaponForGame = mutable.ListBuffer.empty[EditStatWithName[Weapon]]
-
+  val deckCreation : Div = $c.div[Div]
   def initChoixArme() = {
-    WeaponDao.readIds().map(_.max).map(Id.init[WeaponJS](_)).map{
+    implicit val v: Hrep = EditWeaponCpnt.Implicit.value
+    WeaponDao.readIds().map {
+      case Nil => List(0)
+      case e => println(e);e
+    }.map(_.max).map(Id.init[Weapon](_)).map {
       _ =>
-        import EditWeaponCpnt._
-        val p = Actor.randomWeapon().copy(id = Id[WeaponJS])
+
+        WeaponDao.readAll().onComplete {
+
+          case Failure(exception) => console.log(exception)
+          case Success(value) => {
+
+            value.flatMap(WeaponJS.unapply).foreach((w : Weapon) => {
+              val persoCpnt = w.htmlp(weaponForGame)
+              weaponForGame += persoCpnt
+              deckCreation ++= persoCpnt.list
+            })
+
+
+          }
+        }
+        val p = Actor.randomWeapon()
         val persoCpnt = p.htmlp(weaponForGame)
         weaponForGame += persoCpnt
-        val deckCreation = $ref div {
-          r =>
-            r ++= persoCpnt.list
-        }
+        deckCreation ++= persoCpnt.list
         root ++= deckCreation
         val saveB = SimpleView.bsButton("save")
-        val readB = SimpleView.bsButton("read")
+
         saveB.$click { _ =>
-          weaponForGame.map(_.read).map(Export.WeaponJS(_)).map(WeaponDao.create).foreach {
-            e =>
+          weaponForGame.map(e => (e, e.read)).map {
+            case (view, v) =>
+              if (v.id == 0) {
+                (view, v.copy(id = Id[Weapon]), WeaponDao.create _)
+              } else {
+                (view, v, WeaponDao.update(_, None))
+              }: (EditStatWithName[Weapon], Weapon, WeaponJS => WeaponDao.FO)
+          }.map {
+            case (view, w, fw) => (view, Export.WeaponJS(w), fw)
+          }.map { case (view, w, fw) => (view, fw(w)) }.foreach {
+            case (view, e) =>
               e.onComplete {
                 case Failure(exception) => throw exception
-                case Success(value) => console.log(value.get)
+                case Success(value) => {   view.update(value.flatMap(WeaponJS.unapply))
+
+
+                }
               }
           }
         }
-        readB.$click { _ =>
-          WeaponDao.readAll().onComplete {
-            case Failure(exception) =>
-            case Success(value) => value.foreach(console.log(_))
-          }
-        }
+
         root += saveB
-        root += readB
+
 
     } onComplete {
       case Failure(exception) => {
@@ -168,34 +185,16 @@ object AppLoaderExample extends App {
   }
 
 
-  trait IdDao {
-    val name: String
-    private val _ids = mutable.Set[Int]()
 
-    def init: Unit = {
-      Option(window.localStorage.getItem(name)) match {
-        case Some(value) => _ids.addAll(JSON.parse(value).asInstanceOf[js.Array[Int]])
-        case None =>
-      }
-    }
-
-    def create(int: Int) = {
-      _ids += int
-      window.localStorage.setItem(name, JSON.stringify(_ids.toJSArray))
-    }
-
-    def all: Set[Int] = _ids.toSet
-  }
 
   class DBExeception(val error: ErrorEvent) extends RuntimeException()
 
-  implicit class EventDB(val e : EventTarget){
-    def result[A]:A = e.asInstanceOf[js.Dynamic].result.asInstanceOf[A]
+  implicit class EventDB(val e: EventTarget) {
+    def result[A]: A = e.asInstanceOf[js.Dynamic].result.asInstanceOf[A]
   }
+
   trait IndexedDB {
     val db: IDBFactory = window.indexedDB
-
-
     def database(storeName: String): Future[IDBDatabase] = {
       val p = Promise[IDBDatabase]()
       val open: IDBOpenDBRequest = db.open("dao")
@@ -219,42 +218,40 @@ object AppLoaderExample extends App {
     val name: String
     val fId: A => Int
 
-    object ids extends IdDao {
-      val name: String = LocalJsDao.this.name + "id"; init
+
+    def transaction(mode: String): Future[IDBTransaction] = db.database(name).map {
+      db =>
+        db.transaction(js.Array(name), mode)
     }
 
-    def transaction(mode : String): Future[IDBTransaction] =db.database(name).map{
-      db =>
-        db.transaction(js.Array(name),mode)
-    }
     def readIds(): Future[List[Int]] = {
-      console.log(name)
-      transaction("readonly").map(_.objectStore(name)).map(_.openCursor()).flatMap{
+      console.log("readIds"+name)
+      transaction("readonly").map(_.objectStore(name)).map(_.openCursor()).flatMap {
         cursor =>
           val p = Promise[List[Int]]()
-          val b= ListBuffer[Int]()
-          cursor.onsuccess={
+          val b = ListBuffer[Int]()
+          cursor.onsuccess = {
             s =>
-              val c : idb.Cursor =  s.target.result
+              val c: idb.Cursor = s.target.result
               console.log(s.target)
-              if(c == null || js.isUndefined(c)){
+              if (c == null || js.isUndefined(c)) {
                 p.success(b.toList)
-              }else{
+              } else {
                 b += c.key.asInstanceOf[Int]
                 c.continue()
               }
           }
-          cursor.onerror=e => p.failure(new DBExeception(e))
+          cursor.onerror = e => p.failure(new DBExeception(e))
           p.future
       }
     }
+
     override def create(a: A): FO = {
       console.log(a)
       println("create")
-      db.database(name).flatMap {
-        db_ =>
+      transaction("readwrite") flatMap {
+        tr =>
           val promise = Promise[Option[A]]()
-          val tr = db_.transaction(js.Array(name), "readwrite")
           tr.onerror = e => {
             println("error")
             promise.failure(new DBExeception(e))
@@ -267,22 +264,82 @@ object AppLoaderExample extends App {
           tr.objectStore(name).add(a)
           promise.future
       }
-   /*   window.localStorage.setItem(fId(a).toString + name, JSON.stringify(a))
-      console.log(JSON.parse(window.localStorage.getItem(fId(a).toString + name)).asInstanceOf[WeaponJS])
-      Future.successful(Some(a))*/
     }
 
-    override def update(a: A, idOpt: Option[Int]): FO = ???
+    def future[B](tr: IDBTransaction, trAction: IDBTransaction => IDBRequest): Future[Option[B]] = {
+      val promise = Promise[Option[B]]()
+      val request = trAction(tr)
+      request.onerror = e => {
+        println("error")
+        promise.failure(new DBExeception(e))
+      }
+      request.onsuccess = s => {
+        println("OK")
+        val a: B = s.target.result
+        promise.success(Some(a))
+      }
+
+      trAction(tr)
+      promise.future
+    }
+
+    def future[B](tr: IDBTransaction, trAction: IDBTransaction => IDBRequest, ok: () => B): Future[B] = {
+      val promise = Promise[B]()
+      val request = trAction(tr)
+      request.onerror = e => {
+        println("error")
+        promise.failure(new DBExeception(e))
+      }
+      request.onsuccess = s => {
+        println("OK")
+
+        promise.success(ok())
+      }
+
+      trAction(tr)
+      promise.future
+    }
+
+    override def update(a: A, idOpt: Option[Int]): FO = {
+      transaction("readwrite")flatMap {
+        tr =>
+          future[Option[A]](tr,t => t.objectStore(name).put(a),()=>Some(a))
+      }
+
+    }
 
     override def read(a: Int): FO = {
-      Future.successful(Some(JSON.parse(window.localStorage.getItem(a.toString + name)).asInstanceOf[A]))
+      transaction("readonly") flatMap {
+        tr =>
+          future[A](tr, t => t.objectStore(name).get(a))
+      }
     }
 
     override def readAll(limit: Int, offset: Int): FL = {
-      Future.sequence(ids.all.map(read).toList).map(_.flatten)
+      transaction("readonly") map (_.objectStore(name).openCursor()) flatMap {
+        cursor =>
+          val p = Promise[List[A]]()
+          val b = ListBuffer[A]()
+          cursor.onsuccess = {
+            s =>
+              val c: idb.CursorWithValue = s.target.result
+              console.log(s.target)
+              if (c == null || js.isUndefined(c)) {
+                p.success(b.toList)
+              } else {
+                b += c.value.asInstanceOf[A]
+                c.continue()
+              }
+          }
+          cursor.onerror = e => p.failure(new DBExeception(e))
+          p.future
+      }
     }
 
-    override def delete(a: Int): FB = ???
+    override def delete(a: Int): FB = transaction("readwrite") flatMap {
+      tr =>
+        future[Boolean](tr, t => t.objectStore(name).delete(a), () => true)
+    }
   }
 
   object WeaponDao extends LocalJsDao[WeaponJS] {
@@ -294,7 +351,7 @@ object AppLoaderExample extends App {
     import EditPersoCpnt._
 
 
-    val p = Actor.randomActor(Perso(Id[Perso],RandomName(), _))
+    val p = Actor.randomActor(Perso(Id[Perso], RandomName(), _))
 
     val persoCpnt = p.htmlp(persosForGame)
     persosForGame += persoCpnt

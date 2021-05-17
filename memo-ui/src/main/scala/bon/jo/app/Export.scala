@@ -37,7 +37,7 @@ object Export {
           val action = value.action flatMap Action.unapply
           val left = value.leftHandWeapon.toOption.flatMap(WeaponJS.unapply)
           val right = value.leftHandWeapon.toOption.flatMap(WeaponJS.unapply)
-          Some(new Perso(value.id,value.name, stat, value.lvl, action, left, right))
+          Some(new Perso(value.id,value.name, stat, value.lvl, action.toList, left, right))
         case _ => None
       }
 
@@ -48,17 +48,17 @@ object Export {
 
 
 
-    def unapply(weaponJS: WeaponJS): Option[WeaponBaseState] = {
+    def unapply(weaponJS: WeaponJS): Option[Weapon] = {
       weaponJS.stats match {
         case StatJS(stat) =>
-          val action = weaponJS.action flatMap Action.unapply
+          val action = weaponJS.action.toList flatMap Action.unapply
           Some(Weapon( weaponJS.id,weaponJS.name, weaponJS.lvl, stat, action))
         case _ => None
       }
 
     }
 
-    def apply(weapon: WeaponBaseState): WeaponJS = {
+    def apply(weapon: Weapon): WeaponJS = {
       Export.apply(weapon: StatsWithName with Lvl).asInstanceOf[WeaponJS]
     }
   }
@@ -68,7 +68,7 @@ object Export {
     val name: String
     val id: Int
     val stats: StatJS
-    val action: List[String]
+    val action: js.Array[String]
   }
 
   trait JSCompanion[T] {

@@ -2,7 +2,7 @@ package bon.jo.rpg.stat
 
 import bon.jo.rpg.Action
 import bon.jo.rpg.Action.ActionCtx
-import bon.jo.rpg.stat.Actor.{ActorBaseStats, WeaponBaseState}
+import bon.jo.rpg.stat.Actor.{ActorBaseStats, Weapon, WeaponBaseState}
 import bon.jo.rpg.stat.AnyRefBaseStat.r
 import bon.jo.rpg.stat.BaseState.ImplicitCommon._
 import bon.jo.rpg.stat.raw.IntBaseStat
@@ -36,7 +36,7 @@ trait ArmedActor {
 
   var actionCtx: Option[ActionCtx] = None
 
-  def randomSoin(weapon: Actor.Weapon): WeaponBaseState = {
+  def randomSoin(weapon: Actor.Weapon): Weapon = {
     if(r.nextDouble()>0.5){
       weapon.copy(action = weapon.action :+ Action.Soin)
     }else{

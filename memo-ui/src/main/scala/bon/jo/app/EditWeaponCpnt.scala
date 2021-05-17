@@ -10,13 +10,18 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 
+
 object EditWeaponCpnt extends HtmlRepParam[Weapon, mutable.ListBuffer[EditStatWithName[Weapon]], EditStatWithName[Weapon]] {
 
   override def html(memo: Weapon, option: Option[mutable.ListBuffer[EditStatWithName[Weapon]]]): EditWeaponCpnt = {
     new EditWeaponCpnt(memo, option)(EditStat)
   }
 
-  implicit val value: HtmlRepParam[Weapon, mutable.ListBuffer[EditStatWithName[Weapon]], EditStatWithName[Weapon]] = this
+
+  object Implicit{
+    type Hrep = HtmlRepParam[Weapon, mutable.ListBuffer[EditStatWithName[Weapon]], EditStatWithName[Weapon]]
+    implicit val value: Hrep = EditWeaponCpnt
+  }
 
 
 }

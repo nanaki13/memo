@@ -2,8 +2,7 @@ package bon.jo.rpg.stat
 
 import bon.jo.rpg.Action.ActionCtx
 import bon.jo.rpg.DoActionTrait.WithAction
-import bon.jo.rpg.stat.Actor.WeaponBaseState
-
+import bon.jo.rpg.stat.Actor.{Weapon, WeaponBaseState}
 import bon.jo.rpg.ui.PlayerUI
 import bon.jo.rpg.{Action, ActionResolver, Timed, TimedTrait}
 
@@ -84,8 +83,8 @@ object Perso {
 
 }
  case class Perso(  id : Int, name: String, stats : AnyRefBaseStat[Int],lvl : Int = 1, action : List[Action] = Nil,
-   leftHandWeapon: Option[WeaponBaseState]= None,
-rightHandWeapon: Option[WeaponBaseState] = None
+   leftHandWeapon: Option[Weapon]= None,
+rightHandWeapon: Option[Weapon] = None
                   ) extends Actor with StatsWithName{
 
 
