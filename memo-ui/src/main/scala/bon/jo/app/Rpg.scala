@@ -1,0 +1,130 @@
+package bon.jo.app
+
+import bon.jo.app.Export.WeaponJS
+import bon.jo.dao.LocalJsDao
+import bon.jo.html.DomShell.ExtendedHTMLCollection
+import bon.jo.html.HTMLDef.{$ref, HtmlOps}
+import bon.jo.html.HtmlEventDef.ExH
+import bon.jo.memo.ui.HtmlRep.PrXmlId
+import bon.jo.memo.ui.SimpleView
+import bon.jo.rpg.BattleTimeLine.TimeLineParam
+import bon.jo.rpg.raw.Action
+import bon.jo.rpg.stat.Actor.Id
+import bon.jo.rpg.stat.Perso.WithUI
+import bon.jo.rpg.stat.raw.{Actor, Perso}
+import bon.jo.util.Ec
+import org.scalajs.dom.document
+
+import scala.collection.mutable
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.Implicits.global
+
+trait Rpg extends Ec with ArmesPage {
+
+  //  val apps = List("app-test-socket", "app-test")
+  //
+  //  val conf: Map[String, HtmlAppFactory[_]] = Map(
+  //    "app-test-socket" -> new HtmlAppFactory[TestSocketTemplate]((app: Div, template: Template) => new TestSocketAppApp(app, template), _ => new TestSocketTemplate),
+  //    "app-test" -> new HtmlAppFactory[MemoTemplate]((app: Div, template: Template) => new MemoApp(app, template), q =>  MemoTemplate(user = q))
+  //  )
+  //  loads(apps)
+
+
+  //  trait ActionOps[A] {
+  //    def resolveAction[B](a : A, action: Action, B : B):Unit
+  //  }
+
+
+
+  document.body.style.backgroundColor = "#343a40"
+
+
+  var cpntMap: Map[Int, (Perso, PerCpnt)] = _
+
+  val yl = TimeLineParam(0, 200, 260)
+
+  val root = $ref div {
+    d =>
+      d._class = "container-fluid"
+
+
+  }
+  document.getElementsByTagName("app-rpg").foreach { e =>
+    e.innerHTML = ""
+    e += root
+  }
+
+  def startRpg = {
+    implicit val ui: HtmlUi = HtmlUi.Value
+    implicit val repPerso = HtmlUi.PersoRep
+    implicit val actionPerso = HtmlUi.acctRep
+    val linkedUI = new WithUI()
+    val cpnt = yl.timedObjs.map(_.value).map(_.asInstanceOf[Perso]).map(e => e -> e.html)
+    cpntMap = cpnt.map(e => e._1.id -> e).toMap
+    val actionChoice: Seq[(Action, ImuutableHtmlCpnt)] = Action.commonValues.map(e => (e, e.html))
+    //document.body.clear()
+    // document.body.classList.add( " bg-dark")
+
+
+    //    val row = $ref div {
+    //      _._class = "row"
+    //    }
+    //
+    //    def col = $ref div { e =>
+    //      e._class = "col"
+    //      row += e
+    //    }
+
+    //  root += row
+
+    root.style.maxWidth = "80%"
+    cpnt.flatMap(_._2.get).foreach(e => root += e)
+
+
+    root.appendChild(ui.choice)
+    root.appendChild(ui.messageDiv)
+    val cpntTimeLine = new TimeLineCpnt(yl, linkedUI)
+    root.appendChild(cpntTimeLine.tlView)
+    cpntTimeLine.tlView.$userCanDrag()
+    cpntTimeLine.doEvent()
+
+
+  }
+
+  val persosForGame = mutable.ListBuffer.empty[EditStatWithName[Perso]]
+
+
+  object WeaponDao extends LocalJsDao[WeaponJS] {
+    val name = "WeaponDao"
+    val fId: WeaponJS => Int = _.id
+    override implicit val executionContext: ExecutionContext = global
+  }
+
+  def initChoiXperso = {
+
+    implicit val perRep: EditPersoCpnt.type = EditPersoCpnt
+    val p = Actor.randomActor(Perso(Id[Perso], RandomName(), _))
+
+    val persoCpnt = p.htmlp(persosForGame)
+    persosForGame += persoCpnt
+    val bnt = SimpleView.bsButton("start")
+    val deckCreation = $ref div {
+      r =>
+        r ++= persoCpnt.list
+    }
+    root ++= List(deckCreation, bnt)
+    bnt
+  }
+
+
+
+  /*initChoiXperso.$click { _ =>
+    persosForGame.map(_.read).foreach(e => {
+      e.randomWeapon()
+      yl.add(e)
+    })
+    root.clear()
+    startRpg
+  }*/
+
+}

@@ -27,7 +27,9 @@ object HtmlUi {
 
   implicit val acctRep: HtmlRep[Action, ImuutableHtmlCpnt] = ActionRep
 
-  object Value extends HtmlUi
+  object Value extends HtmlUi {
+    override val rpg: Rpg = AppLoaderExample.Rpg
+  }
 
   object Implicit {
     implicit val value: PlayerUI = Value
@@ -42,6 +44,7 @@ object HtmlUi {
 
 trait HtmlUi extends PlayerPersoUI with SimpleMessage {
 
+  val rpg : Rpg
   val choice: Div = $c.div
 
   override def ask(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx] = {
@@ -82,7 +85,7 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage {
             v.value match {
               case b: Perso => {
 
-                val eAndView = AppLoaderExample.cpntMap(b.id)
+                val eAndView = rpg.cpntMap(b.id)
 
                 lazy val hAndEvent: Seq[(HTMLElement, js.Function1[MouseEvent, _])] = eAndView._2.list.map {
                   h =>
@@ -129,7 +132,7 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage {
 
   }
 
-  override def cpntMap: Perso => UpdatableCpnt[Perso] = a => AppLoaderExample.cpntMap(a.id)._2
+  override def cpntMap: Perso => UpdatableCpnt[Perso] = a => rpg.cpntMap(a.id)._2
 }
 
 

@@ -1,19 +1,12 @@
 package bon.jo.app
 
 import bon.jo.common.Affects
-import bon.jo.html.HTMLDef.{$c, $l, $ref, $t, $va, HtmlOps}
-import bon.jo.html.HtmlEventDef.ExH
-import bon.jo.memo.ui.HtmlRep.{HtmlRepParam, PrXmlId}
+import bon.jo.html.HTMLDef.{$c, $t, $va, HtmlOps}
 import bon.jo.memo.ui.{HtmlRep, SimpleView}
-import bon.jo.rpg.Action
 import bon.jo.rpg.stat.raw._
 import bon.jo.ui.{ReadableCpnt, UpdatableCpnt}
-import org.scalajs.dom.console
 import org.scalajs.dom.html.Input
-import org.scalajs.dom.raw.{HTMLElement, HTMLOptionElement}
-
-import scala.collection.mutable
-import scala.util.Random
+import org.scalajs.dom.raw.HTMLElement
 
 
 
