@@ -14,6 +14,15 @@ import org.scalajs.dom.raw.{HTMLElement, HTMLOptionElement, Node}
 object SimpleView {
 
 
+  def row(col : Node *): HTMLElement ={
+    val cols = col.map(e => ($va div e) := {
+      _._class = "col"
+    })
+    $l div (cols) := {
+      _._class = "row"
+    }
+  }
+
   def row(col: Iterable[List[Node]]): HTMLElement = {
     val cols = col.map(e => ($l div e) := {
       _._class = "col"

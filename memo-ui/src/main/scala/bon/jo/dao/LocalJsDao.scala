@@ -2,13 +2,44 @@ package bon.jo.dao
 
 import bon.jo.memo.Dao
 import bon.jo.memo.Dao.FB
-import bon.jo.util.Ec
+import bon.jo.util.{Ec, Mapper}
 import org.scalajs.dom.raw.{IDBRequest, IDBTransaction}
 import org.scalajs.dom.{console, idb}
 
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.{Future, Promise}
+import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.scalajs.js
+import scala.util.{Failure, Success}
+
+
+object LocalJsDao {
+
+   class MappedDaoImpl[A <: js.Object, B](override val daoJs: LocalJsDao[A])(implicit val executionContext: ExecutionContext,  val mapper: Mapper[B, A]) extends MappedDao[A, B]
+
+  trait MappedDao[A <: js.Object, B] extends Dao[B, Int] with Ec {
+    val mapper: Mapper[B, A]
+    val daoJs: LocalJsDao[A]
+
+    private def map = mapper.map
+
+    private def unmap = mapper.unmap
+
+    override def create(a: B): FO = daoJs.create(map(a)).map(_.flatMap(unmap))
+
+    override def update(a: B, idOpt: Option[Int]): FO = daoJs.update(map(a)).map(_.flatMap(unmap))
+
+    override def read(a: Int): FO = daoJs.read(a).map(_.flatMap(unmap))
+
+    override def readAll(limit: Int, offset: Int): FL = daoJs.readAll(limit, offset).map(_.flatMap(unmap))
+
+    override def delete(a: Int): FB = daoJs.delete(a)
+    def  readIds(): Future[List[Int]] = daoJs.readIds()
+  }
+
+  def apply[A <: js.Object, B](jsDao: LocalJsDao[A])(implicit m: Mapper[B, A], executionContext: ExecutionContext): MappedDao[A, B] = {
+    new MappedDaoImpl(jsDao)
+  }
+}
 
 trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec {
 
@@ -50,7 +81,13 @@ trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec {
     println("create")
     transaction("readwrite") flatMap {
       tr =>
-        future[Option[A]](tr, t => t.objectStore(name).add(a), () => Some(a))
+        //read(fId(a))
+        future[Option[A]](tr, t => {
+          println("add in store : ")
+          console.log(a)
+          t.objectStore(name).add(a)
+        }, () => Some(a))
+
     }
   }
 
@@ -73,20 +110,30 @@ trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec {
 
   def future[B](tr: IDBTransaction, trAction: IDBTransaction => IDBRequest, ok: () => B): Future[B] = {
     val promise = Promise[B]()
+    console.log("call trAction")
     val request = trAction(tr)
+    console.log("end trAction")
+    tr.oncomplete = c => {
+      println("tr OK")
+      println(s"OK : ${c.target.result}")
+      promise.success(ok())
+    }
+    tr.onerror = a => {
+      println("tr KO")
+     console.log(a)
+    }
     request.onerror = e => {
-      println("error")
+      println(" request error")
       promise.failure(new DBExeception(e))
     }
     request.onsuccess = s => {
-      println("OK")
+      println(s" request OK : ${s.target.result}")
 
-      promise.success(ok())
+
     }
-
-    trAction(tr)
     promise.future
   }
+
 
   override def update(a: A, idOpt: Option[Int]): FO = {
     transaction("readwrite") flatMap {
@@ -97,6 +144,7 @@ trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec {
   }
 
   override def read(a: Int): FO = {
+    println(s"read ${a}")
     transaction("readonly") flatMap {
       tr =>
         future[A](tr, t => t.objectStore(name).get(a))

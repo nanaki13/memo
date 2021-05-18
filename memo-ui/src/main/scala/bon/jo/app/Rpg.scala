@@ -1,25 +1,41 @@
 package bon.jo.app
 
-import bon.jo.app.Export.WeaponJS
+import bon.jo.app.Export.{PersoJS, WeaponJS}
 import bon.jo.dao.LocalJsDao
+import bon.jo.dao.LocalJsDao.{MappedDao, MappedDaoImpl}
 import bon.jo.html.DomShell.ExtendedHTMLCollection
 import bon.jo.html.HTMLDef.{$ref, HtmlOps}
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.ui.HtmlRep.PrXmlId
 import bon.jo.memo.ui.SimpleView
 import bon.jo.rpg.BattleTimeLine.TimeLineParam
+import bon.jo.rpg.dao.{PersoDao, WeaponDao}
 import bon.jo.rpg.raw.Action
 import bon.jo.rpg.stat.Actor.Id
 import bon.jo.rpg.stat.Perso.WithUI
-import bon.jo.rpg.stat.raw.{Actor, Perso}
-import bon.jo.util.Ec
+import bon.jo.rpg.stat.raw.{Actor, Perso, Weapon}
+import bon.jo.util.{Ec, Mapper}
 import org.scalajs.dom.document
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
-import scala.concurrent.ExecutionContext.Implicits.global
+
+
+
+
+
+
+
+
+
 
 trait Rpg extends Ec with ArmesPage {
+
+  val weaponDao: MappedDao[WeaponJS, Weapon] with WeaponDao
+  val persoDao: MappedDao[PersoJS, Perso] with PersoDao
+
+
+
 
   //  val apps = List("app-test-socket", "app-test")
   //
@@ -94,18 +110,12 @@ trait Rpg extends Ec with ArmesPage {
   val persosForGame = mutable.ListBuffer.empty[EditStatWithName[Perso]]
 
 
-  object WeaponDao extends LocalJsDao[WeaponJS] {
-    val name = "WeaponDao"
-    val fId: WeaponJS => Int = _.id
-    override implicit val executionContext: ExecutionContext = global
-  }
-
   def initChoiXperso = {
 
     implicit val perRep: EditPersoCpnt.type = EditPersoCpnt
     val p = Actor.randomActor(Perso(Id[Perso], RandomName(), _))
 
-    val persoCpnt = p.htmlp(persosForGame)
+    val persoCpnt = p.htmlp(this -> persosForGame)
     persosForGame += persoCpnt
     val bnt = SimpleView.bsButton("start")
     val deckCreation = $ref div {

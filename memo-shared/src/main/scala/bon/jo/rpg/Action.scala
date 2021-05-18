@@ -36,9 +36,9 @@ object Action {
   val all = List(Attaque,MainGauche,MainDroite,Soin,Aoe,Garde,Evasion,Voler,ChangerDequipement,Talent,Rien)
   def unapply(string: String): Option[Action] = applyFrom(all.toSet)(string)
   def applyFrom(from : Set[Action])(string: String) : Option[Action] = {
-    println(string)
+
     from.map(e=> {
-      println(e)
+
       e
     }).find(_.name == string)
   }

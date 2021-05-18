@@ -13,9 +13,8 @@ import org.scalajs.dom.raw.HTMLElement
 object EditStat extends HtmlRep[IntBaseStat, EditStat] {
   implicit val alg: Alg[HTMLElement] = new Alg[HTMLElement] {
     override def +(a: HTMLElement, b: HTMLElement): HTMLElement = {
-      $va div(a, b) := { cont =>
-        a._class = "col"
-        b._class = "col"
+      $va div($va div(a) := (_._class = "col"), $va div(b) := (_._class = "col")) := { cont =>
+
         cont._class = "row"
 
       }
@@ -54,7 +53,7 @@ class EditStat(initial: IntBaseStat) extends ImuutableHtmlCpnt with UpdatableCpn
 
   def inputsAsHtml: AnyRefBaseStat[HTMLElement] = inputs
 
-  def names: HtmlStat = AnyRefBaseStat.names.map(na => ($t span na) := (_.style.color = "white"))
+  def names: HtmlStat = AnyRefBaseStat.names.map(na => ($t span na) := (_.style.color = "stat-label"))
 
   def inputsNamed: HtmlStat = names + inputsAsHtml
 

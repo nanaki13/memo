@@ -11,23 +11,23 @@ import scala.collection.mutable.ListBuffer
 
 
 
-object EditWeaponCpnt extends HtmlRepParam[Weapon, mutable.ListBuffer[EditStatWithName[Weapon]], EditStatWithName[Weapon]] {
+object EditWeaponCpnt extends HtmlRepParam[Weapon, SType.Param[Weapon], EditStatWithName[Weapon]] {
 
-  override def html(memo: Weapon, option: Option[mutable.ListBuffer[EditStatWithName[Weapon]]]): EditWeaponCpnt = {
+  override def html(memo: Weapon, option: Option[SType.Param[Weapon]]): EditWeaponCpnt = {
     new EditWeaponCpnt(memo, option)(EditStat)
   }
 
 
   object Implicit{
-    type Hrep = HtmlRepParam[Weapon, mutable.ListBuffer[EditStatWithName[Weapon]], EditStatWithName[Weapon]]
+    type Hrep = HtmlRepParam[Weapon, SType.Param[Weapon], EditStatWithName[Weapon]]
     implicit val value: Hrep = EditWeaponCpnt
   }
 
 
 }
 
-class EditWeaponCpnt(initial: Weapon, option: Option[mutable.ListBuffer[EditStatWithName[Weapon]]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends EditStatWithName[Weapon](initial,option)(repStat){
-  override implicit val rep: HtmlRepParam[Weapon, ListBuffer[EditStatWithName[Weapon]], EditStatWithName[Weapon]] = EditWeaponCpnt
+class EditWeaponCpnt(initial: Weapon, option: Option[SType.Param[Weapon]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends EditStatWithName[Weapon](initial,option)(repStat){
+  override implicit val rep: HtmlRepParam[Weapon, SType.Param[Weapon], EditStatWithName[Weapon]] = EditWeaponCpnt
 
   override def randomValue: Weapon = new Weapon(initial.id,RandomName(),1,AnyRefBaseStat[Float](Actor.randomWeaponVal _).map(_.round))
 

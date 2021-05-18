@@ -1,3 +1,23 @@
 div#root {
     background-color: #edfffe;
 }
+
+.stat-label{
+ color: black;
+}
+.name-input{
+  max-width : 10em;
+   color: black;
+}
+.edit-card{
+    width:25em;
+}
+.menu{
+position: fixed;
+    top: 0;
+max-width : 10em;
+    }
+
+  .menu-link{
+    cursor: pointer;
+    }

@@ -24,7 +24,9 @@ object Actor {
                     rightHandWeapon: Option[WeaponBaseState] = None,
                     action:List[Action] = Nil,id: Int = Id[Impl]
             ) extends Actor with ArmedActor {
-  }
+
+     override def withId[A  <: StatsWithName](id: Int): A = copy(id= id).asInstanceOf[A]
+   }
 
   trait Lvl {
     /**
@@ -103,6 +105,8 @@ object Actor {
     }
   }
    case class Weapon(id : Int ,name : String,lvl : Int,stats: AnyRefBaseStat[Int], action: List[Action]=Action.Attaque :: Nil ) extends  WeaponBaseState {
+
+     override def withId[A <: StatsWithName](id: Int): A = copy(id= id).asInstanceOf[A]
 
   }
 }

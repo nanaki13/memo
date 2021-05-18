@@ -92,6 +92,9 @@ rightHandWeapon: Option[Weapon] = None
      copy(leftHandWeapon = Some(randomSoin(Actor.randomWeapon())),rightHandWeapon = Some(randomSoin(Actor.randomWeapon())))
 
    }
+
+
+   override def withId[A <: StatsWithName](id: Int): A = copy(id= id).asInstanceOf[A]
  }
 
 

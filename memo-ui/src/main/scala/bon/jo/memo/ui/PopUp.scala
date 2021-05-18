@@ -18,6 +18,7 @@ object PopUp {
     htmlNode.style.position = "fixed"
     htmlNode.style.right = "10em"
     htmlNode.style.top = "2em"
+    htmlNode._class = "card"
     htmlNode
   }
   private def show(htmlNode: HTMLElement): Unit = {
