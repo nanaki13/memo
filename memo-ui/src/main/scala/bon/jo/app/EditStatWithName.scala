@@ -98,12 +98,13 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
 
   }
 
+  def beforeState(a : HTMLElement)=  statCpnt.list.head.parentElement.insertBefore(a,statCpnt.list.head)
   def beforeStatOption : Option[HTMLElement] = None
   override def create(): IterableOnce[HTMLElement] =
     Some((mainDiv) := { e =>
       e.style.display = "inline-block"
       e._class = "m-5 card edit-card"
-      beforeStatOption.foreach(statCpnt.list.head.parentElement.insertBefore(_,statCpnt.list.head))
+      beforeStatOption.foreach(beforeState)
 
     })
 
