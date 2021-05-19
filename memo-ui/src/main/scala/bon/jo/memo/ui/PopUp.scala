@@ -6,7 +6,7 @@ import bon.jo.html.HTMLDef.{$c, $t, $va, HtmlOps}
 import bon.jo.html.HtmlEventDef.ExH
 import org.scalajs.dom.document
 import org.scalajs.dom.html.Div
-import org.scalajs.dom.raw.HTMLElement
+import org.scalajs.dom.raw.{HTMLElement, Node}
 
 object PopUp {
 
@@ -25,17 +25,14 @@ object PopUp {
     document.body.appendChild(htmlNode)
 
   }
-
-
-  def apply(message: String): Unit = {
-
+  def apply(message: Node): Unit = {
     if (noPopuMessage) {
       show(popCnt)
     }
     popCount+=1
     val btn = CommonHtml.closeBtn
     btn.style.cssFloat = "right"
-    val htmlNode : Div =  $va.t div( $va div btn,$t(message))
+    val htmlNode : Div =  $va.t div( $va div btn,message)
     htmlNode._class = "col"
     popCnt += htmlNode
     btn.$click { _ =>
@@ -45,6 +42,11 @@ object PopUp {
         popCnt.removeFromDom()
       }
     }
+
+  }
+
+  def apply(message: String): Unit = {
+    apply($t(message))
 
 
   }

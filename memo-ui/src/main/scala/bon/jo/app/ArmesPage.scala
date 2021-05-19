@@ -53,10 +53,7 @@ trait EditPage[A <: StatsWithName, B <: scalajs.js.Object] extends Ec {
     rpg.deckCreation.clear()
     rpg.root += rpg.deckCreation
 
-    dao.readIds().map {
-      case Nil => List(0)
-      case e => e
-    }.map(_.max).map(Id.init[A](_)).map {
+    dao.initId.map {
       _ =>
 
         dao.readAll().onComplete {

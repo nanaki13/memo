@@ -32,8 +32,11 @@ object SimpleView {
     }
   }
 
-  def withClose(el : HTMLElement,f : => Unit): HTMLElement ={
+  def withClose(el : HTMLElement,f : => Unit,cl :String = ""): HTMLElement ={
     val close = CommonHtml.closeBtn
+    if(cl.nonEmpty){
+      close._class += s" $cl"
+    }
     close.$click{ _=> {
       el.removeFromDom()
       f

@@ -47,7 +47,7 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
           case Success(value) => PopUp("Suppression OK")
           case Failure(exception) =>   PopUp("Suppression KO")
         }
-      })
+      },"top-right")
   }
 
 
@@ -151,7 +151,7 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
   override def create(): IterableOnce[HTMLElement] =
     Some((mainDiv) := { e =>
       e.style.display = "inline-block"
-      e._class = "m-5 card edit-card"
+      e._class = "m-1 p-4 card edit-card bg-2"
       beforeStatOption.foreach(beforeState)
 
     }).flatMap(e => deleteButton().map(_(e)))

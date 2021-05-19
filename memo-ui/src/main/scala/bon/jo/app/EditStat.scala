@@ -45,8 +45,10 @@ class EditStat(initial: IntBaseStat) extends ImuutableHtmlCpnt with UpdatableCpn
 
   type HtmlStat = AnyRefBaseStat[HTMLElement]
 
-  val inputs: AnyRefBaseStat[Input] = initial.map(e => $c.input[Input] := {
-    _.value = e.toString
+  val inputs: AnyRefBaseStat[Input] = initial.map(v => $c.input[Input] := {
+    e =>
+    e.value = v.toString
+      e._class = "input-stat form-control"
   })
   val redrawButton = SimpleView.bsButton("redraw")
 

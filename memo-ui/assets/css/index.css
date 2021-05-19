@@ -21,3 +21,25 @@ max-width : 10em;
   .menu-link{
     cursor: pointer;
     }
+
+
+.top-right{
+   position: absolute;
+    top: 0;
+    right: 0;
+}
+.bg-1{
+ background-image: url("https://cdn.discordapp.com/attachments/810628913515593779/843615870130454567/image1.jpg");
+  background-repeat: repeat-y;
+   background-size: 100%;
+}
+.bg-2{
+background-image: url("https://cdn.discordapp.com/attachments/810628913515593779/843615870580555806/image2.jpg");
+ background-repeat: repeat-y;
+   background-size: 100%;
+}
+.input-stat{
+   background: #15151438;
+       color: white;
+       width: 3em;
+}

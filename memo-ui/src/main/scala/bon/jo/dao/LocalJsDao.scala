@@ -2,12 +2,15 @@ package bon.jo.dao
 
 import bon.jo.memo.Dao
 import bon.jo.memo.Dao.FB
+import bon.jo.rpg.stat.Actor.Id
+import bon.jo.rpg.stat.StatsWithName
 import bon.jo.util.{Ec, Mapper}
 import org.scalajs.dom.raw.{IDBRequest, IDBTransaction}
 import org.scalajs.dom.{console, idb}
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.reflect.ClassTag
 import scala.scalajs.js
 import scala.util.{Failure, Success}
 
@@ -17,12 +20,32 @@ object LocalJsDao {
    class MappedDaoImpl[A <: js.Object, B](override val daoJs: LocalJsDao[A])(implicit val executionContext: ExecutionContext,  val mapper: Mapper[B, A]) extends MappedDao[A, B]
 
   trait MappedDao[A <: js.Object, B] extends Dao[B, Int] with Ec {
+    def initId(implicit classTag: ClassTag[B]): Future[Unit] = {
+      readIds().map {
+        case Nil => List(0)
+        case e => e
+      }.map(_.max).map(Id.init[B](_))
+    }
+
     val mapper: Mapper[B, A]
     val daoJs: LocalJsDao[A]
 
     private def map = mapper.map
 
     private def unmap = mapper.unmap
+
+    def createOrUpdate[AC <: B with StatsWithName](a: AC)(implicit classTag: ClassTag[AC]): FO = {
+      daoJs.fId(mapper.map(a)) match {
+        case 0 => {
+          val id= Id[AC]
+          console.log("CREATE : "+id)
+          console.log(classTag.runtimeClass.getSimpleName)
+
+          create( a.withId(id))
+        }
+        case _ => update(a)
+      }
+    }
 
     override def create(a: B): FO = daoJs.create(map(a)).map(_.flatMap(unmap))
 
