@@ -63,7 +63,7 @@ trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec {
         cursor.onsuccess = {
           s =>
             val c: idb.Cursor = s.target.result
-            console.log(s.target)
+
             if (c == null || js.isUndefined(c)) {
               p.success(b.toList)
             } else {
@@ -77,14 +77,12 @@ trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec {
   }
 
   override def create(a: A): FO = {
-    console.log(a)
-    println("create")
+
     transaction("readwrite") flatMap {
       tr =>
         //read(fId(a))
         future[Option[A]](tr, t => {
-          println("add in store : ")
-          console.log(a)
+
           t.objectStore(name).add(a)
         }, () => Some(a))
 
@@ -95,11 +93,11 @@ trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec {
     val promise = Promise[Option[B]]()
     val request = trAction(tr)
     request.onerror = e => {
-      println("error")
+
       promise.failure(new DBExeception(e))
     }
     request.onsuccess = s => {
-      println("OK")
+
       val a: B = s.target.result
       promise.success(Some(a))
     }
@@ -110,16 +108,15 @@ trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec {
 
   def future[B](tr: IDBTransaction, trAction: IDBTransaction => IDBRequest, ok: () => B): Future[B] = {
     val promise = Promise[B]()
-    console.log("call trAction")
+
     val request = trAction(tr)
-    console.log("end trAction")
+
     tr.oncomplete = c => {
-      println("tr OK")
-      println(s"OK : ${c.target.result}")
+
       promise.success(ok())
     }
     tr.onerror = a => {
-      println("tr KO")
+
      console.log(a)
     }
     request.onerror = e => {
@@ -127,7 +124,7 @@ trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec {
       promise.failure(new DBExeception(e))
     }
     request.onsuccess = s => {
-      println(s" request OK : ${s.target.result}")
+
 
 
     }
@@ -144,7 +141,7 @@ trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec {
   }
 
   override def read(a: Int): FO = {
-    println(s"read ${a}")
+
     transaction("readonly") flatMap {
       tr =>
         future[A](tr, t => t.objectStore(name).get(a))
@@ -159,7 +156,7 @@ trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec {
         cursor.onsuccess = {
           s =>
             val c: idb.CursorWithValue = s.target.result
-            console.log(s.target)
+
             if (c == null || js.isUndefined(c)) {
               p.success(b.toList)
             } else {

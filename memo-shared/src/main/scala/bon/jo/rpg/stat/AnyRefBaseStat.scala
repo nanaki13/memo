@@ -249,9 +249,9 @@ object AnyRefBaseStat{
       )
     }
     def apply[A](c: ()=>A) = {
-      println("APPLY")
+
       val e = Impl(c(), c(), c(), c(), c(), c(), c(), c(), c())
-      println(e)
+
       e
     }
     def apply[A](c: A) = {

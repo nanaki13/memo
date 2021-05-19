@@ -19,6 +19,7 @@ sealed trait Action extends Product {
 object Action {
 
 
+
   case object Attaque extends Action {
     case object MainDroite extends Action
 
@@ -42,7 +43,8 @@ object Action {
       e
     }).find(_.name == string)
   }
-  val commonValues: List[Action] = List(Attaque.MainDroite, Attaque.MainGauche,Voler , Garde,Evasion, Rien)
+  val commonValues: List[Action] = List(Voler , Garde,Evasion, Rien, ChangerDequipement)
+  val weaponValues: Iterable[Action] = List(Attaque,Soin)
   trait ActionCtx {
     def action: Action
 

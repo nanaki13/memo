@@ -10,6 +10,15 @@ import scala.collection.mutable
 
 object Perso {
 
+  type Weapons = Option[(Option[Weapon],Option[Weapon])]
+  object ArmePerso{
+    def unapply(e : StatsWithName):Weapons={
+      e match {
+        case Perso(_, _, _, _, _, l, r) => Some(l,r)
+        case _ => None
+      }
+    }
+  }
 
   trait PlayerPersoUI extends PlayerUI{
     type S = Perso

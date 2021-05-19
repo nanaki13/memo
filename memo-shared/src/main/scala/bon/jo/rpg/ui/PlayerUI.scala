@@ -18,9 +18,9 @@ trait PlayerUI extends PlayerMessage {
 
 object PlayerUI {
   def runSeq(toAsk: Seq[() => Future[Unit]])(implicit ec: ExecutionContext): Future[Unit] = {
-    println(s"runSeq in ${toAsk.size}")
+
     if (toAsk.isEmpty) {
-      println("runSeq finih")
+
       Future.successful(())
     } else {
       toAsk.head().flatMap {

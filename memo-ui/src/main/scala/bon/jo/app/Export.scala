@@ -36,7 +36,7 @@ object Export {
         case StatJS(stat) =>
           val action = value.action flatMap Action.unapply
           val left = value.leftHandWeapon.toOption.flatMap(WeaponJS.unapply)
-          val right = value.leftHandWeapon.toOption.flatMap(WeaponJS.unapply)
+          val right = value.rightHandWeapon.toOption.flatMap(WeaponJS.unapply)
           Some(new Perso(value.id,value.name, stat, value.lvl, action.toList, left, right))
         case _ => None
       }

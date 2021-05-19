@@ -4,7 +4,7 @@ import bon.jo.app.Export.{PersoJS, WeaponJS}
 import bon.jo.dao.LocalJsDao
 import bon.jo.dao.LocalJsDao.{MappedDao, MappedDaoImpl}
 import bon.jo.html.DomShell.ExtendedHTMLCollection
-import bon.jo.html.HTMLDef.{$ref, HtmlOps}
+import bon.jo.html.HTMLDef.{$c, $ref, HtmlOps}
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.ui.HtmlRep.PrXmlId
 import bon.jo.memo.ui.SimpleView
@@ -16,6 +16,7 @@ import bon.jo.rpg.stat.Perso.WithUI
 import bon.jo.rpg.stat.raw.{Actor, Perso, Weapon}
 import bon.jo.util.{Ec, Mapper}
 import org.scalajs.dom.document
+import org.scalajs.dom.html.{Button, Div}
 
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
@@ -30,11 +31,16 @@ import scala.concurrent.ExecutionContext
 
 
 trait Rpg extends Ec with ArmesPage {
+  def createButton(addRandomButton: Button): Unit
+
 
   val weaponDao: MappedDao[WeaponJS, Weapon] with WeaponDao
   val persoDao: MappedDao[PersoJS, Perso] with PersoDao
 
-
+  val deckCreation: Div = {
+    println("deckCreation")
+    $c.div[Div]
+  }
 
 
   //  val apps = List("app-test-socket", "app-test")
@@ -107,24 +113,7 @@ trait Rpg extends Ec with ArmesPage {
 
   }
 
-  val persosForGame = mutable.ListBuffer.empty[EditStatWithName[Perso]]
 
-
-  def initChoiXperso = {
-
-    implicit val perRep: EditPersoCpnt.type = EditPersoCpnt
-    val p = Actor.randomActor(Perso(Id[Perso], RandomName(), _))
-
-    val persoCpnt = p.htmlp(this -> persosForGame)
-    persosForGame += persoCpnt
-    val bnt = SimpleView.bsButton("start")
-    val deckCreation = $ref div {
-      r =>
-        r ++= persoCpnt.list
-    }
-    root ++= List(deckCreation, bnt)
-    bnt
-  }
 
 
 

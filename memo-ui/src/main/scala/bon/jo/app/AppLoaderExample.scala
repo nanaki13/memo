@@ -14,7 +14,7 @@ import bon.jo.rpg.dao.{PersoDao, WeaponDao}
 import bon.jo.rpg.dao.WeaponDao.WeaponDaoJs
 import bon.jo.rpg.stat.raw.{Perso, Weapon}
 import org.scalajs.dom.console
-import org.scalajs.dom.html.{Anchor, Div}
+import org.scalajs.dom.html.{Anchor, Button, Div}
 import org.scalajs.dom.raw.{HTMLElement, HTMLLIElement, HTMLUListElement}
 
 import scala.concurrent.ExecutionContext
@@ -33,6 +33,22 @@ object AppLoaderExample extends App {
 
     override val weaponDao: MappedDao[WeaponJS, Weapon] with WeaponDao = WeaponDao(jsDao)
     override val persoDao: MappedDao[Export.PersoJS, Perso] with PersoDao = PersoDao(jsPersoDao)
+
+    val fromChild =  $c.a[Anchor]:= (menuLink => {menuLink._class = "nav-item menu-link"})
+    override def createButton(addRandomButton: Button): Unit = {
+      fromChild.clear()
+      fromChild += addRandomButton
+      menu.cont += fromChild
+    }
+    val menu = new Menu(
+      "éditer/créer Arme" -> initChoixArme,
+      "éditer/créer Perso" -> initChoixPerso)
+
+    def init() = {
+      root.parentElement += menu.cont
+    }
+
+
   }
   class Menu(val menuItems: (String, () => Unit)*) {
     val links: Seq[HTMLElement] = menuItems.map {
@@ -41,8 +57,8 @@ object AppLoaderExample extends App {
           menuLink.text = str
           menuLink._class = "dropdown-item nav-link menu-link"
           menuLink.$click { _ =>
-            Rpg.deckCreation.clear()
             Rpg.root.clear()
+
             unit()
           }
         })
@@ -50,7 +66,7 @@ object AppLoaderExample extends App {
     }
     val cont: HTMLElement = $ref nav {
       d =>
-        d._class = "menu nav flex-column float-left card"
+        d._class = "menu nav bg-white rounded"
         val li = $c.li[HTMLLIElement] := (_._class = "nav-item dropdown")
         li += aSubMenu("Menu")
         li += ($c.div[Div] := {
@@ -72,16 +88,16 @@ object AppLoaderExample extends App {
     }
 
 
+
   }
 
   import Rpg.executionContext
+  Rpg.init()
   IndexedDB.init(Rpg.jsDao.name, Rpg.jsPersoDao.name) map { _ =>
 
 
-    val menu = new Menu(
-      "éditer/créer Arme" -> Rpg.initChoixArme,
-      "éditer/créer Perso" -> Rpg.initChoixPerso)
-    Rpg.root.parentElement += menu.cont
+    Rpg
+
 
   } onComplete{
     case Failure(exception) => exception match {

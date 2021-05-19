@@ -1,5 +1,6 @@
 package bon.jo.app
 
+import bon.jo.memo.Dao
 import bon.jo.memo.ui.HtmlRep
 import bon.jo.memo.ui.HtmlRep.HtmlRepParam
 import bon.jo.rpg.Action
@@ -9,7 +10,7 @@ import bon.jo.rpg.stat.raw.{Actor, AnyRefBaseStat, IntBaseStat, Weapon}
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-
+import SType._
 
 object EditWeaponCpnt extends HtmlRepParam[Weapon, SType.Param[Weapon], EditStatWithName[Weapon]] {
 
@@ -32,4 +33,6 @@ class EditWeaponCpnt(initial: Weapon, option: Option[SType.Param[Weapon]])(repSt
   override def randomValue: Weapon = new Weapon(initial.id,RandomName(),1,AnyRefBaseStat[Float](Actor.randomWeaponVal _).map(_.round))
 
   override def create(id : Int,name: String, intBaseStat: IntBaseStat, action: List[Action]): Weapon = new Weapon(id,name,1,intBaseStat,action)
+
+  override val dao: Dao[Weapon, Int] = option.rpg.weaponDao
 }

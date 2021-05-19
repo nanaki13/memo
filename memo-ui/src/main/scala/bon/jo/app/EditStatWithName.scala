@@ -1,13 +1,15 @@
 package bon.jo.app
 
 import bon.jo.app.SType.Param
-import bon.jo.html.DomShell.ExtendedHTMLCollection
+import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
 import bon.jo.html.HTMLDef.{$c, $l, $ref, $t, HtmlOps}
 import bon.jo.html.HtmlEventDef.ExH
+import bon.jo.memo.Dao
 import bon.jo.memo.ui.HtmlRep.{HtmlRepParam, PrXmlId}
 import bon.jo.memo.ui.SimpleView.{BsModifier, withClose}
-import bon.jo.memo.ui.{HtmlRep, SimpleView}
+import bon.jo.memo.ui.{HtmlRep, PopUp, SimpleView}
 import bon.jo.rpg.Action
+import bon.jo.rpg.Action.Attaque
 import bon.jo.rpg.stat.Actor.Weapon
 import bon.jo.rpg.stat.{AnyRefBaseStat, StatsWithName}
 import bon.jo.rpg.stat.raw.{IntBaseStat, Perso}
@@ -17,15 +19,20 @@ import org.scalajs.dom.raw.{HTMLElement, HTMLOptionElement, HTMLSelectElement}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.util.{Failure, Success}
 
 
 object SType{
   type Param[A<: StatsWithName] = (Rpg,mutable.ListBuffer[EditStatWithName[A]])
+  implicit class ExParam[A<: StatsWithName](e : Option[Param[A]]){
+    def rpg: Rpg = e.map(_._1).getOrElse(throw new IllegalStateException())
+  }
 }
 abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[Param[A]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends ImuutableHtmlCpnt with UpdatableCpnt[A] with ReadableCpnt[A] {
 
   type Param = SType.Param[A]
   implicit val rep: HtmlRepParam[A, Param, EditStatWithName[A]] // = new EditWeaponCpnt[A](_,_)(repStat)
+  val dao : Dao[A,Int]
   private val statCpnt = initial.stats.html(repStat)
   private val name = $c.input[Input] := { n =>
     n.value = initial.name
@@ -33,16 +40,57 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
   }
   private val id = $c.span[Span] := (_.textContent = initial.id.toString)
   private val colActioin: Div = $c.div
-  private val actionsChoose: HTMLSelectElement = $l.t select Action.commonValues.filter(!initial.action.contains(_)).map(optionF)
+  def deleteButton(): Option[HTMLElement => HTMLElement] = option.map(_._1.executionContext) map {
+    implicit ec =>
+      SimpleView.withClose(_,{
+        dao.delete(read.id) onComplete{
+          case Success(value) => PopUp("Suppression OK")
+          case Failure(exception) =>   PopUp("Suppression KO")
+        }
+      })
+  }
+
+
+  def initialAction(initial: A):Iterable[Action] = {
+    (initial match {
+      case Perso.ArmePerso(l,r) =>
+       ( l match {
+        case Some(value) => value.action.map{
+          case Action.Attaque => Attaque.MainGauche
+          case a => a
+        }
+        case None => Nil
+      }) ++ (r match {
+        case Some(value) => value.action.map{
+          case Action.Attaque => Attaque.MainDroite
+          case a => a
+        }
+        case None =>Nil
+      }) ++Action.commonValues
+      case _ : Weapon => Action.weaponValues
+      case _ => Nil
+    })
+  }
+
+  private val actionsChoose: HTMLSelectElement = $l.t select initialAction(initial).filter(!initial.action.contains(_)).map(optionF)
 
   private val actions = ListBuffer.from(initial.action)
 
+  def updateAction(a : A)={
+    actionsChoose.clear()
+    colActioin.clear()
+    val ini = initialAction(a)
+    val possible = ini.toSet
+    actions.toList.filterNot(possible.contains).foreach(actions -= _)
+    actionsChoose ++= ini.filter(!actions.contains(_)).map(optionF).toList
+    actions.foreach(addToCollAction)
+  }
   private def optionF(action: Action) = $ref.t.option { o: HTMLOptionElement =>
     o.value = action.toString
     o.innerText = action.toString
   }: HTMLOptionElement
 
-  def getAction(str: String): Option[Action] = Action.applyFrom((Action.commonValues ++ initial.action).toSet)(str)
+  def getAction(str: String): Option[Action] = Action.unapply(str)
 
   private val buttonAddAction = SimpleView.bsButton("+")
 
@@ -59,7 +107,7 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
 
   initial.action.foreach(addToCollAction)
   buttonAddAction $click { _ =>
-    if (initial.action.size < 4) {
+    if (actions.size < 4) {
       getAction(actionsChoose.value).foreach { a =>
         actions += a
         addToCollAction(a)
@@ -106,7 +154,7 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
       e._class = "m-5 card edit-card"
       beforeStatOption.foreach(beforeState)
 
-    })
+    }).flatMap(e => deleteButton().map(_(e)))
 
 
   override def update(value: Option[A]): Unit = {

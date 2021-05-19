@@ -1,22 +1,20 @@
 package bon.jo.app
 
+import bon.jo.app.SType.ExParam
 import bon.jo.app.Types.Pram
-import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
+import bon.jo.html.DomShell.ExtendedElement
 import bon.jo.html.HTMLDef._
 import bon.jo.html.HtmlEventDef.ExH
-import bon.jo.memo.ui.{HtmlRep, SimpleView}
-import bon.jo.memo.ui.HtmlRep.{HtmlRepParam, PrXmlId}
-import bon.jo.memo.ui.SimpleView.{BsModifier, bsButton, withClose}
+import bon.jo.memo.Dao
+import bon.jo.memo.ui.HtmlRep
+import bon.jo.memo.ui.HtmlRep.HtmlRepParam
+import bon.jo.memo.ui.SimpleView.bsButton
 import bon.jo.rpg.Action
-import bon.jo.rpg.stat.Actor.Id
-import bon.jo.rpg.stat.AnyRefBaseStat
 import bon.jo.rpg.stat.raw.{Actor, IntBaseStat, Perso, Weapon}
-import bon.jo.ui.{ReadableCpnt, UpdatableCpnt}
-import org.scalajs.dom.html.{Button, Div, Input, Span}
-import org.scalajs.dom.raw.{HTMLElement, HTMLLIElement, HTMLOptionElement, HTMLSelectElement, HTMLUListElement}
+import org.scalajs.dom.html.Button
+import org.scalajs.dom.raw.{HTMLElement, HTMLLIElement, HTMLUListElement}
 
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 
 object Types {
   type Pram = (Rpg, mutable.ListBuffer[EditStatWithName[Perso]])
@@ -38,40 +36,68 @@ class EditPersoCpnt(initial: Perso, option: Option[(Rpg, mutable.ListBuffer[Edit
   override implicit val rep: HtmlRepParam[Perso, Pram, EditStatWithName[Perso]] = EditPersoCpnt
 
   override def randomValue: Perso = Actor.randomActor(e => new Perso(initial.id, RandomName(), e))
+  override val dao: Dao[Perso, Int] = option.rpg.persoDao
+  val equipRight: Button = bsButton("+")
+  val equipLeft: Button = bsButton("+")
+  private var varRightHand: Option[Weapon] = initial.rightHandWeapon
+  private var varLeftHand: Option[Weapon] = initial.leftHandWeapon
 
-  val armrG: Button = bsButton("+")
+  def equipAction(addButton: Button, updateTitle: HTMLElement)(optionF: Option[Weapon] => Unit) = {
+    addButton.$click { _ =>
+      option foreach {
+        case (rpg, value) =>
+          import rpg.executionContext
+          val ul = $c.li[HTMLUListElement]
+          rpg.weaponDao.readAll().map {
+            e =>
+              e.map(w => w -> ($c.li[HTMLLIElement] := {
+                li =>
+                  li.textContent = w.name
+                  li._class = "list-group-item btn"
+                  li.$click {
+                    _ =>
+                      val s = Some(w)
+                      optionF(s)
+                      updateTitle.textContent = txt(s)
+                      ul.removeFromDom()
+                  }
+              }))
+          } foreach {
+            ws =>
+              val sel = ws.toList.map(_._2).foldLeft(ul)(_ += _)
+              sel.style.height = "5em"
+              sel.style.overflowY = "scroll"
+              sel._class = "list-group"
+              beforeState(sel)
+          }
 
-  private var varArmg :Option[Weapon]= None
-
-  armrG.$click { _ =>
-    option foreach {
-      case (rpg, value) =>
-        import rpg.executionContext
-        val ul = $c.li[HTMLUListElement]
-        rpg.weaponDao.readAll().map {
-          e => e.map(w => w -> ($c.li[HTMLLIElement] := {
-            li =>
-            li.textContent = w.name
-              li._class = "list-group-item btn"
-              li.$click{
-                _ =>
-                 varArmg = Some(w)
-                  ul.removeFromDom()
-              }
-          }))
-        } foreach  {
-          ws =>
-            val sel =  ws.toList.map(_._2).foldLeft(ul)(_ += _)
-            sel.style.height = "5em"
-            sel.style.overflowY = "scroll"
-            sel._class = "list-group"
-            beforeState(sel)
-        }
-
+      }
     }
   }
 
-  override def create(id: Int, name: String, intBaseStat: IntBaseStat, action: List[Action]): Perso = new Perso(id, name, intBaseStat, lvl = 1, action,leftHandWeapon = varArmg)
 
-  override def beforeStatOption: Option[HTMLElement] = Some(armrG)
+  def txt(optionW: Option[Weapon]): String = optionW.map(_.name).getOrElse("-")
+
+  def spanArm(optionW: Option[Weapon]): HTMLElement = $ref span (_.textContent = txt(optionW))
+
+  private val leftArm = spanArm(initial.leftHandWeapon)
+  private val rightArm = spanArm(initial.rightHandWeapon)
+  private val handsCont = $va div(leftArm, equipLeft, rightArm, equipRight)
+
+  override def create(id: Int, name: String, intBaseStat: IntBaseStat, action: List[Action]): Perso =
+    new Perso(id, name, intBaseStat, lvl = 1, action, leftHandWeapon = varLeftHand, rightHandWeapon = varRightHand)
+
+  override def beforeStatOption: Option[HTMLElement] = Some(handsCont)
+
+
+  equipAction(equipRight, rightArm) {
+    r =>
+      varRightHand = r
+      varRightHand foreach (_ => updateAction(read))
+  }
+  equipAction(equipLeft, leftArm){
+    r =>
+      varLeftHand = r
+      varLeftHand foreach  ( _ => updateAction(read))
+  }
 }
