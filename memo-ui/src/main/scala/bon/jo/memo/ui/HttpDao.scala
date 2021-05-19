@@ -1,14 +1,13 @@
 package bon.jo.memo.ui
 
 import bon.jo.app.RequestHttp.{DELETE, GET, PATCH, POST}
-import bon.jo.memo.Dao
-import HttpDao.ExceptionServeur
-import bon.jo.memo.Dao.FB
+import bon.jo.dao.Dao
+import bon.jo.dao.Dao.FB
+import bon.jo.memo.ui.HttpDao.ExceptionServeur
 
+import scala.concurrent.ExecutionContext.Implicits._
 import scala.scalajs.js
 import scala.scalajs.js.JSON
-import scala.concurrent.ExecutionContext.Implicits._
-import scala.concurrent.Future
 object HttpDao {
 
   case class ExceptionServeur(str: String, o: Int) extends Exception(str)

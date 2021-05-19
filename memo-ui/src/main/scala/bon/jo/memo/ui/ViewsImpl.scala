@@ -3,7 +3,7 @@ package bon.jo.memo.ui
 import bon.jo.html.HTMLDef._
 import bon.jo.html.HtmlEventDef._
 import bon.jo.memo.Entities
-import bon.jo.memo.ui.HtmlRep.PrXmlId
+import bon.jo.html.HtmlRep.PrXmlId
 import bon.jo.memo.ui.SimpleView.i
 import org.scalajs.dom.console
 import org.scalajs.dom.html.{Div, Input}

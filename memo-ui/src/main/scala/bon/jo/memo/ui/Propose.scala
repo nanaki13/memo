@@ -1,15 +1,16 @@
 package bon.jo.memo.ui
 
 import bon.jo.html.DomShell.{ExtendedElement, ExtendedElmt, ExtendedHTMLCollection}
-import bon.jo.html.HtmlEventDef._
 import bon.jo.html.HTMLDef._
-import bon.jo.memo.ui.HtmlRep.HtmlCpnt
+import bon.jo.html.HtmlEventDef._
+import bon.jo.html.HtmlRep
+import bon.jo.html.HtmlRep.HtmlCpnt
 import org.scalajs.dom.html.{Button, Div}
 import org.scalajs.dom.raw
-import org.scalajs.dom.raw.{Element, HTMLElement, MouseEvent, Node}
+import org.scalajs.dom.raw.{Element, HTMLElement, MouseEvent}
 
 import scala.collection.mutable
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import scala.scalajs.js
 
 

@@ -1,16 +1,16 @@
 package bon.jo.app
 
-import bon.jo.memo.Dao
-import bon.jo.memo.ui.HtmlRep
-import bon.jo.memo.ui.HtmlRep.HtmlRepParam
+
 import bon.jo.rpg.Action
 import bon.jo.rpg.stat.Actor.Id
 import bon.jo.rpg.stat.raw.{Actor, AnyRefBaseStat, IntBaseStat, Weapon}
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
-
 import SType._
+import bon.jo.dao.Dao
+import bon.jo.html.HtmlRep
+import bon.jo.html.HtmlRep.HtmlRepParam
 
 object EditWeaponCpnt extends HtmlRepParam[Weapon, SType.Param[Weapon], EditStatWithName[Weapon]] {
 

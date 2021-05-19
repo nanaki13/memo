@@ -2,7 +2,7 @@ package bon.jo.app
 
 import bon.jo.html.DomShell.ExtendedElement
 import bon.jo.html.HTMLDef.{$c, $l, $t, $va, HtmlOps}
-import bon.jo.memo.ui.HtmlRep.HtmlCpnt
+import bon.jo.html.HtmlRep.HtmlCpnt
 import bon.jo.memo.ui.SimpleView.row
 import bon.jo.rpg.stat.AnyRefBaseStat.Impl
 import bon.jo.rpg.stat.raw.{AnyRefBaseStat, IntBaseStat, Perso}

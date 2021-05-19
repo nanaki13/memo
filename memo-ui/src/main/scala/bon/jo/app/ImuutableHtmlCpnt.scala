@@ -1,6 +1,6 @@
 package bon.jo.app
 
-import bon.jo.memo.ui.HtmlRep.HtmlCpnt
+import bon.jo.html.HtmlRep.HtmlCpnt
 import org.scalajs.dom.raw.HTMLElement
 
 trait ImuutableHtmlCpnt extends HtmlCpnt {

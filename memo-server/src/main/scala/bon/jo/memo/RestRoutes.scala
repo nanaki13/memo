@@ -6,6 +6,7 @@ import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
+import bon.jo.dao.Dao
 import org.json4s.{DefaultFormats, Formats}
 
 import scala.concurrent.Future

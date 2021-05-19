@@ -1,7 +1,8 @@
 package bon.jo.memo
 
 
-import bon.jo.memo.Dao.{FB, StringQuery}
+import bon.jo.dao.Dao
+import bon.jo.dao.Dao.{FB, StringQuery}
 import bon.jo.memo.Entities.MemoKeywordRel
 
 import scala.concurrent.ExecutionContext.Implicits._

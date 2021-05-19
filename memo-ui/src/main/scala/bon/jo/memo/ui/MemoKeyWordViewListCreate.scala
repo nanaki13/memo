@@ -1,16 +1,11 @@
 package bon.jo.memo.ui
 
-import bon.jo.html.HtmlEventDef.ExH
-import bon.jo.memo.Dao.Id
-import bon.jo.memo.Entities
-import bon.jo.memo.Entities.{KeyWord, MemoKeywords}
 import bon.jo.html.HTMLDef._
-import HtmlRep.HtmlRepParam
-import org.scalajs.dom.experimental.URLSearchParams
+import bon.jo.memo.Entities
+import bon.jo.memo.Entities.KeyWord
 import org.scalajs.dom.html.{Div, Input}
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
 
 class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: Div,
                                 val memoKeywWordtx: MemoCtxView,addMemo : (Entities.MemoKeywords)=>Unit)

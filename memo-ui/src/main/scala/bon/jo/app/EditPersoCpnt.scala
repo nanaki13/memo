@@ -2,12 +2,12 @@ package bon.jo.app
 
 import bon.jo.app.SType.ExParam
 import bon.jo.app.Types.Pram
+import bon.jo.dao.Dao
 import bon.jo.html.DomShell.ExtendedElement
 import bon.jo.html.HTMLDef._
 import bon.jo.html.HtmlEventDef.ExH
-import bon.jo.memo.Dao
-import bon.jo.memo.ui.HtmlRep
-import bon.jo.memo.ui.HtmlRep.HtmlRepParam
+import bon.jo.html.HtmlRep
+import bon.jo.html.HtmlRep.HtmlRepParam
 import bon.jo.memo.ui.SimpleView.bsButton
 import bon.jo.rpg.Action
 import bon.jo.rpg.stat.raw.{Actor, IntBaseStat, Perso, Weapon}
@@ -47,7 +47,7 @@ class EditPersoCpnt(initial: Perso, option: Option[(Rpg, mutable.ListBuffer[Edit
       option foreach {
         case (rpg, value) =>
           import rpg.executionContext
-          val ul = $c.li[HTMLUListElement]
+          val ul = $c.ul[HTMLUListElement]
           rpg.weaponDao.readAll().map {
             e =>
               e.map(w => w -> ($c.li[HTMLLIElement] := {

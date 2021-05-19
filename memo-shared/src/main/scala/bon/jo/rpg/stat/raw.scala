@@ -5,8 +5,6 @@ import bon.jo.rpg.stat
 object raw {
   type Actor = stat.Actor
   val Actor: stat.Actor.type = stat.Actor
-  type Alg[A] = stat.Alg[A]
-  val Alg: stat.Alg.type = stat.Alg
   type AnyRefBaseStat[+A] = stat.AnyRefBaseStat[A]
   type FloatBaseStat = stat.AnyRefBaseStat[Float]
   type IntBaseStat = stat.AnyRefBaseStat[Int]

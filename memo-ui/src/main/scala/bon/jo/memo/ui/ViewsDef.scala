@@ -1,17 +1,18 @@
 package bon.jo.memo.ui
 
-import bon.jo.html.CommonHtml
+import bon.jo.dao.Dao.FB
 import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
 import bon.jo.html.HTMLDef._
 import bon.jo.html.HtmlEventDef.ExH
-import bon.jo.memo.Dao.FB
+import bon.jo.html.HtmlRep.{Deletable, HtmlCpnt, HtmlRepParam, ListRep, PrXmlId}
+import bon.jo.html.{CommonHtml, HtmlRep}
 import bon.jo.memo.Entities.{KeyWord, Memo, MemoKeywords, MemoType}
-import bon.jo.memo.ui.HtmlRep._
 import bon.jo.memo.ui.MemoLists.MemoListJS
+import bon.jo.memo.ui.ViewsDef.KewWordHtml.WithClose.keyWordWithClose
 import bon.jo.memo.ui.ViewsDef.ProposeInput
 import bon.jo.ui.UpdatableCpnt
 import org.scalajs.dom.console
-import org.scalajs.dom.html.{Anchor, Button, Div, Input, Span}
+import org.scalajs.dom.html.{Anchor, Button, Div, Input}
 import org.scalajs.dom.raw.{Element, HTMLElement}
 
 import scala.collection.mutable.ListBuffer
@@ -221,11 +222,7 @@ class ViewsDef() {
 
   class MKCpnt(memoInitial: MemoKeywords, proposeView: ProposeView[KeyWord, HtmlCpnt])(implicit val executionContext: ExecutionContext) extends HtmlCpnt with UpdatableCpnt[MemoKeywords] with Deletable {
 
-
     val ctx = new MemoCtxView(Some(memoInitial))
-
-
-    import ViewsDef.KewWordHtml.WithClose._
 
     val kwDiv: Div = $l.t div memoInitial.keyWords.html.flatMap(_.list)
 

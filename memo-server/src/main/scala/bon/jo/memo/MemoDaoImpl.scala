@@ -1,6 +1,7 @@
 package bon.jo.memo
 
-import bon.jo.memo.Dao.FB
+import bon.jo.dao.Dao
+import bon.jo.dao.Dao.FB
 
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.{ExecutionContext, Future}

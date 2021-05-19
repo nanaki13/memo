@@ -1,5 +1,7 @@
 package bon.jo.memo
 
+import bon.jo.dao.Dao
+
 object TestDao extends App {
   implicit val matcher: Dao.Id[String] = e => e
 

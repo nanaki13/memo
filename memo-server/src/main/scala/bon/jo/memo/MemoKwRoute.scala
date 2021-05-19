@@ -3,6 +3,7 @@ package bon.jo.memo
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.stream.Materializer
+import bon.jo.dao.Dao
 import bon.jo.memo.Entities.MemoKeywords
 import bon.jo.memo.RestRoutes.{CustomRoute, RestRoutesImpl}
 import org.json4s.Formats

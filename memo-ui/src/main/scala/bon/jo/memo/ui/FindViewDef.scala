@@ -1,8 +1,8 @@
 package bon.jo.memo.ui
 
 import bon.jo.html.HtmlEventDef.ExH
+import bon.jo.html.HtmlRep.{HtmlCpnt, HtmlRepParam}
 import bon.jo.memo.Entities.KeyWord
-import bon.jo.memo.ui.HtmlRep.{HtmlCpnt, HtmlRepParam}
 import bon.jo.ui.UpdatableCpnt
 import org.scalajs.dom.raw.HTMLElement
 

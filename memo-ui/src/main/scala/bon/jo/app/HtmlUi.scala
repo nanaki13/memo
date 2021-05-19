@@ -4,8 +4,9 @@ import bon.jo.app.HtmlUi.acctRep
 import bon.jo.html.DomShell.ExtendedElement
 import bon.jo.html.HTMLDef.$c
 import bon.jo.html.HtmlEventDef.ExH
-import bon.jo.memo.ui.HtmlRep.PrXmlId
-import bon.jo.memo.ui.{HtmlRep, SimpleView}
+import bon.jo.html.HtmlRep
+import bon.jo.html.HtmlRep.PrXmlId
+import bon.jo.memo.ui.SimpleView
 import bon.jo.rpg.raw.Action.ActionCtx._
 import bon.jo.rpg.raw.Action._
 import bon.jo.rpg.raw._

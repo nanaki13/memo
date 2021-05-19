@@ -1,18 +1,18 @@
 package bon.jo.memo.ui
 
-import bon.jo.html.DomShell.{$, ExtendedElement, ExtendedHTMLCollection}
-import bon.jo.html.{CommonHtml, GenId}
-import bon.jo.html.HtmlEventDef.ExH
-import bon.jo.memo.Dao.Id
+import bon.jo.dao.Dao.Id
+import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
 import bon.jo.html.HTMLDef._
-import MemoLists.{ListElement, ListElementJS, MemoList, MemoListJS}
+import bon.jo.html.HtmlEventDef.ExH
+import bon.jo.html.HtmlRep.HtmlCpnt.FToHtmlCpnt
+import bon.jo.html.HtmlRep.{HtmlCpnt, PrXmlId,ListRep}
+import bon.jo.html.{CommonHtml, GenId, HtmlRep}
+import bon.jo.memo.ui.MemoLists.{ListElement, ListElementJS, MemoList, MemoListJS}
 import org.scalajs.dom.html.{Div, Element, Input, Span}
-import org.scalajs.dom.{console, raw}
+import org.scalajs.dom.raw
 import org.scalajs.dom.raw.{HTMLElement, HTMLUListElement}
-import HtmlRep._
-import HtmlRep.HtmlCpnt._
 
-import scalajs.js.JSConverters._
+import scala.scalajs.js.JSConverters._
 class MemoListView() extends GenId {
   var data: MemoListJS = new MemoList(Nil.toJSArray)
   val tInput: Input = $c.input

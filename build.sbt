@@ -10,7 +10,7 @@ import Utils.git
 enablePlugins(ScalaJSPlugin)
 val sharedSettings = Seq(version := "0.1.1-SNAPSHOT",
   organization := "bon.jo",
-  scalaVersion := "2.13.4",
+  scalaVersion := "2.13.5",
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % "test",
   scalacOptions ++= Seq("-deprecation", "-feature")
 )
@@ -22,7 +22,9 @@ lazy val `memo-shared` =
   crossProject(JSPlatform, JVMPlatform)
     .crossType(CrossType.Pure) // [Pure, Full, Dummy], default: CrossType.Full
     .settings(sharedSettings)
-
+    .settings(
+       libraryDependencies+="bon.jo" %%% "phy-shared" % "0.1.2-SNAPSHOT"
+    )
     .jvmSettings(libraryDependencies += "org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided")
 // configure Scala-Native settings
 // .nativeSettings(/* ... */) // defined in sbt-scala-native
@@ -52,13 +54,14 @@ lazy val `memo-server` =
 
 
 val stagePath = "I:\\work\\github-io\\rpg"
+val snapPath = "I:\\work\\github-io\\rpg\\snapshot"
 lazy val `memo-ui` =
 // select supported platforms
   crossProject(JSPlatform)
     .crossType(CrossType.Pure) // [Pure, Full, Dummy], default: CrossType.Full
     .settings(sharedSettings)
     .settings(libraryDependencies ++= Seq("org.scala-js" %%% "scalajs-dom" % "1.1.0", "org.scala-lang.modules" %%% "scala-xml" % "2.0.0-M1"
-      , "bon.jo" %%% "html-app" % "0.1.1-SNAPSHOT"
+      , "bon.jo" %%% "html-app" % "0.1.2-SNAPSHOT"
 
     ))
 
@@ -72,17 +75,33 @@ lazy val `memo-ui` =
 
           io.IO.copyFile(f.data,file(stagePath).toPath.resolve(f.data.getName).toFile)
         git commitAndPush stagePath
+      },
+      toGitHubSnapIO := {
+
+        val f = ( Compile / fullOptJS).value
+        println(f)
+        //  val source = baseDirectory
+
+        io.IO.copyFile(f.data,file(snapPath).toPath.resolve(f.data.getName).toFile)
+        git commitAndPush snapPath
       }
 
     ).dependsOn(`memo-shared`) // defined in sbt-scalajs-crossproject
 
 
  val toGitHubIO = taskKey[Unit]("send to gitub.io")
-
+val toGitHubSnapIO = taskKey[Unit]("send to gitub.io snap")
 toGitHubIO := {
 
   val f = ( Compile / fullOptJS).value
   print(f)
 //  val source = baseDirectory
 //  io.IO.copyFile()
+}
+toGitHubSnapIO := {
+
+  val f = ( Compile / fullOptJS).value
+  print(f)
+  //  val source = baseDirectory
+  //  io.IO.copyFile()
 }

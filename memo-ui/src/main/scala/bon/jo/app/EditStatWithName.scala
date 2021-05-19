@@ -1,17 +1,18 @@
 package bon.jo.app
 
 import bon.jo.app.SType.Param
+import bon.jo.dao.Dao
 import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
 import bon.jo.html.HTMLDef.{$c, $l, $ref, $t, HtmlOps}
 import bon.jo.html.HtmlEventDef.ExH
-import bon.jo.memo.Dao
-import bon.jo.memo.ui.HtmlRep.{HtmlRepParam, PrXmlId}
+import bon.jo.html.HtmlRep
+import bon.jo.html.HtmlRep.{HtmlRepParam, PrXmlId}
 import bon.jo.memo.ui.SimpleView.{BsModifier, withClose}
-import bon.jo.memo.ui.{HtmlRep, PopUp, SimpleView}
+import bon.jo.memo.ui.{PopUp, SimpleView}
 import bon.jo.rpg.Action
 import bon.jo.rpg.Action.Attaque
 import bon.jo.rpg.stat.Actor.Weapon
-import bon.jo.rpg.stat.{AnyRefBaseStat, StatsWithName}
+import bon.jo.rpg.stat.StatsWithName
 import bon.jo.rpg.stat.raw.{IntBaseStat, Perso}
 import bon.jo.ui.{ReadableCpnt, UpdatableCpnt}
 import org.scalajs.dom.html.{Div, Input, Span}

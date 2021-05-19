@@ -1,27 +1,26 @@
 package bon.jo.app
 
-import bon.jo.app.EditWeaponCpnt.Implicit.Hrep
 import bon.jo.app.Export.{PersoJS, WeaponJS}
 import bon.jo.dao.IndexedDB.DBExeception
 import bon.jo.dao.LocalJsDao.MappedDao
 import bon.jo.html.DomShell.ExtendedElement
-import bon.jo.html.HTMLDef.{$c, HtmlOps}
+import bon.jo.html.HTMLDef.HtmlOps
 import bon.jo.html.HtmlEventDef.ExH
-import bon.jo.memo.ui.HtmlRep.{HtmlRepParam, PrXmlId}
+import bon.jo.html.HtmlRep.HtmlRepParam
+import bon.jo.html.HtmlRep._
 import bon.jo.memo.ui.{PopUp, SimpleView}
 import bon.jo.rpg.dao.PersoDao
 import bon.jo.rpg.stat.Actor.Id
 import bon.jo.rpg.stat.StatsWithName
 import bon.jo.rpg.stat.raw.{Actor, Perso, Weapon}
 import bon.jo.util.Ec
-import org.scalajs.dom.{console, window}
-import org.scalajs.dom.html.{Button, Div}
+import org.scalajs.dom.console
+import org.scalajs.dom.html.Button
 
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 import scala.scalajs.js
-import scala.scalajs.js.JSConverters.JSRichIterableOnce
 import scala.util.{Failure, Success}
 
 trait EditPage[A <: StatsWithName, B <: scalajs.js.Object] extends Ec {

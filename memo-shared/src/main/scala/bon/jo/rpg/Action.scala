@@ -34,7 +34,13 @@ object Action {
   case object ChangerDequipement extends Action
   case object Talent extends Action
   case object Rien extends Action
-  val all = List(Attaque,MainGauche,MainDroite,Soin,Aoe,Garde,Evasion,Voler,ChangerDequipement,Talent,Rien)
+  case object Hate extends Action
+  case object Slow extends Action
+  case object Cancel extends Action
+  val all = List(Attaque,
+    MainGauche,
+    MainDroite,
+    Soin,Aoe,Garde,Evasion,Voler,ChangerDequipement,Talent,Rien,Hate,Slow,Cancel)
   def unapply(string: String): Option[Action] = applyFrom(all.toSet)(string)
   def applyFrom(from : Set[Action])(string: String) : Option[Action] = {
 
@@ -44,7 +50,7 @@ object Action {
     }).find(_.name == string)
   }
   val commonValues: List[Action] = List(Voler , Garde,Evasion, Rien, ChangerDequipement)
-  val weaponValues: Iterable[Action] = List(Attaque,Soin)
+  val weaponValues: Iterable[Action] = List(Attaque,Soin,Hate,Slow,Cancel)
   trait ActionCtx {
     def action: Action
 

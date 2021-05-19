@@ -1,7 +1,6 @@
 package bon.jo.dao
 
-import bon.jo.memo.Dao
-import bon.jo.memo.Dao.FB
+import bon.jo.dao.Dao.FB
 import bon.jo.rpg.stat.Actor.Id
 import bon.jo.rpg.stat.StatsWithName
 import bon.jo.util.{Ec, Mapper}
@@ -12,7 +11,6 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.reflect.ClassTag
 import scala.scalajs.js
-import scala.util.{Failure, Success}
 
 
 object LocalJsDao {

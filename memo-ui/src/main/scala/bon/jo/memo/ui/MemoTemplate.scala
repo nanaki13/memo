@@ -4,30 +4,27 @@ import bon.jo.app.User
 import bon.jo.game.html.Template
 import bon.jo.game.html.Template.XmlTemplate
 import bon.jo.html.DomShell._
-import bon.jo.html.HtmlEventDef.ExH
-import bon.jo.memo.Dao.Id
-import bon.jo.memo.Entities
-import bon.jo.memo.Entities.{KeyWord, MemoKeywords, MemoType}
-import Routing.IntPath
-import HtmlRep._
-import org.scalajs.dom.html.{Button, Div, Input}
-import org.scalajs.dom.raw.HTMLElement
-import org.scalajs.dom.{console, document, raw, window}
 import bon.jo.html.HTMLDef.{$c, _}
+import bon.jo.html.HtmlEventDef.ExH
+import bon.jo.html.HtmlRep.{HtmlCpnt, PrXmlId}
+import bon.jo.html.{CommonHtml, HtmlRep}
+import bon.jo.memo.Entities
+import bon.jo.memo.Entities.{KeyWord, MemoKeywords}
+import bon.jo.memo.ui.FindViewDef._
+import bon.jo.memo.ui.Routing.IntPath
+import bon.jo.memo.ui.SimpleView.DSelect
+
+import bon.jo.memo.ui.ViewsDef.ProposeInput
+import org.scalajs.dom.experimental.URLSearchParams
+import org.scalajs.dom.html.Div
+import org.scalajs.dom.raw
+import org.scalajs.dom.raw.HTMLElement
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
-import scala.scalajs.js.JSON
 import scala.util.{Failure, Success, Try}
 import scala.xml.Node
-import SimpleView.DSelect
-import FindViewDef._
-import ViewsDef.ProposeInput
-import bon.jo.html.CommonHtml
-import org.scalajs.dom.experimental.URLSearchParams
-
-import scalajs.js.JSConverters._
 
 case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Template with XmlTemplate {
 
@@ -173,9 +170,8 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
   }
 
 
-
+  import bon.jo.memo.ui.ViewsDef.KewWordHtml.keyWordWith
   private val proposeView = {
-    import   ViewsDef.KewWordHtml._
     ProposeView[KeyWord,HtmlCpnt]()
   }
   private val keyWordToHtml = ViewsDef.kwIO()
@@ -187,7 +183,7 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
 
 
       def addToCurrentKW_(keyWord: KeyWord): Unit = {
-        import   ViewsDef.KewWordHtml.WithClose._
+        import ViewsDef.KewWordHtml.WithClose._
         addToCurrentKW(keyWord, lView)
       }
 

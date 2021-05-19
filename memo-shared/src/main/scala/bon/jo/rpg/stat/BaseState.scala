@@ -1,5 +1,7 @@
 package bon.jo.rpg.stat
 
+import bon.jo.common.Alg
+
 
 object BaseState {
 

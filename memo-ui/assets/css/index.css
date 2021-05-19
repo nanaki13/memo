@@ -1,7 +1,10 @@
 div#root {
     background-color: #edfffe;
 }
-
+.black-on-white{
+       background: #15151438;
+       color: white;
+}
 .stat-label{
  color: black;
 }
@@ -30,13 +33,18 @@ max-width : 10em;
 }
 .bg-1{
  background-image: url("https://cdn.discordapp.com/attachments/810628913515593779/843615870130454567/image1.jpg");
-  background-repeat: repeat-y;
-   background-size: 100%;
+  background-repeat: no-repeat;
+   background-size: contain;
+   background-attachment: fixed;
+   background-position:center;
+   background-color: #d0d1fad1;
 }
 .bg-2{
 background-image: url("https://cdn.discordapp.com/attachments/810628913515593779/843615870580555806/image2.jpg");
- background-repeat: repeat-y;
-   background-size: 100%;
+     background-repeat: no-repeat;
+     background-size: cover;
+     background-position: center;
+     background-color: #d0d1fad1;
 }
 .input-stat{
    background: #15151438;
