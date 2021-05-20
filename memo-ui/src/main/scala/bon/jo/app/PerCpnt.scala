@@ -35,11 +35,16 @@ class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso] {
   }
 
   val nameDiv: Span = $c.span[Span] := spanNameLevel(perso)
+  val descDiv: Span = $c.span[Span] := spadescLevel(perso)
 
   def spanNameLevel(perso: Perso)(s: Span) = {
     s.clear()
     s += $t span perso.name
     s += ($t span (s"   lvl : ${perso.lvl}"))
+  }
+  def spadescLevel(perso: Perso)(s: Span) = {
+    s.clear()
+    s += $t span perso.desc
   }
 
 
@@ -72,13 +77,13 @@ class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso] {
     val ret = $va div (
       $va div(($va h5 (nameDiv)) := { me =>
         me._class = "card-title"
-      },
+      },descDiv,
         $va div (row(List($t("stat") +: contStat, $t("L") +: contArmL, $t("G") +: contArmR, $t("stat+") +: lcomputedStat)))) := { me =>
-        me._class = "card-body"
+        me._class = "card-body black-on-white"
         me.style.fontSize = "0.7em"
       }
       )
-    ret._class = "card bg bg-light d-inline-block"
+    ret._class = "card bg-2 d-inline-block"
 
     Option(ret)
   }
@@ -87,6 +92,7 @@ class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso] {
     value match {
       case Some(value) =>
         nameDiv := spanNameLevel(value)
+        descDiv  := spadescLevel(value)
         //  nameDiv.innerText = value.name
         htmlCarac.hp._2.child.innerText = value.stats.hp.toString
       //   attDiv.innerText = value.str.toString

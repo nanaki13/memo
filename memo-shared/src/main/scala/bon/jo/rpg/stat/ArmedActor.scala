@@ -34,7 +34,7 @@ trait ArmedActor {
   def rightHandAction = rightHandWeapon.map(e=>e.action.map(mapAttaque(Action.Attaque.MainDroite))).getOrElse(Nil)
 
 
-  var actionCtx: Option[ActionCtx] = None
+  //var actionCtx: Option[ActionCtx] = None
 
   def randomSoin(weapon: Actor.Weapon): Weapon = {
     if(r.nextDouble()>0.5){

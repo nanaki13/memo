@@ -1,6 +1,7 @@
 package bon.jo.app
 
 import bon.jo.html.HTMLDef.{$t, HtmlOps}
+import bon.jo.memo.ui.PopUp
 import bon.jo.rpg.ui.PlayerMessage
 import org.scalajs.dom.window
 
@@ -13,13 +14,14 @@ trait SimpleMessage extends PlayerMessage {
   }
 
   def message(str: String, timeToDisplay: Int): Unit = {
-    val s = $t div (str)
-    messageDiv.appendChild(s)
-    lazy val t: Int = window.setTimeout(() => {
-      window.clearTimeout(t)
-      messageDiv.removeChild(s)
-    }, timeToDisplay)
-    t
+    PopUp(str)
+//    val s = $t div (str)
+//    messageDiv.appendChild(s)
+//    lazy val t: Int = window.setTimeout(() => {
+//      window.clearTimeout(t)
+//      messageDiv.removeChild(s)
+//    }, timeToDisplay)
+//    t
   }
 
   def message(str: String): MEsageImpl = {

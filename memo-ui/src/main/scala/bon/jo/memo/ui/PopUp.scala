@@ -1,7 +1,7 @@
 package bon.jo.memo.ui
 
 import bon.jo.html.CommonHtml
-import bon.jo.html.DomShell.ExtendedNode
+import bon.jo.html.DomShell.{ExtendedHTMLCollection, ExtendedNode}
 import bon.jo.html.HTMLDef.{$c, $t, $va, HtmlOps}
 import bon.jo.html.HtmlEventDef.ExH
 import org.scalajs.dom.document
@@ -18,7 +18,7 @@ object PopUp {
     htmlNode.style.position = "fixed"
     htmlNode.style.right = "10em"
     htmlNode.style.top = "2em"
-    htmlNode._class = "card"
+    htmlNode._class = "card row"
     htmlNode
   }
   private def show(htmlNode: HTMLElement): Unit = {
@@ -41,6 +41,10 @@ object PopUp {
       if(noPopuMessage){
         popCnt.removeFromDom()
       }
+    }
+    if(popCount>10){
+      popCnt.removeChild( popCnt.children.head)
+      popCount -= 1
     }
 
   }

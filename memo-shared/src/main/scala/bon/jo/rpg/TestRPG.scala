@@ -21,8 +21,8 @@ object TestRPG extends App {
   val ui = new WithUI()
 
 
-  val p1 = new Perso(1,"Bob", AnyRefBaseStat.randomInt(50, 10))
-  val p2 = new Perso(2,"Bill", AnyRefBaseStat.randomInt(50, 10))
+  val p1 = new Perso(1,"Bob","Un bon gars", AnyRefBaseStat.randomInt(50, 10))
+  val p2 = new Perso(2,"Bill","Un bon gars", AnyRefBaseStat.randomInt(50, 10))
 
 
   import ui.value
@@ -39,7 +39,7 @@ object TestRPG extends App {
   for (_ <- 1 to 100) {
 
 
-    yl.nextState
+    yl.nextState(yl.timedObjs)
   }
 
 

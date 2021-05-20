@@ -1,0 +1,84 @@
+package bon.jo.app
+
+import bon.jo.html.HTMLDef.{$c, $ref, $va, HtmlOps}
+import bon.jo.html.HtmlRep.HtmlCpnt
+import bon.jo.html.{HtmlRep, Selection}
+import bon.jo.memo.ui.SimpleView
+import bon.jo.rpg.stat.raw.Perso
+import org.scalajs.dom.document
+import org.scalajs.dom.html.Div
+import org.scalajs.dom.raw.{Element, HTMLElement, Node}
+import bon.jo.app.ImuutableHtmlCpnt
+import Experimental._
+import bon.jo.app.HtmlUi.PersoRep
+import bon.jo.html.DomShell.ExtendedElement
+
+import scala.language.dynamics
+
+trait RpgSimu {
+    self : Rpg =>
+   def simulation() : Unit = {
+     val enSelButton = SimpleView.bsButton("Start")
+     val selected : Div = $c.div
+     val select : Div = $c.div
+
+     val cont = $c.div[Div].$row( select,selected,enSelButton.wrap(t.div) )
+     cont.classList.add("mt-5")
+     cont.classList.add("ml-5")
+     root += cont
+     val rep : HtmlRep[Perso,ImuutableHtmlCpnt] = ((z : Perso) => () => Some(z.name.tag(t.div)))
+     persoDao.readAll() flatMap  {
+       persos =>
+         Selection
+           .Param[Perso,PerCpnt](Some(enSelButton),selected ++= _.list,PersoRep,PersoRep)
+           .selection(persos,select)
+     } map {
+       selection =>
+
+         selection.foreach(e => timeLine.add(e))
+         root.clear()
+         startRpg
+     }
+   }
+}
+object Experimental{
+
+
+  object t extends scala.Dynamic{
+    def selectDynamic(f : String) : String = f
+  }
+  implicit class StringToHtml(s : String){
+    def tag(tagHtml : String): HTMLElement = {
+      document.createElement(tagHtml).asInstanceOf[HTMLElement] := (_.textContent = s)
+
+    }
+    def tagTyped[A <: Element](tagHtml : String): A = {
+      document.createElement(tagHtml).asInstanceOf[A] := (_.textContent = s)
+
+    }
+  }
+  implicit class ChildToParent(s : HTMLElement){
+    def wrap(tagHtml : String): HTMLElement = {
+      document.createElement(tagHtml).asInstanceOf[HTMLElement] := (_ += s)
+    }
+    def wrap(tagHtml : HTMLElement): HTMLElement = {
+      tagHtml.appendChild(tagHtml)
+      tagHtml
+    }
+  }
+  implicit class BsHtml[A <: HTMLElement](a : A){
+    def $row: A = {
+      a.classList.add("row")
+      a
+    }
+    def $row(col : HTMLElement *): A = {
+      a.classList.add("row")
+      col.map(_.$col).foreach(a += _)
+      a
+    }
+    def $col: A = {
+      a.classList.add("col")
+      a
+    }
+  }
+}

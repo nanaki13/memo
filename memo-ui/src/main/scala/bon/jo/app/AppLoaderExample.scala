@@ -30,17 +30,17 @@ object AppLoaderExample extends App {
   document.body.classList.add("bg-1")
   object Rpg extends Rpg {
     override implicit val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.global
-    val weaponJsDao = new WeaponDaoJs {
+    val weaponJsDao: WeaponDaoJs = new WeaponDaoJs {
       override implicit val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.global
     }
-    val persoJsDao = new PersoDaoJs {
+    val persoJsDao: PersoDaoJs = new PersoDaoJs {
       override implicit val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.global
     }
 
     override val weaponDao: MappedDao[WeaponJS, Weapon] with WeaponDao = WeaponDao(weaponJsDao)
     override val persoDao: MappedDao[Export.PersoJS, Perso] with PersoDao = PersoDao(persoJsDao)
 
-    val fromChild =  $c.a[Anchor]:= (menuLink => {menuLink._class = "nav-item menu-link"})
+    private val fromChild =  $c.a[Anchor]:= (menuLink => {menuLink._class = "nav-item menu-link"})
     override def createButton(addRandomButton: Button): Unit = {
       fromChild.clear()
       fromChild += addRandomButton
@@ -98,9 +98,10 @@ object AppLoaderExample extends App {
       "éditer/créer Arme" -> initChoixArme,
 
       "éditer/créer Perso" -> initChoixPerso,
+      "Simulation" -> simulation,
     "Export" -> export,"Import" -> importDataPopUp)
 
-    def init() = {
+    def init(): HTMLElement = {
       root.parentElement += menu.cont
     }
 
@@ -114,7 +115,8 @@ object AppLoaderExample extends App {
           menuLink._class = "dropdown-item nav-link menu-link"
           menuLink.$click { _ =>
             Rpg.root.clear()
-
+            Rpg.onChangePage.foreach(_())
+            Rpg.onChangePage.clear()
             unit()
           }
         })
@@ -135,7 +137,7 @@ object AppLoaderExample extends App {
 
     }
     // <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Dropdown</a>
-    def aSubMenu(t: String) = $c.a[Anchor] := {
+    private def aSubMenu(t: String) = $c.a[Anchor] := {
       s =>
         s._class = "nav-link dropdown-toggle"
         s.href = "#"
@@ -148,13 +150,9 @@ object AppLoaderExample extends App {
   }
 
   import Rpg.executionContext
-  Rpg.init()
+
   IndexedDB.init(Rpg.weaponJsDao.name, Rpg.persoJsDao.name) map { _ =>
-
-
-    Rpg
-
-
+    Rpg.init()
   } onComplete{
     case Failure(exception) => exception match {
       case ex@DBExeception(e) => ex.printStackTrace();console.log(e)

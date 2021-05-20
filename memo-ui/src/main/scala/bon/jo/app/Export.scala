@@ -21,23 +21,24 @@ object Export {
     )
   }
 
-  object PersoJS  {
-   // type R = PersoJS
+  object PersoJS {
+    // type R = PersoJS
 
-     def apply(t: Perso): PersoJS = {
+    def apply(t: Perso): PersoJS = {
       val dPerso = Export.apply(t)
       dPerso.leftHandWeapon = t.leftHandWeapon.map(WeaponJS(_)).orUndefined
       dPerso.rightHandWeapon = t.rightHandWeapon.map(WeaponJS(_)).orUndefined
+      dPerso.desc = t.desc
       dPerso.asInstanceOf[PersoJS]
     }
 
-     def unapply(value: PersoJS): Option[Perso] = {
+    def unapply(value: PersoJS): Option[Perso] = {
       value.stats match {
         case StatJS(stat) =>
           val action = value.action flatMap Action.unapply
           val left = value.leftHandWeapon.toOption.flatMap(WeaponJS.unapply)
           val right = value.rightHandWeapon.toOption.flatMap(WeaponJS.unapply)
-          Some(new Perso(value.id,value.name, stat, value.lvl, action.toList, left, right))
+          Some(new Perso(value.id, value.name, value.desc, stat, value.lvl, action.toList, left, right))
         case _ => None
       }
 
@@ -47,12 +48,11 @@ object Export {
   object WeaponJS {
 
 
-
     def unapply(weaponJS: WeaponJS): Option[Weapon] = {
       weaponJS.stats match {
         case StatJS(stat) =>
           val action = weaponJS.action.toList flatMap Action.unapply
-          Some(Weapon( weaponJS.id,weaponJS.name, weaponJS.lvl, stat, action))
+          Some(Weapon(weaponJS.id, weaponJS.name, weaponJS.lvl, stat, action))
         case _ => None
       }
 
@@ -79,7 +79,7 @@ object Export {
     def apply(R: T): R
   }
 
-  object StatJS  {
+  object StatJS {
 
 
     def apply(stats: IntBaseStat): StatJS = {
@@ -123,6 +123,7 @@ object Export {
   }
 
   trait PersoJS extends NameIdStat {
+    val desc: String
     val leftHandWeapon: js.UndefOr[WeaponJS]
     val rightHandWeapon: js.UndefOr[WeaponJS]
   }

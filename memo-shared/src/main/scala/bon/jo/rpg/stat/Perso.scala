@@ -14,7 +14,7 @@ object Perso {
   object ArmePerso{
     def unapply(e : StatsWithName):Weapons={
       e match {
-        case Perso(_, _, _, _, _, l, r) => Some(l,r)
+        case Perso(_,_, _, _, _, _, l, r) => Some(l,r)
         case _ => None
       }
     }
@@ -44,15 +44,15 @@ object Perso {
 
     override def speed(a: Perso): Int = (a.stats.viv / 10f).round
 
-    override def action_=(a: Perso, action: ActionCtx): Unit = a.actionCtx = Some(action)
-
-    override def action(a: Perso): ActionCtx = a.actionCtx.getOrElse(ActionCtx.Rien)
-
-    override def pos(a: Perso): Int = {
-      posCache.getOrElse(a.id, 0)
-    }
-
-    override def pos_=(a: Perso, pos: Int): Unit = posCache(a.id) = pos
+//    override def action_=(a: Perso, action: ActionCtx): Unit = a.actionCtx = Some(action)
+//
+//    override def action(a: Perso): ActionCtx = a.actionCtx.getOrElse(ActionCtx.Rien)
+//
+//    override def pos(a: Perso): Int = {
+//      posCache.getOrElse(a.id, 0)
+//    }
+//
+//    override def pos_=(a: Perso, pos: Int): Unit = posCache(a.id) = pos
 
     override def simpleName(value: Perso): String = value.name
 
@@ -72,8 +72,7 @@ object Perso {
               ui.cpntMap(p.asInstanceOf[ui.S]).update(Some(p.asInstanceOf[ui.S]))
             case _ =>
           }
-        case Action.Garde =>
-        case Action.Rien =>
+
         case Action.Soin=>
           b.map(_.value) match {
             case List(p: Perso) =>
@@ -82,6 +81,7 @@ object Perso {
               ui.cpntMap(p.asInstanceOf[ui.S]).update(Some(p.asInstanceOf[ui.S]))
             case _ =>
           }
+        case z => ui.message("Mais sa fait encore rien",0)
       }
 
 
@@ -91,7 +91,7 @@ object Perso {
 
 
 }
- case class Perso(  id : Int, name: String, stats : AnyRefBaseStat[Int],lvl : Int = 1, action : List[Action] = Nil,
+ case class Perso(  id : Int, name: String,desc : String, stats : AnyRefBaseStat[Int],lvl : Int = 1, action : List[Action] = Nil,
    leftHandWeapon: Option[Weapon]= None,
 rightHandWeapon: Option[Weapon] = None
                   ) extends Actor with StatsWithName{

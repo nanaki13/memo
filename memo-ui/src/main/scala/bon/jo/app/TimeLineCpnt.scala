@@ -4,11 +4,14 @@ import bon.jo.html.DomShell.ExtendedElement
 import bon.jo.html.HTMLDef.{$c, $t, $va, HtmlOps}
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.rpg.BattleTimeLine.TimeLineParam
+import bon.jo.rpg.raw.TimedTrait
 import bon.jo.rpg.stat.Perso.WithUI
 import org.scalajs.dom.html.{Div, Span}
 import org.scalajs.dom.{console, window}
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Future, Promise}
+import scala.util.{Failure, Success}
 
 class TimeLineCpnt(val el: TimeLineParam, val withUI: WithUI) {
 
@@ -52,27 +55,54 @@ class TimeLineCpnt(val el: TimeLineParam, val withUI: WithUI) {
     in
   }))
 
-  def update = {
-    htmlName zip el.timedObjs foreach {
+  def update(e: List[TimedTrait[_]]) = {
+    htmlName zip e foreach {
       case (element, value) =>
         element.style.left = value.pos.toString + "px"
     }
   }
 
-  def doEvent() = {
-    lazy val int: Int = window.setInterval(() => {
-      if (el.pause == 0) {
-        el.nextState
-        update
-      } else {
-        window.clearInterval(int)
+  val runner: (el.T[_] => Future[el.T[_]], el.T[_]) => Future[el.T[_]] = {
+    (f,v) => {
+      console.log("runner!")
+      val ret = Promise[el.T[_]]()
+      window.setTimeout( () => {
+        console.log("launch runner!")
+        update(v)
+        f(v) onComplete {
+          case Failure(exception) => console.log(exception)
+          case Success(value) => {
+            update(value)
+            console.log("runner result")
+            console.log(value.map(_.pos))
+            ret.success(value)
+
+          }
+        }
+      }
+        ,25
+      )
+      ret.future
+    }
+  }
+
+  def doEvent(): Int = {
+
+    lazy val gameLoop: Int = window.setInterval(()=>{
+      if(el.pause == 0){
+        update(el.timedObjs)
+        el.nextState( el.timedObjs) map {
+          s =>
+            update(el.timedObjs)
+            el.timedObjs = s
+        }
+      }else{
+        window.clearInterval(gameLoop)
       }
 
-      //    cpnt.foreach {
-      //      case (perso, cpnt) => cpnt.update(Some(perso))
-      //    }
-    }, 25)
-    int
+    },25)
+    gameLoop
+   // el.n(el.timedObjs,runner) foreach (println)
 
   }
 

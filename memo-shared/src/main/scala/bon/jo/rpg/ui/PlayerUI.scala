@@ -17,14 +17,13 @@ trait PlayerUI extends PlayerMessage {
 }
 
 object PlayerUI {
-  def runSeq(toAsk: Seq[() => Future[Unit]])(implicit ec: ExecutionContext): Future[Unit] = {
+  def runSeq[A](toAsk: Seq[() => Future[A]],res : List[A] = Nil)(implicit ec: ExecutionContext): Future[ List[A]] = {
 
     if (toAsk.isEmpty) {
-
-      Future.successful(())
+      Future.successful((res))
     } else {
       toAsk.head().flatMap {
-        _ => runSeq(toAsk.tail)
+        e => runSeq(toAsk.tail,res :+ e)
       }
     }
   }

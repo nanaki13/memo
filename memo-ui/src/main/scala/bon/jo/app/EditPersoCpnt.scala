@@ -1,5 +1,6 @@
 package bon.jo.app
 
+import bon.jo.app.Experimental.{StringToHtml, t}
 import bon.jo.app.SType.ExParam
 import bon.jo.app.Types.Pram
 import bon.jo.dao.Dao
@@ -11,7 +12,7 @@ import bon.jo.html.HtmlRep.HtmlRepParam
 import bon.jo.memo.ui.SimpleView.bsButton
 import bon.jo.rpg.Action
 import bon.jo.rpg.stat.raw.{Actor, IntBaseStat, Perso, Weapon}
-import org.scalajs.dom.html.Button
+import org.scalajs.dom.html.{Button, TextArea}
 import org.scalajs.dom.raw.{HTMLElement, HTMLLIElement, HTMLUListElement}
 
 import scala.collection.mutable
@@ -35,7 +36,7 @@ object EditPersoCpnt extends HtmlRepParam[Perso, Pram, EditStatWithName[Perso]] 
 class EditPersoCpnt(initial: Perso, option: Option[(Rpg, mutable.ListBuffer[EditStatWithName[Perso]])])(repStat: HtmlRep[IntBaseStat, EditStat]) extends EditStatWithName[Perso](initial, option)(repStat) {
   override implicit val rep: HtmlRepParam[Perso, Pram, EditStatWithName[Perso]] = EditPersoCpnt
 
-  override def randomValue: Perso = Actor.randomActor(e => new Perso(initial.id, RandomName(), e))
+  override def randomValue: Perso = Actor.randomActor(e => new Perso(initial.id, RandomName(),"Le plus beau des héros", e))
   override val dao: Dao[Perso, Int] = option.rpg.persoDao
   val equipRight: Button = bsButton("+")
   val equipLeft: Button = bsButton("+")
@@ -83,11 +84,11 @@ class EditPersoCpnt(initial: Perso, option: Option[(Rpg, mutable.ListBuffer[Edit
   private val leftArm = spanArm(initial.leftHandWeapon)
   private val rightArm = spanArm(initial.rightHandWeapon)
   private val handsCont = $va div(leftArm, equipLeft, rightArm, equipRight)
-
+  private val descTa = initial.desc.tagTyped[TextArea](t.textarea)
   override def create(id: Int, name: String, intBaseStat: IntBaseStat, action: List[Action]): Perso =
-    new Perso(id, name, intBaseStat, lvl = 1, action, leftHandWeapon = varLeftHand, rightHandWeapon = varRightHand)
+    new Perso(id, name,descTa.value, intBaseStat, lvl = 1, action, leftHandWeapon = varLeftHand, rightHandWeapon = varRightHand)
 
-  override def beforeStatOption: Option[HTMLElement] = Some(handsCont)
+  override def beforeStatOption: Option[HTMLElement] = Some( $va div(descTa,handsCont))
 
 
   equipAction(equipRight, rightArm) {
