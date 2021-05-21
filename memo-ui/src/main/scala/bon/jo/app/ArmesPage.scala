@@ -9,6 +9,7 @@ import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.html.HtmlRep.HtmlRepParam
 import bon.jo.html.HtmlRep._
 import bon.jo.memo.ui.{PopUp, SimpleView}
+import bon.jo.rpg.RandomName
 import bon.jo.rpg.dao.PersoDao
 import bon.jo.rpg.stat.Actor.Id
 import bon.jo.rpg.stat.StatsWithName

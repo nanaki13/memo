@@ -9,6 +9,9 @@ import scala.concurrent.{ExecutionContext, Future}
 
 object BattleTimeLine {
 
+  sealed trait NextStateResult
+  case class NextStateResultFast( fast : Iterable[TimedTrait[_]]) extends NextStateResult
+  case class NextStateResultAsking( fast : Iterable[TimedTrait[_]], ask :  Future[Iterable[TimedTrait[_]]]) extends NextStateResult
 
   trait TimeLineOps {
     self: TimeLineParam =>
@@ -22,6 +25,7 @@ object BattleTimeLine {
 
     }
 
+    var uiUpdate : Iterable[TimedTrait[_]] => Unit = _ => ()
     def state(pos: Int, spooed: Int): State = {
       pos match {
         case i if (i < chooseAction) => State.BeforeChooseAction
@@ -59,47 +63,50 @@ object BattleTimeLine {
 
     var resume : ()=>Unit = ()=>{}
 
-
     def nextState(timedObjs : List[TimedTrait[_]])(implicit acImpl: ActionResolver[TimedTrait[Any],
-      List[TimedTrait[_]]], ui: PlayerUI, ec: ExecutionContext): Future[List[TimedTrait[_]]] = {
+      List[TimedTrait[_]]], ui: PlayerUI, ec: ExecutionContext): NextStateResult = {
 
       if (pause == 0) {
         val state_ =  state(updateAll(timedObjs))
-        val toAsk: Seq[() => Future[TimedTrait[_]]] = state_.map {
-          case (pos, State.ChooseAction) =>
-            () => {
-              val message = ui.message(s"selectionner l'action pour ${pos.simpleName}")
-              pause += 1
-              ui.ask(pos, timedObjs).map { act =>
-                ui.clear(message.asInstanceOf[ui.T])
-
-                pause -= 1
-                val ret = pos.withAction(act)
-                if(pause == 0){
-                  resume()
-                }
-
-                ret
-              }
-            }
+        uiUpdate(state_.map(_._1))
+        val fast = state_.filter(_._2 != State.ChooseAction).map{
           case (pos: TimedTrait[Any], state) =>
             val cible = pos.action.cible: List[TimedTrait[_]]
             state match {
-              case State.BeforeChooseAction => ()=> Future.successful(pos)//ui.message("BeforeChooseAction")
-              case State.BeforeResolveAction => ()=> Future.successful(pos)//// ui.message("BeforeResolveAction")
+              case State.BeforeChooseAction => pos//ui.message("BeforeChooseAction")
+              case State.BeforeResolveAction => pos//// ui.message("BeforeResolveAction")
               case State.ResolveAction =>
-
-
                 ui.message(s"${pos.simpleName} fait ${pos.action.action} sur ${pos.action.cible.map(_.simpleName).mkString(", ")}",5000)
                 pos.resolve(pos.action.action, cible)
-                ()=> Future.successful(pos.withPos(0))
-              case State.NoState =>()=> Future.successful(pos)//
+                pos.withPos(0)
+              case State.NoState =>pos//
             }
-         // case _ => println("PAUSE");
         }
-        PlayerUI.runSeq(toAsk)
+        if( state_.count(_._2 == State.ChooseAction)>0){
+          val toAsk: Seq[() => Future[TimedTrait[_]]] = state_.filter(_._2 == State.ChooseAction).map {
+            case (pos, State.ChooseAction) =>
+              () => {
+                val message = ui.message(s"selectionner l'action pour ${pos.simpleName}")
+                pause += 1
+                ui.ask(pos, timedObjs).map { act =>
+                  ui.clear(message.asInstanceOf[ui.T])
+
+                  pause -= 1
+                  val ret = pos.withAction(act)
+                  if (pause == 0) {
+                    resume()
+                  }
+
+                  ret
+                }
+              }
+          }
+          NextStateResultAsking(fast,PlayerUI.runSeq(toAsk) )
+        }else{
+          NextStateResultFast(fast)
+        }
       }else{
-        Future.successful(timedObjs)
+        NextStateResultFast(timedObjs)
       }
 
     }

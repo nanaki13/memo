@@ -13,8 +13,9 @@ object Export {
 
   def apply(e: StatsWithName with Lvl): js.Object with js.Dynamic = {
     js.Dynamic.literal(
-      name = e.name,
       id = e.id,
+      name = e.name,
+      desc = e.desc,
       lvl = e.lvl,
       stats = StatJS(e.stats),
       action = e.action.map(_.name).toJSArray
@@ -28,7 +29,6 @@ object Export {
       val dPerso = Export.apply(t)
       dPerso.leftHandWeapon = t.leftHandWeapon.map(WeaponJS(_)).orUndefined
       dPerso.rightHandWeapon = t.rightHandWeapon.map(WeaponJS(_)).orUndefined
-      dPerso.desc = t.desc
       dPerso.asInstanceOf[PersoJS]
     }
 
@@ -52,7 +52,7 @@ object Export {
       weaponJS.stats match {
         case StatJS(stat) =>
           val action = weaponJS.action.toList flatMap Action.unapply
-          Some(Weapon(weaponJS.id, weaponJS.name, weaponJS.lvl, stat, action))
+          Some(Weapon(weaponJS.id, weaponJS.name,weaponJS.desc, weaponJS.lvl, stat, action))
         case _ => None
       }
 
@@ -67,6 +67,7 @@ object Export {
     val lvl: Int
     val name: String
     val id: Int
+    val desc: String
     val stats: StatJS
     val action: js.Array[String]
   }
@@ -123,7 +124,7 @@ object Export {
   }
 
   trait PersoJS extends NameIdStat {
-    val desc: String
+
     val leftHandWeapon: js.UndefOr[WeaponJS]
     val rightHandWeapon: js.UndefOr[WeaponJS]
   }

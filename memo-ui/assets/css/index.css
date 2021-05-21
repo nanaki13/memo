@@ -51,3 +51,7 @@ background-image: url("https://cdn.discordapp.com/attachments/810628913515593779
        color: white;
        width: 3em;
 }
+.popup-close{
+    position: absolute;
+    right: 0;
+}

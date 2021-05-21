@@ -1,7 +1,7 @@
 package bon.jo.app
 
 
-import bon.jo.rpg.Action
+import bon.jo.rpg.{Action, RandomName}
 import bon.jo.rpg.stat.Actor.Id
 import bon.jo.rpg.stat.raw.{Actor, AnyRefBaseStat, IntBaseStat, Weapon}
 
@@ -30,9 +30,9 @@ object EditWeaponCpnt extends HtmlRepParam[Weapon, SType.Param[Weapon], EditStat
 class EditWeaponCpnt(initial: Weapon, option: Option[SType.Param[Weapon]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends EditStatWithName[Weapon](initial,option)(repStat){
   override implicit val rep: HtmlRepParam[Weapon, SType.Param[Weapon], EditStatWithName[Weapon]] = EditWeaponCpnt
 
-  override def randomValue: Weapon = new Weapon(initial.id,RandomName(),1,AnyRefBaseStat[Float](Actor.randomWeaponVal _).map(_.round))
+  override def randomValue: Weapon = new Weapon(initial.id,RandomName.randomWeaponName(),"La belle arme",1,AnyRefBaseStat[Float](Actor.randomWeaponVal _).map(_.round))
 
-  override def create(id : Int,name: String, intBaseStat: IntBaseStat, action: List[Action]): Weapon = new Weapon(id,name,1,intBaseStat,action)
+  override def create(id : Int,name: String,desc : String, intBaseStat: IntBaseStat, action: List[Action]): Weapon = new Weapon(id,name,desc,1,intBaseStat,action)
 
   override val dao: Dao[Weapon, Int] = option.rpg.weaponDao
 }

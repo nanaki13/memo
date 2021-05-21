@@ -13,12 +13,17 @@ object PopUp {
   private def havePopupMessage = popCount > 0
   private def noPopuMessage = !havePopupMessage
   var popCount = 0
-  lazy val popCnt = {
+  lazy val popCnt: Div = {
     val htmlNode : Div = $c.div
     htmlNode.style.position = "fixed"
     htmlNode.style.right = "10em"
     htmlNode.style.top = "2em"
-    htmlNode._class = "card row"
+    htmlNode.style.paddingRight = "2em"
+    htmlNode.style.maxWidth="20em"
+    htmlNode._class = "card m-5"
+    htmlNode.style.zIndex="1001"
+    htmlNode.draggable = true
+    htmlNode.$userCanDrag()
     htmlNode
   }
   private def show(htmlNode: HTMLElement): Unit = {
@@ -31,9 +36,9 @@ object PopUp {
     }
     popCount+=1
     val btn = CommonHtml.closeBtn
-    btn.style.cssFloat = "right"
+    btn.classList add "popup-close"
     val htmlNode : Div =  $va.t div( $va div btn,message)
-    htmlNode._class = "col"
+
     popCnt += htmlNode
     btn.$click { _ =>
       popCount -= 1

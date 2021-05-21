@@ -3,12 +3,12 @@ package bon.jo.html
 import bon.jo.html.HTMLDef._
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.html.HtmlRep.HtmlCpnt
-import bon.jo.html.Selection.Param
 import org.scalajs.dom.html.Button
 import org.scalajs.dom.raw.HTMLElement
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{Future, Promise}
+
 
 trait Selection[A, C <: HtmlCpnt] {
 

@@ -1,9 +1,10 @@
 package bon.jo.app
 
+import bon.jo.app.Experimental.{StringToHtml, t}
 import bon.jo.app.SType.Param
 import bon.jo.dao.Dao
 import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
-import bon.jo.html.HTMLDef.{$c, $l, $ref, $t, HtmlOps}
+import bon.jo.html.HTMLDef.{$c, $l, $ref, $t, $va, HtmlOps}
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.html.HtmlRep
 import bon.jo.html.HtmlRep.{HtmlRepParam, PrXmlId}
@@ -15,8 +16,9 @@ import bon.jo.rpg.stat.Actor.Weapon
 import bon.jo.rpg.stat.StatsWithName
 import bon.jo.rpg.stat.raw.{IntBaseStat, Perso}
 import bon.jo.ui.{ReadableCpnt, UpdatableCpnt}
-import org.scalajs.dom.html.{Div, Input, Span}
+import org.scalajs.dom.html.{Div, Input, Span, TextArea}
 import org.scalajs.dom.raw.{HTMLElement, HTMLOptionElement, HTMLSelectElement}
+import org.scalajs.dom.window
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -41,6 +43,7 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
   }
   private val id = $c.span[Span] := (_.textContent = initial.id.toString)
   private val colActioin: Div = $c.div
+  private val descTa = initial.desc.tagTyped[TextArea](t.textarea)
   def deleteButton(): Option[HTMLElement => HTMLElement] = option.map(_._1.executionContext) map {
     implicit ec =>
       SimpleView.withClose(_,{
@@ -136,15 +139,19 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
 
 
   def mainDiv: HTMLElement = {
-    $l div (SimpleView.row(List(List(id, name), List(SimpleView.row($t span "action" := {
-      _._class = "stat-label"
-    }, actionsChoose, buttonAddAction)))) +: SimpleView.row(List(
+    window.
+    import Experimental._
+    val r1 =  t.div.toHtlm.$row(
+      $va div(id, name), (descTa : HTMLElement).wrap(t.div)
+    )
+    val r2 =  t.div.toHtlm.$row(
+      $t span "action" := {
+        _._class = "stat-label"
+      },actionsChoose,buttonAddAction
+    )
 
-      List(colActioin)
-    )) +: statCpnt.list :+ copyButton,
-
-      )
-
+    val r4 = copyButton
+      $va div (r1,r2,$l div (statCpnt.list),r4)
   }
 
   def beforeState(a : HTMLElement)=  statCpnt.list.head.parentElement.insertBefore(a,statCpnt.list.head)
@@ -166,14 +173,14 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
     })
   }
 
-  def create(id: Int, name: String, intBaseStat: IntBaseStat, action: List[Action]): A
+  def create(id: Int, name: String,desc : String, intBaseStat: IntBaseStat, action: List[Action]): A
 
   override def read: A = {
-    create(id.textContent.toInt, name.value, statCpnt.read, actions.toList)
+    create(id.textContent.toInt, name.value,descTa.value, statCpnt.read, actions.toList)
   }
 
   def readWithoutId: A = {
-    create(0, name.value, statCpnt.read, actions.toList)
+    create(0, name.value,descTa.value, statCpnt.read, actions.toList)
   }
 
   private val copyButton = SimpleView.bsButton("copy")

@@ -1,7 +1,7 @@
 package bon.jo.rpg.stat
 
 import bon.jo.rpg.stat.Actor.Implicit._
-import bon.jo.rpg.stat.Actor.randomActor
+import bon.jo.rpg.stat.Actor.{randomActor, randomWeapon}
 object GenTrait {
 
   case class DocAndName(name: String, doc: String) {
@@ -32,11 +32,5 @@ object GenTrait {
 
   def docAndName = str.split("\n").map(e => new DocAndName(e.split(":")))
 
-  val a1 = randomActor
 
-  println(a1)
-  println(a1.leftHand)
-  println(a1.rightHand)
-  println(a1.rightArmedStat())
-  println(a1.twoAndStat())
 }

@@ -18,6 +18,7 @@ object Actor {
 
    case class Impl(
                     name : String,
+                    desc : String,
                     lvl:Int,
                     stats : IntBaseStat,
                     leftHandWeapon: Option[WeaponBaseState]= None,
@@ -63,29 +64,12 @@ object Actor {
 
   def randomAround(center: Int, deltaRandom: Int): Float = (center + deltaRandom * (r.nextGaussian() - 0.5)).toFloat
 
-  def randomActor: Actor = {
-
-    val  a= (BaseState.`1` * AnyRefBaseStat(randomActorVal _)).map(_.round)
-    println(a)
-    var ret: Actor.Impl = raw.Actor.Impl(RandomName(),1,a)
-
-    ret = if (r.nextDouble() < 0.5) {
-      val a: Option[WeaponBaseState] = Option(randomWeapon())
-      ret.copy(leftHandWeapon = a)
-    }else ret
-    ret = if (r.nextDouble() < 0.5) {
-      val a: Option[WeaponBaseState] = Option(randomWeapon())
-      ret.copy(rightHandWeapon = a)
-    } else ret
-
-    ret
-  }
 
 
   def randomWeapon(): Weapon = {
     val stat = (BaseState.`1` * AnyRefBaseStat(randomWeaponVal _))
 
-    Weapon(0,"nom",1,stat, Action.Attaque :: Nil)
+    Weapon(0,RandomName.randomWeaponName(),"La belle arme",1,stat, Action.Attaque :: Nil)
   }
 
   trait WeaponBaseState extends StatsWithName with Lvl
@@ -104,7 +88,7 @@ object Actor {
       cache += ct.runtimeClass -> int
     }
   }
-   case class Weapon(id : Int ,name : String,lvl : Int,stats: AnyRefBaseStat[Int], action: List[Action]=Action.Attaque :: Nil ) extends  WeaponBaseState {
+   case class Weapon(id : Int ,name : String,desc : String,lvl : Int,stats: AnyRefBaseStat[Int], action: List[Action]=Action.Attaque :: Nil ) extends  WeaponBaseState {
 
      override def withId[A <: StatsWithName](id: Int): A = copy(id= id).asInstanceOf[A]
 

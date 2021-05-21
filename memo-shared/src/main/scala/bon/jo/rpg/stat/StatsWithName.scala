@@ -8,6 +8,7 @@ trait StatsWithName {
 
   val name: String
   val id: Int
+  val desc : String
   val action: List[Action]
   val stats: IntBaseStat
 

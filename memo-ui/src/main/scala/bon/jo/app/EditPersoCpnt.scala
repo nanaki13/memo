@@ -10,7 +10,7 @@ import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.html.HtmlRep
 import bon.jo.html.HtmlRep.HtmlRepParam
 import bon.jo.memo.ui.SimpleView.bsButton
-import bon.jo.rpg.Action
+import bon.jo.rpg.{Action, RandomName}
 import bon.jo.rpg.stat.raw.{Actor, IntBaseStat, Perso, Weapon}
 import org.scalajs.dom.html.{Button, TextArea}
 import org.scalajs.dom.raw.{HTMLElement, HTMLLIElement, HTMLUListElement}
@@ -84,11 +84,11 @@ class EditPersoCpnt(initial: Perso, option: Option[(Rpg, mutable.ListBuffer[Edit
   private val leftArm = spanArm(initial.leftHandWeapon)
   private val rightArm = spanArm(initial.rightHandWeapon)
   private val handsCont = $va div(leftArm, equipLeft, rightArm, equipRight)
-  private val descTa = initial.desc.tagTyped[TextArea](t.textarea)
-  override def create(id: Int, name: String, intBaseStat: IntBaseStat, action: List[Action]): Perso =
-    new Perso(id, name,descTa.value, intBaseStat, lvl = 1, action, leftHandWeapon = varLeftHand, rightHandWeapon = varRightHand)
 
-  override def beforeStatOption: Option[HTMLElement] = Some( $va div(descTa,handsCont))
+  override def create(id: Int, name: String,desc : String, intBaseStat: IntBaseStat, action: List[Action]): Perso =
+    new Perso(id, name,desc, intBaseStat, lvl = 1, action, leftHandWeapon = varLeftHand, rightHandWeapon = varRightHand)
+
+  override def beforeStatOption: Option[HTMLElement] = Some( $va div(handsCont))
 
 
   equipAction(equipRight, rightArm) {
