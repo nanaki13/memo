@@ -52,7 +52,7 @@ class MemoListView() extends GenId {
         val s = CommonHtml.closeBtn
         s._class += s" $deleteClass"
         s
-      })).toHtmlCpnt
+      }).toList).toHtmlCpnt
   }
   implicit val idXmlRep: _HtmlRep[MemoListJS] = {
     m =>  {
@@ -73,7 +73,7 @@ class MemoListView() extends GenId {
     val ll = List(
       $ref label {
         l =>
-          l.$attr(("for", tInput.id))
+          l $attr List("for" -> tInput.id)
       }, tInput
     ) :++ ( data.html.get)
     d ++= ll

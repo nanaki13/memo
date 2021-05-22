@@ -43,9 +43,9 @@ object BattleTimeLine:
       timedObjs = timedObjs :+ a.timed
 
 
-      def stop(): Unit =
-        timedObjs = Nil
-        pause = 0
+    def stop(): Unit =
+      timedObjs = Nil
+      pause = 0
 
 
     def state(e : List[TimedTrait[_]]): Seq[(TimedTrait[_], State)] = e.map(p => (p, state(p.pos, p.speed)))

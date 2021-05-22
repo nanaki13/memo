@@ -82,7 +82,7 @@ object AppLoaderExample extends App {
     def importDataPopUp() : Unit =  {
       val ta : TextArea = $c.textarea[TextArea]
       val impBtn : Button =  SimpleView.bsButton("import")
-      val div = $va div (ta,impBtn)
+      val div = $va div List(ta,impBtn)
       impBtn.$click{_=>
         try {
           importData(ta.value)
@@ -142,7 +142,7 @@ object AppLoaderExample extends App {
         s._class = "nav-link dropdown-toggle"
         s.href = "#"
         s.text = t
-        s.$attr("data-toggle" -> "dropdown", "role" -> "button", "aria-haspopup" -> "true", "aria-expanded" -> "false")
+        s.$attr(List("data-toggle" -> "dropdown", "role" -> "button", "aria-haspopup" -> "true", "aria-expanded" -> "false"))
     }
 
 

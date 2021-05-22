@@ -15,7 +15,7 @@ object FindViewDef {
                       )
 
   class FindView(val findParam: FindParam, val ctx: FindViewCtx) extends HtmlCpnt with UpdatableCpnt[FindParam]{
-    implicit val ec = ctx.ec
+    implicit val ec: ExecutionContext = ctx.ec
     private val input = SimpleView.i
     private val button = SimpleView.bsButton(findParam.buttonName)
 

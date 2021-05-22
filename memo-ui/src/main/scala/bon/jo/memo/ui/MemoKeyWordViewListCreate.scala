@@ -11,17 +11,17 @@ class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: 
                                 val memoKeywWordtx: MemoCtxView,addMemo : (Entities.MemoKeywords)=>Unit)
                                (implicit executionContext: ExecutionContext)
   extends SimpleView[Entities.MemoKeywords](() =>
-    ($va div(
+    ($va div (
       $t span "titre",
       memoKeywWordtx.tInput,
       $t span "type :",
       memoKeywWordtx.memoType,
       $t div "content",
-      $va div(memoKeywWordtx.contentInput, memoKeywWordtx.memoList.html),
+      $va div(memoKeywWordtx.contentInput, memoKeywWordtx.memoList.html).toList,
       listView,
       $t div "KeyWord : ",
       propose.html
-    )) := ( _._class="col" ) ,addMemo) {
+    ).toList) := ( _._class="col" ) ,addMemo) {
 
 
 

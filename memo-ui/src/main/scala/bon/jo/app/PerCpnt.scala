@@ -78,7 +78,7 @@ class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso] {
       $va div(($va h5 (nameDiv)) := { me =>
         me._class = "card-title"
       },descDiv,
-        $va div (row(List($t("stat") +: contStat, $t("L") +: contArmL, $t("G") +: contArmR, $t("stat+") +: lcomputedStat)))) := { me =>
+        $va div List(row(List($t("stat") +: contStat, $t("L") +: contArmL, $t("G") +: contArmR, $t("stat+") +: lcomputedStat)))) := { me =>
         me._class = "card-body black-on-white"
         me.style.fontSize = "0.7em"
       }

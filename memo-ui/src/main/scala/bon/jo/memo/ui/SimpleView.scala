@@ -1,5 +1,5 @@
 package bon.jo.memo.ui
-
+import bon.jo.app.Experimental._
 import bon.jo.html.CommonHtml
 import bon.jo.html.DomShell.{ExtendedHTMLCollection, ExtendedNode}
 import bon.jo.html.HTMLDef.$ref.t
@@ -15,7 +15,7 @@ object SimpleView {
 
 
   def row(col : Node *): HTMLElement ={
-    val cols = col.map(e => ($va div e) := {
+    val cols = col.map(e => (e.wrap(tag.div)) := {
       _._class = "col"
     })
     $l div (cols) := {
@@ -119,7 +119,7 @@ abstract class SimpleView[A](creationHtml: () => HTMLElement, val addImpl: (A) =
     h.appendChild(btnInput)
     h
   }
-  val cpnt: Div = (($va.t div (htmlAvecButton)): Div) := (_._class = "row")
+  val cpnt: Div = (($va.t div List(htmlAvecButton)): Div) := (_._class = "row")
 
 
   def +=(p: A): Unit = {

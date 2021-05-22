@@ -2,14 +2,14 @@ package bon.jo.app
 
 import bon.jo.html.HTMLDef.HtmlOps
 import org.scalajs.dom.document
-import org.scalajs.dom.raw.{Element, HTMLElement}
+import org.scalajs.dom.raw.{Element, HTMLElement,Node}
 
 import scala.language.dynamics
 
 object Experimental {
 
 
-  object t extends scala.Dynamic {
+  object tag extends scala.Dynamic {
     def selectDynamic(f: String): String = f
   }
 
@@ -26,7 +26,7 @@ object Experimental {
     }
   }
 
-  implicit class ChildToParent(s: HTMLElement) {
+  implicit class ChildToParent(s: Node) {
     def wrap(tagHtml: String): HTMLElement = {
       document.createElement(tagHtml).asInstanceOf[HTMLElement] := (_ += s)
     }

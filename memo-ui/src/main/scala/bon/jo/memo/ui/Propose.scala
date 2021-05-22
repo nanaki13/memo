@@ -61,7 +61,7 @@ class Propose[A, B <: raw.HTMLElement](
 object ProposeView{
   def help: Element = {
 
-    val r = ViewsDef.help.$attr("data-toggle" -> "tooltip", "data-delay" -> "500",
+    val r = ViewsDef.help $attr List("data-toggle" -> "tooltip", "data-delay" -> "500",
       "title" -> "Cliquer sur un tags pour l'ajouter au memo")
     r.show(false)
     jquery(r).tooltip()

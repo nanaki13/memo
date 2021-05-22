@@ -22,11 +22,11 @@ trait RpgSimu {
      val selected : Div = $c.div
      val select : Div = $c.div
 
-     val cont = $c.div[Div].$row( select,selected,enSelButton.wrap(t.div) )
+     val cont = $c.div[Div].$row( select,selected,enSelButton.wrap(tag.div) )
      cont.classList.add("mt-5")
      cont.classList.add("ml-5")
      root += cont
-     val rep : HtmlRep[Perso,ImuutableHtmlCpnt] = ((z : Perso) => () => Some(z.name.tag(t.div)))
+     val rep : HtmlRep[Perso,ImuutableHtmlCpnt] = ((z : Perso) => () => Some(z.name.tag(tag.div)))
      persoDao.readAll() flatMap  {
        persos =>
          Selection

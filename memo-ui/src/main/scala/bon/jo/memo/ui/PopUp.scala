@@ -37,7 +37,7 @@ object PopUp {
     popCount+=1
     val btn = CommonHtml.closeBtn
     btn.classList add "popup-close"
-    val htmlNode : Div =  $va.t div( $va div btn,message)
+    val htmlNode : Div =  $va.t div List( $va div (btn,message).toList )
 
     popCnt += htmlNode
     btn.$click { _ =>

@@ -2,6 +2,7 @@ package bon.jo.app
 
 import bon.jo.html.HTMLDef.{$c, $t, $va, HtmlOps}
 import bon.jo.rpg.BattleTimeLine
+import bon.jo.app.Experimental._
 import bon.jo.rpg.BattleTimeLine.TimeLineParam
 import bon.jo.rpg.raw.TimedTrait
 import bon.jo.rpg.stat.Perso.WithUI
@@ -21,7 +22,7 @@ class TimeLineCpnt(val el: TimeLineParam, val withUI: WithUI) {
 
   import withUI.acImpl
 
-  implicit val ui = withUI.o.ui
+  implicit val ui: Any = withUI.o.ui
   val tlView: Div = $c.div
   tlView.draggable = true
 
@@ -37,7 +38,7 @@ class TimeLineCpnt(val el: TimeLineParam, val withUI: WithUI) {
       e.style.position = "absolute"
       e
   }.foreach(e => tlView.appendChild({
-    val in = $va div (e)
+    val in = e.wrap(tag.div)
     in.style.height = "1em"
     val s1: Span = $c.span
     s1.style.width = s"${el.chooseAction}px"
@@ -92,7 +93,7 @@ class TimeLineCpnt(val el: TimeLineParam, val withUI: WithUI) {
 
   def doEvent(): Int = {
 
-
+    import bon.jo.app.HtmlUi.Implicit.value
     el.uiUpdate = update
     lazy val gameLoop: Int = window.setInterval(()=>{
       if(el.pause == 0){
