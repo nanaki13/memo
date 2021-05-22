@@ -16,17 +16,18 @@ trait MemoDBImpl {
   //implicit val memotTypreCv : TypedType[MemoType]
 
   class Memos(tag: Tag) extends Table[Memo](tag, "memo") {
- //   implicit val memoTypeCol: JdbcType[MemoType] with BaseTypedType[MemoType] = MappedColumnType.base[MemoType,String](_.toString,MemoType(_))
+    implicit val memoTypeCol: JdbcType[MemoType] with BaseTypedType[MemoType] = MappedColumnType.base[MemoType, String](_.toString, MemoType(_))
+
     def id = column[Int]("id", O.PrimaryKey, O.AutoInc)
 
-    def content = column[String]("content",O.Length(1024*10))
+    def content = column[String]("content", O.Length(1024 * 10))
 
     def title = column[String]("title")
 
-    def memoType = column[String]("memo_type")
+    def memoType = column[MemoType]("memo_type")
 
 
-    def * = (id.?, title, content,memoType) <>[Memo] (MemoS.untupled_ ,MemoS.tupled_ )
+    def * = (id.?, title, content, memoType) <> (Memo.tupled, Memo.unapply)
 
     def idx = index("idx_content", content, unique = true)
   }

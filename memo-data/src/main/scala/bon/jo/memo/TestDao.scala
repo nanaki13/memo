@@ -1,11 +1,8 @@
 package bon.jo.memo
-
 import bon.jo.dao.Dao
-
+import scala.concurrent.ExecutionContext.Implicits._
 object TestDao extends App {
   implicit val matcher: Dao.Id[String] = e => e
-
-  import scala.concurrent.ExecutionContext.Implicits._
 
   val daoString = new Dao.ListDao[String, String]() {
 

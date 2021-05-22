@@ -69,7 +69,7 @@ object Actor {
   def randomWeapon(): Weapon = {
     val stat = (BaseState.`1` * AnyRefBaseStat(randomWeaponVal _))
 
-    Weapon(0,RandomName.randomWeaponName(),"La belle arme",1,stat, Action.Attaque :: Nil)
+    Weapon(0,RandomName.randomWeaponName(),"La belle arme",1,stat.to[AnyRefBaseStat[Int]], Action.Attaque :: Nil)
   }
 
   trait WeaponBaseState extends StatsWithName with Lvl

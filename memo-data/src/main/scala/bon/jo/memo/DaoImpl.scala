@@ -1,12 +1,10 @@
 package bon.jo.memo
 
-import slick.lifted.AbstractTable
+import slick.lifted.{AbstractTable, Query, TableQuery}
 
 trait DaoImpl {
   implicit val profile: DBProfile
   val db: profile.profile.backend.DatabaseDef = profile.db
-
-  import profile.profile.api._
 
   def applyLimit[A <: AbstractTable[_]](tableQuery: TableQuery[A], limit: Int, offset: Int): Query[A, A#TableElementType, Seq] = {
 

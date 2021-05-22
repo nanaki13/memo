@@ -7,12 +7,18 @@ import java.time.format.DateTimeFormatter
 import scala.sys.process._
 
 import Utils.git
+
+val mainVersion = "0.1.1"
 enablePlugins(ScalaJSPlugin)
-val sharedSettings = Seq(version := "0.1.1-SNAPSHOT",
+val sharedSettings = Seq(version := mainVersion,
   organization := "bon.jo",
+  // scalaVersion := "3.0.0",
   scalaVersion := "2.13.5",
-  libraryDependencies += "org.scalatest" %% "scalatest" % "3.1.1" % "test",
-  scalacOptions ++= Seq("-deprecation", "-feature")
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test",
+  scalacOptions ++= Seq("-deprecation", "-feature"
+//    ,"-source:3.0-migration"
+
+  )
 )
 name := "memo"
 // or any other Scala version >= 2.11.12
@@ -25,13 +31,34 @@ lazy val `memo-shared` =
     .settings(
        libraryDependencies+="bon.jo" %%% "phy-shared" % "0.1.2-SNAPSHOT"
     )
-    .jvmSettings(libraryDependencies += "org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided")
+
+//    .jvmSettings(libraryDependencies += "org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided")
 // configure Scala-Native settings
 // .nativeSettings(/* ... */) // defined in sbt-scala-native
-val AkkaVersion = "2.6.8"
+val AkkaVersion = "2.6.14"
 val AkkaHttpVersion = "10.2.4"
-val SlickVersion = "3.3.2"
-val Json4SVersion = "3.7.0-M10"
+val SlickVersion = "3.3.3"
+val Json4SVersion = "3.7.0-RC1"
+
+def from213(e : ModuleID) = e.cross(CrossVersion.for3Use2_13)
+
+def slick = Seq(  "com.typesafe.slick" %% "slick" % SlickVersion,
+  "com.typesafe.slick"  %% "slick-hikaricp"       % SlickVersion)
+def depFrom213 = Seq("com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
+  "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
+  "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion
+  ,  "org.json4s" %% "json4s-native" % Json4SVersion) map from213
+
+lazy val `memo-data` =
+  project.settings(
+    version := mainVersion,
+    organization := "bon.jo",
+    scalaVersion := "2.13.5",
+    libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test",
+    scalacOptions ++= Seq("-deprecation", "-feature"),
+    libraryDependencies ++= slick,
+    libraryDependencies+="bon.jo" %%% "phy-shared" % "0.1.2-SNAPSHOT"
+  ).dependsOn(`memo-shared`.jvm)
 lazy val `memo-server` =
 // select supported platforms
  project
@@ -40,17 +67,14 @@ lazy val `memo-server` =
     .settings(
       libraryDependencies ++= Seq(
         "org.xerial" % "sqlite-jdbc" % "3.34.0",
-        "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
-        "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
-        "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
-        "com.typesafe.slick" %% "slick" % SlickVersion,
-        "com.typesafe.slick"  %% "slick-hikaricp"       % SlickVersion,
-        "org.json4s" %% "json4s-core" % Json4SVersion,
-        "org.json4s" %% "json4s-native" % Json4SVersion,
+
+        "org.json4s" %% "json4s-core" % Json4SVersion
+      ,
         "org.postgresql" % "postgresql" %"42.2.5"
-      )
+      ),
+      libraryDependencies ++= depFrom213
     )
-   .dependsOn(`memo-shared`.jvm)
+   .dependsOn(`memo-shared`.jvm,`memo-data`)
 
 
 val stagePath = "I:\\work\\github-io\\rpg"
@@ -60,7 +84,7 @@ lazy val `memo-ui` =
   crossProject(JSPlatform)
     .crossType(CrossType.Pure) // [Pure, Full, Dummy], default: CrossType.Full
     .settings(sharedSettings)
-    .settings(libraryDependencies ++= Seq("org.scala-js" %%% "scalajs-dom" % "1.1.0", "org.scala-lang.modules" %%% "scala-xml" % "2.0.0-M1"
+    .settings(libraryDependencies ++= Seq(from213("org.scala-js" %%% "scalajs-dom" % "1.1.0"), "org.scala-lang.modules" %%% "scala-xml" % "2.0.0-M1"
       , "bon.jo" %%% "html-app" % "0.1.2-SNAPSHOT"
 
     ))

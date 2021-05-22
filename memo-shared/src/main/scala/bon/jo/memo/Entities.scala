@@ -7,12 +7,12 @@ object Entities {
     def this(title: String, content: String, memoType: MemoType) = this(None, title, content, memoType)
   }
 
-  object MemoS {
-    def tupled_(memo: Memo): Option[(Option[Int], String, String, String)] = Memo.unapply(memo).map{z =>
-      (z._1,z._2,z._3,z._4.name)
-    }
-    def untupled_(z: (Option[Int], String, String, String)): Memo = Memo.tupled((z._1,z._2,z._3,MemoType(z._4)))
-  }
+//  object MemoS {
+//    def tupled_(memo: Memo): Option[(Option[Int], String, String, String)] = {
+//      Memo.unapply(memo)
+//    }
+//    def untupled_(z: (Option[Int], String, String, String)): Memo = Memo.tupled(z._1,z._2,z._3,MemoType(z._4))
+//  }
 // Option(memo.id,memo.title,memo.content,memo.memoType.name )
   case class KeyWord(id: Option[Int], value: String)
 

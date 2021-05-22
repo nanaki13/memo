@@ -139,7 +139,7 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
 
 
   def mainDiv: HTMLElement = {
-    window.
+
     import Experimental._
     val r1 =  t.div.toHtlm.$row(
       $va div(id, name), (descTa : HTMLElement).wrap(t.div)

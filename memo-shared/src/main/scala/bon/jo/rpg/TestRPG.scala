@@ -32,7 +32,7 @@ object TestRPG extends App {
   implicit val acImpl: ActionResolver[TimedTrait[Any], List[TimedTrait[_]]] = {
     (a: TimedTrait[_], action: Action, b: List[TimedTrait[_]]) =>
       a.value match {
-        case e: Perso => e.resolve(action, b.value)
+        case e: Perso => e.resolve(action, b.value)(ui.value)
       }
   }
 

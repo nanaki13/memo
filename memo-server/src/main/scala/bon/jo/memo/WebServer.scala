@@ -5,6 +5,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
 import bon.jo.memo.Entities.MemoType
+import bon.jo.memo.DBProfile
 import org.json4s.{CustomSerializer, DefaultFormats, Formats, JString}
 
 import java.io.File
