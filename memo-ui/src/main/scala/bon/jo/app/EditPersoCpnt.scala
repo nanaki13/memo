@@ -1,6 +1,6 @@
 package bon.jo.app
 
-import bon.jo.app.Experimental.{StringToHtml, tag}
+import bon.jo.app.Experimental.*
 import bon.jo.app.SType.ExParam
 import bon.jo.app.Types.Pram
 import bon.jo.dao.Dao
@@ -16,7 +16,12 @@ import org.scalajs.dom.html.{Button, TextArea}
 import org.scalajs.dom.raw.{HTMLElement, HTMLLIElement, HTMLUListElement}
 
 import scala.collection.mutable
+import scala.concurrent.ExecutionContext
 
+val $$ =  Experimental.html   
+import $$.*
+  
+           
 object Types:
   type Pram = (Rpg, mutable.ListBuffer[EditStatWithName[Perso]])
 
@@ -43,23 +48,23 @@ class EditPersoCpnt(initial: Perso, option: Option[(Rpg, mutable.ListBuffer[Edit
   def equipAction(addButton: Button, updateTitle: HTMLElement)(optionF: Option[Weapon] => Unit) =
     addButton.$click { _ =>
       option foreach {
-        case (rpg, value) =>
-          import rpg.executionContext
+        (rpg, value) =>
+          given ExecutionContext = rpg.executionContext
           val ul = $c.ul[HTMLUListElement]
           rpg.weaponDao.readAll().map {
             e =>
-              e.map(w => w -> ($c.li[HTMLLIElement] := {
-                li =>
-                  li.textContent = w.name
-                  li._class = "list-group-item btn"
-                  li.$click {
-                    _ =>
-                      val s = Some(w)
+           
+              e.map(w => w -> $$.li{
+                text(w.name)
+                _class("list-group-item btn")
+                click( {
+                   val s = Some(w)
                       optionF(s)
                       updateTitle.textContent = txt(s)
                       ul.removeFromDom()
-                  }
-              }))
+                })
+              })
+
           } foreach {
             ws =>
               val sel = ws.toList.map(_._2).foldLeft(ul)(_ += _)
@@ -75,7 +80,13 @@ class EditPersoCpnt(initial: Perso, option: Option[(Rpg, mutable.ListBuffer[Edit
 
   def txt(optionW: Option[Weapon]): String = optionW.map(_.name).getOrElse("-")
 
-  def spanArm(optionW: Option[Weapon]): HTMLElement = $ref span (_.textContent = txt(optionW))
+  def spanArm(optionW: Option[Weapon]): HTMLElement = 
+    $$ span {
+      col
+      text(txt(optionW))
+    }
+      
+
 
   private val leftArm = spanArm(initial.leftHandWeapon)
   private val rightArm = spanArm(initial.rightHandWeapon)

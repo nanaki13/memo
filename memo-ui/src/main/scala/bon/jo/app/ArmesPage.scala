@@ -137,7 +137,7 @@ trait ArmesPage:
       override val rpg: Rpg = self
       override val dao: MappedDao[PersoJS, Perso] with PersoDao = rpg.persoDao
 
-      override def random(): Perso = Actor.randomActor(e => new Perso(0, RandomName(),"Le plus beau des h?ros", e))
+      override def random(): Perso = Actor.randomActor(e => new Perso(0, RandomName(),"Le plus beau des héros", e))
 
       override implicit val executionContext: ExecutionContext = self.executionContext
     }

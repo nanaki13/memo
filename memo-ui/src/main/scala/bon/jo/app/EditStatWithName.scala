@@ -1,6 +1,6 @@
 package bon.jo.app
 
-import bon.jo.app.Experimental._
+
 import bon.jo.app.SType.Param
 import bon.jo.dao.Dao
 import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
@@ -19,20 +19,21 @@ import bon.jo.ui.{ReadableCpnt, UpdatableCpnt}
 import org.scalajs.dom.html.{Div, Input, Span, TextArea}
 import org.scalajs.dom.raw.{HTMLElement, HTMLOptionElement, HTMLSelectElement}
 import org.scalajs.dom.window
-
+import Experimental._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
-
+import scala.language.dynamics
 
 object SType:
   type Param[A<: StatsWithName] = (Rpg,mutable.ListBuffer[EditStatWithName[A]])
   implicit class ExParam[A<: StatsWithName](e : Option[Param[A]]):
     def rpg: Rpg = e.map(_._1).getOrElse(throw new IllegalStateException())
-abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[Param[A]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends ImuutableHtmlCpnt with UpdatableCpnt[A] with ReadableCpnt[A]:
+abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[Param[A]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends ImuutableHtmlCpnt 
+with UpdatableCpnt[A] with ReadableCpnt[A] with HtmlDsl:
 
   type Param = SType.Param[A]
-  implicit val rep: HtmlRepParam[A, Param, EditStatWithName[A]] // = new EditWeaponCpnt[A](_,_)(repStat)
+  implicit val rep: HtmlRepParam[A, Param, EditStatWithName[A]]
   val dao : Dao[A,Int]
   private val statCpnt = initial.stats.html(repStat)
   private val name = $c.input[Input] := { n =>
@@ -41,7 +42,7 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
   }
   private val id = $c.span[Span] := (_.textContent = initial.id.toString)
   private val colActioin: Div = $c.div
-  private val descTa = initial.desc.tagTyped[TextArea](tag.textarea)
+  private val descriptionInput = initial.desc.tagTyped[TextArea](tag.textarea)
   def deleteButton(): Option[HTMLElement => HTMLElement] = option.map(_._1.executionContext) map {
     implicit ec =>
       SimpleView.withClose(_,{
@@ -131,20 +132,28 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
   }
 
 
-  def mainDiv: HTMLElement =
 
-    import Experimental._
-    val r1 =  tag.div.toHtlm.$row(
-      $va div List(id, name), (descTa : HTMLElement).wrap(tag.div)
-    )
-    val r2 =  tag.div.toHtlm.$row(
-      $t span "action" := {
+  def mainDiv: HTMLElement = 
+    val t = Experimental.html
+    t.div {
+     childs( 
+       t.div {
+       row
+       cols(
+       t.div (childs(id, name)),t.div(childs(descriptionInput))
+        )
+      },
+       t.div {
+       row
+       cols($t span "action" := {
         _._class = "stat-label"
-      },actionsChoose,buttonAddAction
-    )
+        },actionsChoose,buttonAddAction)
+      }, 
+      t div childs(colActioin),
+      t div childs(statCpnt.list : _ *),
+      copyButton
+     )}
 
-    val r4 = copyButton
-      $va div List(r1,r2,$l div (statCpnt.list),r4)
 
   def beforeState(a : HTMLElement)=  statCpnt.list.head.parentElement.insertBefore(a,statCpnt.list.head)
   def beforeStatOption : Option[HTMLElement] = None
@@ -167,10 +176,10 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
   def create(id: Int, name: String,desc : String, intBaseStat: IntBaseStat, action: List[Action]): A
 
   override def read: A =
-    create(id.textContent.toInt, name.value,descTa.value, statCpnt.read, actions.toList)
+    create(id.textContent.toInt, name.value,descriptionInput.value, statCpnt.read, actions.toList)
 
   def readWithoutId: A =
-    create(0, name.value,descTa.value, statCpnt.read, actions.toList)
+    create(0, name.value,descriptionInput.value, statCpnt.read, actions.toList)
 
   private val copyButton = SimpleView.bsButton("copy")
 

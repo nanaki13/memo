@@ -1,3 +1,9 @@
 **/target
 target
 .idea
+.bloop
+.metals
+.bsp
+.vscode
+memo-ui/memo-ui-fastopt.js
+**/metals.sbt

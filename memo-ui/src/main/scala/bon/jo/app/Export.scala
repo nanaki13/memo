@@ -26,8 +26,8 @@ object Export:
 
     def apply(t: Perso): PersoJS =
       val dPerso = Export.apply(t)
-      dPerso.leftHandWeapon = t.leftHandWeapon.map(WeaponJS(_)).getOrElse(null)
-      dPerso.rightHandWeapon = t.rightHandWeapon.map(WeaponJS(_)).getOrElse(null)
+      dPerso.leftHandWeapon = t.leftHandWeapon.map(WeaponJS(_)).getOrElse(js.undefined)
+      dPerso.rightHandWeapon = t.rightHandWeapon.map(WeaponJS(_)).getOrElse(js.undefined)
       dPerso.asInstanceOf[PersoJS]
 
     def unapply(value: PersoJS): Option[Perso] =
