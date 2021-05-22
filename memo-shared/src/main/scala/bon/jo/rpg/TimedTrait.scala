@@ -2,22 +2,19 @@ package bon.jo.rpg
 
 import bon.jo.rpg.Action.ActionCtx
 
-object TimedTrait {
+object TimedTrait:
   private var id = 0
-  def getId: Int = {
+  def getId: Int =
     id += 1
     id
-  }
-  case class TimedObject[A: Timed]( value: A,id : Int,_pos : Int= 0,_action : ActionCtx) extends TimedTrait[A] {
+  case class TimedObject[A: Timed]( value: A,id : Int,_pos : Int= 0,_action : ActionCtx) extends TimedTrait[A]:
     override val workerTimed: Timed[A] = implicitly[Timed[A]]
     override def withPos(i: Int): TimedTrait[A] = copy(_pos = i)
 
     override def timed: TimedObject.this.type = this
 
     override def withAction(i: ActionCtx): TimedTrait[A] = copy(_action = i)
-  }
   implicit class Base[A: Timed](value: A) extends TimedObject[A](value,id   = getId,0,ActionCtx.Rien)
-}
 
 trait TimedTrait[A] {
   val id : Int

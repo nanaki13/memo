@@ -6,20 +6,18 @@ import bon.jo.common.Affects.Affect
 import bon.jo.common.Alg
 
 import scala.util.Random
-trait AnyRefBaseStat[+A] {
-  def named: AnyRefBaseStat[(String,A)] = {
+trait AnyRefBaseStat[+A]:
+  def named: AnyRefBaseStat[(String,A)] =
     AnyRefBaseStat(toNameValueList.map(e => (e._1,e)))
-  }
 
 
   def growPercent[B](percent: AnyRefBaseStat[B])
-                 (implicit cv: B => Float,cv2: A => Float, s: AnyRefBaseStat[A] => AnyRefBaseStat[Float], s2: AnyRefBaseStat[B] => AnyRefBaseStat[Float]): AnyRefBaseStat[Float] = {
+                 (implicit cv: B => Float,cv2: A => Float, s: AnyRefBaseStat[A] => AnyRefBaseStat[Float], s2: AnyRefBaseStat[B] => AnyRefBaseStat[Float]): AnyRefBaseStat[Float] =
 
     this * (BaseState.`1f` + (percent / (100f)))
 
-  }
 
-  def map[B](f : A => B):AnyRefBaseStat[B] = {
+  def map[B](f : A => B):AnyRefBaseStat[B] =
     AnyRefBaseStat.Impl( f(hp),
       f(sp),
       f(viv),
@@ -29,17 +27,14 @@ trait AnyRefBaseStat[+A] {
       f(psy),
       f(res),
       f(chc))
-  }
   def toPropList: List[A] = List(hp,sp,viv,str,mag,vit,psy,res,chc)
   def toPropName: List[String] = List("hp","sp","viv","str","mag","vit","psy","res","chc")
-  def toNameValueList: List[(String,A)]={
+  def toNameValueList: List[(String,A)]=
     toPropName zip toPropList
-  }
-  def toMap: Map[String,A]={
+  def toMap: Map[String,A]=
     toNameValueList.toMap
-  }
 
-  def applyFloat(op: (A, Float) => Float, baseState: Float): AnyRefBaseStat[Float] = {
+  def applyFloat(op: (A, Float) => Float, baseState: Float): AnyRefBaseStat[Float] =
     AnyRefBaseStat.Impl[Float](
       op(hp, baseState),
       op(sp, baseState),
@@ -50,9 +45,8 @@ trait AnyRefBaseStat[+A] {
       op(psy, baseState),
       op(res, baseState),
       op(chc, baseState))
-  }
 
-  def applyFloat(op: (A, Float) => Float, baseState: AnyRefBaseStat[Float]): AnyRefBaseStat[Float] = {
+  def applyFloat(op: (A, Float) => Float, baseState: AnyRefBaseStat[Float]): AnyRefBaseStat[Float] =
     AnyRefBaseStat.Impl[Float](
       op(hp, baseState.hp),
       op(sp, baseState.sp),
@@ -63,18 +57,16 @@ trait AnyRefBaseStat[+A] {
       op(psy, baseState.psy),
       op(res, baseState.res),
       op(chc, baseState.chc))
-  }
 
 
 
-  def :=[B] (other : AnyRefBaseStat[B])(implicit v : AffectOps[A,B] ): Unit ={
+  def :=[B] (other : AnyRefBaseStat[B])(implicit v : AffectOps[A,B] ): Unit =
       toPropList zip other.toPropList foreach{
         case (a, b) => a := b
       }
-  }
 
 
-  implicit class WithAlg[B: Alg](val a: B) {
+  implicit class WithAlg[B: Alg](val a: B):
     val alg = implicitly[Alg[B]]
 
     def +(b: B): B = alg + (a, b)
@@ -84,73 +76,65 @@ trait AnyRefBaseStat[+A] {
     def *(b: B): B = alg * (a, b)
 
     def /(b: B): B = alg / (a, b)
-  }
 
   def +[B](baseState: AnyRefBaseStat[B])(implicit cv: A => B,
                                                  cvB: AnyRefBaseStat[A] => AnyRefBaseStat[B]
                                                  , f: Alg[B]
-  ): AnyRefBaseStat[B] = {
+  ): AnyRefBaseStat[B] =
     AnyRefBaseStat[B, A](this, baseState, (a: B, b: B) => a + b)
-  }
 
   def -[B ](baseState: AnyRefBaseStat[B])(implicit cv: A => B,
                                                  cvB: AnyRefBaseStat[A] => AnyRefBaseStat[B]
                                                  , f: Alg[B]
-  ): AnyRefBaseStat[B] = {
+  ): AnyRefBaseStat[B] =
     AnyRefBaseStat[B, A](this, baseState, (a: B, b: B) => a - b)
-  }
 
   def *[B ](baseState: AnyRefBaseStat[B])(implicit cv: A => B,
                                                  cvB: AnyRefBaseStat[A] => AnyRefBaseStat[B]
                                                  , f: Alg[B]
-  ): AnyRefBaseStat[B] = {
+  ): AnyRefBaseStat[B] =
     AnyRefBaseStat[B, A](this, baseState, (a: B, b: B) => a * b)
-  }
 
 
   def /[B ](baseState: AnyRefBaseStat[B])(implicit cv: A => B,
                                                  cvB: AnyRefBaseStat[A] => AnyRefBaseStat[B]
                                                  , f: Alg[B]
-  ): AnyRefBaseStat[B] = {
+  ): AnyRefBaseStat[B] =
     AnyRefBaseStat[B, A](this, baseState, (a: B, b: B) => a / b)
-  }
 
   def /[B ](baseState: B)(implicit cv: A => B, cvB: AnyRefBaseStat[A] => AnyRefBaseStat[B]
-                                   , f: Alg[B]): AnyRefBaseStat[B] = {
+                                   , f: Alg[B]): AnyRefBaseStat[B] =
     this / AnyRefBaseStat(baseState)
-  }
 
 
 
   def +(baseState: Float)(implicit cv: A => Float, cvB: AnyRefBaseStat[A] => AnyRefBaseStat[Float]
-  ): AnyRefBaseStat[Float] = {
+  ): AnyRefBaseStat[Float] =
     this + AnyRefBaseStat(baseState)
-  }
 
   def -(baseState: Float)(implicit cv: A => Float, cvB: AnyRefBaseStat[A] => AnyRefBaseStat[Float]
-  ): AnyRefBaseStat[Float] = {
+  ): AnyRefBaseStat[Float] =
     this - AnyRefBaseStat(baseState)
-  }
 
 
   def to[T <: AnyRefBaseStat[_]](implicit cv: AnyRefBaseStat[A] => T): T = cv(this)
 
   /**
-   * indique la santÃ© du personnage
+   * indique la santé du personnage
    *
    * @return
    */
   def hp: A
 
   /**
-   * permet dâ€™utiliser les talents
+   * permet d’utiliser les talents
    *
    * @return
    */
   def sp: A
 
   /**
-   * Gouverne la vitesse Ã  laquelle le personnage se dÃ©place sur la Timeline de combat.
+   * Gouverne la vitesse à laquelle le personnage se déplace sur la Timeline de combat.
    *
    * @return
    */
@@ -164,42 +148,41 @@ trait AnyRefBaseStat[+A] {
   def str: A
 
   /**
-   * Ces points sâ€™ajoutent au calcul des attaques magiques
+   * Ces points s’ajoutent au calcul des attaques magiques
    *
    * @return
    */
   def mag: A
 
   /**
-   * Ces points servent au calcul de la dÃ©fense physique
+   * Ces points servent au calcul de la défense physique
    *
    * @return
    */
   def vit: A
 
   /**
-   * Ces points servent au calcul de la dÃ©fense magique
+   * Ces points servent au calcul de la défense magique
    *
    * @return
    */
   def psy: A
 
   /**
-   * Augmente les chances dâ€™Ã©chapper Ã  un effet nÃ©faste
+   * Augmente les chances d’échapper à un effet néfaste
    *
    * @return
    */
   def res: A
 
   /**
-   * Gouverne les chance de rÃ©aliser un crit (x2 dÃ©gÃ¢ts!)
+   * Gouverne les chance de réaliser un crit (x2 dégâts!)
    *
    * @return
    */
   def chc: A
   override def toString = s"GenBaseState($hp, $sp, $viv, $str, $mag, $vit, $psy, $res, $chc)"
-}
-object AnyRefBaseStat{
+object AnyRefBaseStat:
   def productElementNames: Iterator[String] = raw.BaseState.`0`.productElementNames
   val names : StringBaseStat = apply(productElementNames.map(e => (e , e)).toList)
   val r = new Random()
@@ -220,7 +203,7 @@ object AnyRefBaseStat{
 
   }
 
-    def apply[A , T ](baseState: AnyRefBaseStat[T])(implicit cv: T => A): Impl[A] = {
+    def apply[A , T ](baseState: AnyRefBaseStat[T])(implicit cv: T => A): Impl[A] =
        Impl[A](
         cv(baseState.hp),
         cv(baseState.sp),
@@ -232,11 +215,10 @@ object AnyRefBaseStat{
         cv(baseState.res),
         cv(baseState.chc)
       )
-    }
 
 
 
-    def apply[A](iterable: Iterable[(String,A)]): AnyRefBaseStat[A] ={
+    def apply[A](iterable: Iterable[(String,A)]): AnyRefBaseStat[A] =
       val map = iterable.toMap
       Impl(
         map("hp"),
@@ -249,18 +231,15 @@ object AnyRefBaseStat{
         map("res"),
         map("chc")
       )
-    }
-    def apply[A](c: ()=>A) = {
+    def apply[A](c: ()=>A) =
 
       val e = Impl(c(), c(), c(), c(), c(), c(), c(), c(), c())
 
       e
-    }
-    def apply[A](c: A) = {
+    def apply[A](c: A) =
       Impl(c, c, c, c, c, c, c, c, c)
-    }
 
-    def apply[A , T ](baseState: AnyRefBaseStat[T], baseStateT: AnyRefBaseStat[A], opF: (A, A) => A)(implicit cv: T => A) = {
+    def apply[A , T ](baseState: AnyRefBaseStat[T], baseStateT: AnyRefBaseStat[A], opF: (A, A) => A)(implicit cv: T => A) =
       Impl(
         opF(cv(baseState.hp), baseStateT.hp),
         opF(cv(baseState.sp), baseStateT.sp),
@@ -272,7 +251,5 @@ object AnyRefBaseStat{
         opF(cv(baseState.res), baseStateT.res),
         opF(cv(baseState.chc), baseStateT.chc),
       )
-    }
 
 
-}

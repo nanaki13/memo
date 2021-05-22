@@ -35,7 +35,7 @@ class Propose[A, B <: raw.HTMLElement](
 
 
   val html: Div = {
-    val div: Div = $va.t div(ioHtml.html, btn)
+    val div: Div = $l.t div List(ioHtml.html, btn)
     div
   }
 
@@ -75,7 +75,7 @@ case class ProposeView[A,C<:HtmlCpnt](
                           list: mutable.ListBuffer[A] =  mutable.ListBuffer.empty[A],
                       )(implicit rep  : HtmlRep[A,C]){
 
-  val html: HTMLElement = $va   div (help, seleO)
+  val html: HTMLElement = $l   div List(help, seleO)
   def doFilter(filter: A => Boolean): Unit = {
 
     val s =  (list zip seleO.children).map(a => {

@@ -8,15 +8,16 @@ import scala.sys.process._
 
 import Utils.git
 
-val mainVersion = "0.1.1"
+val mainVersion = "1.0.0-SNAPSHOT"
 enablePlugins(ScalaJSPlugin)
 val sharedSettings = Seq(version := mainVersion,
   organization := "bon.jo",
-  // scalaVersion := "3.0.0",
-  scalaVersion := "2.13.5",
+  scalaVersion := "3.0.0",
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test",
   scalacOptions ++= Seq("-deprecation", "-feature"
-//    ,"-source:3.0-migration"
+    ,"-source:3.0-migration"
+   ,"-rewrite"
+    // ,"-new-syntax"
 
   )
 )
@@ -26,10 +27,12 @@ name := "memo"
 lazy val `memo-shared` =
 // select supported platforms
   crossProject(JSPlatform, JVMPlatform)
+
     .crossType(CrossType.Pure) // [Pure, Full, Dummy], default: CrossType.Full
     .settings(sharedSettings)
     .settings(
-       libraryDependencies+="bon.jo" %%% "phy-shared" % "0.1.2-SNAPSHOT"
+       libraryDependencies+="bon.jo" %%% "phy-shared" % "1.0.0-SNAPSHOT",
+
     )
 
 //    .jvmSettings(libraryDependencies += "org.scala-js" %%% "scalajs-stubs" % "1.0.0" % "provided")
@@ -41,24 +44,21 @@ val SlickVersion = "3.3.3"
 val Json4SVersion = "3.7.0-RC1"
 
 def from213(e : ModuleID) = e.cross(CrossVersion.for3Use2_13)
+def from3(e : ModuleID) = e.cross(CrossVersion.for2_13Use3)
 
-def slick = Seq(  "com.typesafe.slick" %% "slick" % SlickVersion,
-  "com.typesafe.slick"  %% "slick-hikaricp"       % SlickVersion)
 def depFrom213 = Seq("com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
   "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
   "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion
   ,  "org.json4s" %% "json4s-native" % Json4SVersion) map from213
 
 lazy val `memo-data` =
-  project.settings(
-    version := mainVersion,
-    organization := "bon.jo",
-    scalaVersion := "2.13.5",
+  project.settings(sharedSettings).settings(
+
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test",
-    scalacOptions ++= Seq("-deprecation", "-feature"),
-    libraryDependencies ++= slick,
-    libraryDependencies+="bon.jo" %%% "phy-shared" % "0.1.2-SNAPSHOT"
-  ).dependsOn(`memo-shared`.jvm)
+    libraryDependencies+="bon.jo" %% "phy-shared" % "1.0.0-SNAPSHOT",
+   libraryDependencies+= "bon.jo" %% "memo-shared" % mainVersion
+  )
+    //.dependsOn(`memo-shared`.jvm )
 lazy val `memo-server` =
 // select supported platforms
  project
@@ -72,9 +72,15 @@ lazy val `memo-server` =
       ,
         "org.postgresql" % "postgresql" %"42.2.5"
       ),
-      libraryDependencies ++= depFrom213
+      libraryDependencies ++= depFrom213,
+      libraryDependencies+="bon.jo" %% "memo-shared" % "1.0.0-SNAPSHOT",
+    //  libraryDependencies+="bon.jo" %% "memo-data" % "1.0.0-SNAPSHOT",
     )
-   .dependsOn(`memo-shared`.jvm,`memo-data`)
+   .dependsOn(
+    // `memo-shared`.jvm
+     //,
+      `memo-data`
+   )
 
 
 val stagePath = "I:\\work\\github-io\\rpg"
@@ -84,10 +90,12 @@ lazy val `memo-ui` =
   crossProject(JSPlatform)
     .crossType(CrossType.Pure) // [Pure, Full, Dummy], default: CrossType.Full
     .settings(sharedSettings)
-    .settings(libraryDependencies ++= Seq(from213("org.scala-js" %%% "scalajs-dom" % "1.1.0"), "org.scala-lang.modules" %%% "scala-xml" % "2.0.0-M1"
-      , "bon.jo" %%% "html-app" % "0.1.2-SNAPSHOT"
+    .settings(libraryDependencies ++= Seq(from213("org.scala-js" %%% "scalajs-dom" % "1.1.0"), "org.scala-lang.modules" %%% "scala-xml" % "2.0.0"
+      , "bon.jo" %%% "html-app" % "1.0.0-SNAPSHOT"
 
-    ))
+    )
+      ,libraryDependencies+="bon.jo" %% "memo-shared" % "1.0.0-SNAPSHOT"
+    )
 
     .settings(
       scalaJSUseMainModuleInitializer := true,
@@ -110,7 +118,8 @@ lazy val `memo-ui` =
         git commitAndPush snapPath
       }
 
-    ).dependsOn(`memo-shared`) // defined in sbt-scalajs-crossproject
+    )
+    //.dependsOn(`memo-shared`) // defined in sbt-scalajs-crossproject
 
 
  val toGitHubIO = taskKey[Unit]("send to gitub.io")

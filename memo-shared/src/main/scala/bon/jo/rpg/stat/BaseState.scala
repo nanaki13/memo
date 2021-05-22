@@ -3,7 +3,7 @@ package bon.jo.rpg.stat
 import bon.jo.common.Alg
 
 
-object BaseState {
+object BaseState:
 
   object `0` extends AnyRefBaseStat.Impl[Int](0, 0, 0, 0, 0, 0, 0, 0, 0)
 
@@ -17,7 +17,7 @@ object BaseState {
 
   object `1d` extends AnyRefBaseStat.Impl[Double](1, 1, 1, 1, 1, 1, 1, 1, 1)
 
-  object ImplicitCommon {
+  object ImplicitCommon:
     implicit val iToF: Int => Float = e => e.toFloat
     implicit val fToI: Float => Int = e => e.round
     implicit val genIntToFloat: AnyRefBaseStat[Int] => AnyRefBaseStat[Float] = AnyRefBaseStat[Float, Int](_)
@@ -42,9 +42,7 @@ object BaseState {
 
       override def /(a: Int, b: Int): Int = a / b
     }
-  }
 
 
-}
 
 

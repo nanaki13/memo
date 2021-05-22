@@ -22,7 +22,7 @@ class ViewsImpl(implicit executionContext: ExecutionContext) {
   val keywWordI: Input = i
   val kewWordDiv: Div = $c.div[Div]
 
-  object keyWordView extends SimpleView[Entities.KeyWord](() => $va div ($va span($t("titre :")
+  object keyWordView extends SimpleView[Entities.KeyWord](() => $va div ($l span List($t("titre :")
     , keywWordI, kewWordDiv)), (kw) => {
     val e: ViewsDef.KewWordHtml = kw.html
     e.close.$click { _ =>

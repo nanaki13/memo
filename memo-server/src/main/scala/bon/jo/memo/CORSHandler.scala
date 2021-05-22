@@ -6,7 +6,7 @@ import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Directive0, Route}
 
-trait CORSHandler {
+trait CORSHandler:
 
   private val corsResponseHeaders = List(
 
@@ -16,9 +16,8 @@ trait CORSHandler {
   )
 
   //this directive adds access control headers to normal responses
-  private def addAccessControlHeaders: Directive0 = {
+  private def addAccessControlHeaders: Directive0 =
     respondWithHeaders(corsResponseHeaders)
-  }
 
   //this handles preflight OPTIONS requests.
   private def preflightRequestHandler: Route = options {
@@ -36,4 +35,3 @@ trait CORSHandler {
   def addCORSHeaders(response: HttpResponse): HttpResponse =
     response.withHeaders(corsResponseHeaders)
 
-}

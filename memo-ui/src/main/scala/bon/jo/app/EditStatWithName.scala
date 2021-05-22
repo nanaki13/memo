@@ -89,7 +89,7 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
     actionsChoose ++= ini.filter(!actions.contains(_)).map(optionF).toList
     actions.foreach(addToCollAction)
   }
-  private def optionF(action: Action) = $ref.t.option { o: HTMLOptionElement =>
+  private def optionF(action: Action) = $ref.t.option { (o: HTMLOptionElement) =>
     o.value = action.toString
     o.innerText = action.toString
   }: HTMLOptionElement

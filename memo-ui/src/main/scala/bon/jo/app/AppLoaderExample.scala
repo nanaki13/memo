@@ -47,7 +47,7 @@ object AppLoaderExample extends App {
       menu.cont += fromChild
     }
 
-    def export() : Unit = {
+    def exportF() : Unit = {
       weaponDao.readAll().zip(persoDao.readAll()) map {
          case (ws, perso) => js.Dynamic.literal(
            w = ws.map(_.copy(id = 0)).map(weaponDao.mapper.map).toJSArray,
@@ -55,10 +55,10 @@ object AppLoaderExample extends App {
          )
        } onComplete{
          case Success(value) =>
-           val export = Base64.getEncoder.encodeToString( JSON.stringify(value).getBytes("utf-8"))
+           val exportV = Base64.getEncoder.encodeToString( JSON.stringify(value).getBytes("utf-8"))
            val popUpCotnet : TextArea = $c.textarea[TextArea] := {
-             r : TextArea =>
-               r.value=export
+             (r : TextArea) =>
+               r.value=exportV
            }
            PopUp(popUpCotnet)
          case Failure(exception) =>
@@ -99,7 +99,7 @@ object AppLoaderExample extends App {
 
       "éditer/créer Perso" -> initChoixPerso,
       "Simulation" -> simulation,
-    "Export" -> export,"Import" -> importDataPopUp)
+    "Export" -> exportF,"Import" -> importDataPopUp)
 
     def init(): HTMLElement = {
       root.parentElement += menu.cont

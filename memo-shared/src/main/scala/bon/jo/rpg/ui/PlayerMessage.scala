@@ -1,6 +1,6 @@
 package bon.jo.rpg.ui
 
-trait PlayerMessage {
+trait PlayerMessage:
   type T <: MessagePlayer
 
   def message(str: String, timeToDisplay: Int): Unit
@@ -8,4 +8,3 @@ trait PlayerMessage {
   def message(str: String): MessagePlayer
 
   def clear(str: T): Unit
-}

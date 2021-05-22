@@ -2,7 +2,7 @@ package bon.jo.rpg
 
 import bon.jo.rpg
 
-object raw {
+object raw:
   type Action = rpg.Action
   val Action: rpg.Action.type = rpg.Action
   type ActionResolver[A, B] = rpg.ActionResolver[A, B]
@@ -18,4 +18,3 @@ object raw {
   val TimedTrait: rpg.TimedTrait.type = rpg.TimedTrait
 
 
-}

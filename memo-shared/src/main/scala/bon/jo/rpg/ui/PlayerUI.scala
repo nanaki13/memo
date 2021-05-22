@@ -6,7 +6,7 @@ import bon.jo.ui.UpdatableCpnt
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait PlayerUI extends PlayerMessage {
+trait PlayerUI extends PlayerMessage:
 
   type S
 
@@ -14,17 +14,14 @@ trait PlayerUI extends PlayerMessage {
 
   def ask(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx]
 
-}
 
 object PlayerUI {
-  def runSeq[A](toAsk: Seq[() => Future[A]],res : List[A] = Nil)(implicit ec: ExecutionContext): Future[ List[A]] = {
+  def runSeq[A](toAsk: Seq[() => Future[A]],res : List[A] = Nil)(implicit ec: ExecutionContext): Future[ List[A]] =
 
-    if (toAsk.isEmpty) {
+    if toAsk.isEmpty then
       Future.successful((res))
-    } else {
+    else
       toAsk.head().flatMap {
         e => runSeq(toAsk.tail,res :+ e)
       }
-    }
-  }
 }

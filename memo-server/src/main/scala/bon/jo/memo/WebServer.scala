@@ -4,8 +4,9 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Directives._
-import bon.jo.memo.Entities.MemoType
-import bon.jo.memo.DBProfile
+import bon.jo.dao.Dao
+import bon.jo.dao.Dao.{Id, ListDao}
+import bon.jo.memo.Entities._
 import org.json4s.{CustomSerializer, DefaultFormats, Formats, JString}
 
 import java.io.File
@@ -15,20 +16,23 @@ import scala.concurrent.ExecutionContextExecutor
 import scala.io.StdIn
 
 
-object WebServer extends App with CORSHandler  {
+object WebServer extends App with CORSHandler :
   println(new File(".").getAbsolutePath)
-  implicit val profile: DBProfile.DB = DBProfile.value
-  println(profile)
+
+
   private implicit val system: ActorSystem[Nothing] = ActorSystem(Behaviors.empty, "my-system")
   // needed for the future flatMap/onComplete in the end
   private implicit val executionContext: ExecutionContextExecutor = system.executionContext
 
+  implicit val idMemo :Id[Entities.Memo] = _.id
+  implicit val idKw :Id[KeyWord] = _.id
+  implicit val idMemoKs :Id[MemoKeywords] = _.memo.id
 
-  private implicit object memoDao extends MemoDaoImpl()
+  private implicit val memoDao: Dao[Entities.Memo, Int] = new ListDao[Entities.Memo,Int]{}
 
-  private implicit object keyWordDao extends KeyWordDaoImpl()
+  private implicit val keyWordDao: Dao[KeyWord, Int] = new ListDao[KeyWord,Int]{}
 
-  private implicit object memoKeyWordDao extends MemoKeyWordsDaoImpl()
+  private implicit val memoKeyWordDao: Dao[MemoKeywords, Int] = new ListDao[MemoKeywords,Int]{}
   implicit object Custom extends CustomSerializer[MemoType](
     _ => ( {
       case JString(v) => MemoType(v)
@@ -43,9 +47,9 @@ object WebServer extends App with CORSHandler  {
   private val keywordRoute = RestRoutes[Entities.KeyWord](BaseRoute.keywordRoute)
   private val memoKeywWordRoute = new MemoKwRoute(BaseRoute.memoKeyWordRoute)
 
-  profile.create.onComplete {
+
     {
-      _ => {
+
         println(new File(".").getAbsolutePath)
         val staticFile = pathPrefix("ui") {
           getFromDirectory("memo-ui")
@@ -62,9 +66,8 @@ object WebServer extends App with CORSHandler  {
         bindingFuture
           .flatMap(_.unbind()) // trigger unbinding from the port
           .onComplete(_ => system.terminate())
-      }
+
     }
-  }
 
 
-}
+

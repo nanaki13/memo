@@ -2,7 +2,7 @@ package bon.jo.rpg
 
 import bon.jo.rpg.Action.ActionCtx
 
-trait Timed[A] {
+trait Timed[A]:
   def simpleName(value: A): String
 
 
@@ -15,4 +15,3 @@ trait Timed[A] {
 
 
   def canChoice(a : A):List[Action]
-}

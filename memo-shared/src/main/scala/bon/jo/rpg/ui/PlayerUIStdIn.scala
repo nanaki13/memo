@@ -6,8 +6,8 @@ import bon.jo.ui.UpdatableCpnt
 
 import scala.concurrent.Future
 
-object PlayerUIStdIn {
-  object Value extends PlayerUI {
+object PlayerUIStdIn:
+  object Value extends PlayerUI:
     type T = MessagePlayer
 
     override def ask(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx] = fromStdIn(d, cible)
@@ -23,11 +23,8 @@ object PlayerUIStdIn {
     override type S = Any
 
     override def cpntMap: Any => UpdatableCpnt[Any] = e => new UpdatableCpnt[Any] {
-      override def update(value: Option[Any]): Unit = {
+      override def update(value: Option[Any]): Unit =
         println(value)
-      }
     }
-  }
 
   implicit val value: PlayerUI = Value
-}

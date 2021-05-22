@@ -9,14 +9,11 @@ import bon.jo.rpg.stat.raw.IntBaseStat
 import scala.reflect.ClassTag
 import scala.util.Random
 
-abstract class Actor extends ActorBaseStats with ArmedActor {
+abstract class Actor extends ActorBaseStats with ArmedActor:
   var hpVar: Int  = stats.hp
-}
 
-object Actor {
-
-
-   case class Impl(
+object Actor:
+  case class Impl(
                     name : String,
                     desc : String,
                     lvl:Int,
@@ -24,39 +21,30 @@ object Actor {
                     leftHandWeapon: Option[WeaponBaseState]= None,
                     rightHandWeapon: Option[WeaponBaseState] = None,
                     action:List[Action] = Nil,id: Int = Id[Impl]
-            ) extends Actor with ArmedActor {
+            ) extends Actor with ArmedActor:
 
      override def withId[A  <: StatsWithName](id: Int): A = copy(id= id).asInstanceOf[A]
-   }
 
-  trait Lvl {
+  trait Lvl:
     /**
-     * indicateur général - permet d’utiliser les armes d’un niveau équivalent.
+     * indicateur général - permet d(utiliser les armes déun niveau équivalent.
      *
      * @return
      */
     val lvl: Int
-  }
 
   trait ActorBaseStats extends StatsWithName with Lvl
 
   val r = new Random()
 
-  object Implicit {
-   // implicit val actorFFact: AnyRefBaseStat[Float] => Actor = e => new Actor.Impl(e.to(ImplicitCommon.genFloatToInt))
- //   implicit val wFFact: AnyRefBaseStat[Float] => Weapon = e => new Weapon(e.to(ImplicitCommon.genFloatToInt))
-   // implicit val actorFact: AnyRefBaseStat[Int] => Actor = new Actor.Impl(_)
- //   implicit val wFact: AnyRefBaseStat[Int] => Weapon = new Weapon(_)
 
-  }
 
-  def randomActor[A <: Actor](create: AnyRefBaseStat[Int] => A): A = {
+  def randomActor[A <: Actor](create: AnyRefBaseStat[Int] => A): A =
 
    // println((BaseState.`1` * AnyRefBaseStat(randomActorVal _)))
     create((BaseState.`1` * AnyRefBaseStat(randomActorVal _)).to[AnyRefBaseStat[Int]])
-  }
 
-  import Implicit._
+
 
   def randomActorVal(): Float = randomAround(50, 10)
 
@@ -66,31 +54,25 @@ object Actor {
 
 
 
-  def randomWeapon(): Weapon = {
+  def randomWeapon(): Weapon =
     val stat = (BaseState.`1` * AnyRefBaseStat(randomWeaponVal _))
 
     Weapon(0,RandomName.randomWeaponName(),"La belle arme",1,stat.to[AnyRefBaseStat[Int]], Action.Attaque :: Nil)
-  }
 
   trait WeaponBaseState extends StatsWithName with Lvl
 
-  object Id{
+  object Id:
     private val cache = scala.collection.mutable.Map[Class[_],Int]()
-    def apply[A](implicit ct : ClassTag[A]):Int = {
-      val id =  cache.get(ct.runtimeClass) match {
+    def apply[A](implicit ct : ClassTag[A]):Int =
+      val id =  cache.get(ct.runtimeClass) match
         case Some(value) => value+1
         case None => 0
-      }
       cache(ct.runtimeClass) = id
       id
-    }
-    def init[A](int: Int)(implicit ct : ClassTag[A]):Unit={
+    def init[A](int: Int)(implicit ct : ClassTag[A]):Unit=
       cache += ct.runtimeClass -> int
-    }
-  }
-   case class Weapon(id : Int ,name : String,desc : String,lvl : Int,stats: AnyRefBaseStat[Int], action: List[Action]=Action.Attaque :: Nil ) extends  WeaponBaseState {
+
+  case class Weapon(id : Int ,name : String,desc : String,lvl : Int,stats: AnyRefBaseStat[Int], action: List[Action]=Action.Attaque :: Nil ) extends  WeaponBaseState:
 
      override def withId[A <: StatsWithName](id: Int): A = copy(id= id).asInstanceOf[A]
 
-  }
-}
