@@ -15,9 +15,9 @@ val sharedSettings = Seq(version := mainVersion,
   scalaVersion := "3.0.0",
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test",
   scalacOptions ++= Seq("-deprecation", "-feature"
-    ,"-source:3.0-migration"
-   ,"-rewrite"
-    // ,"-new-syntax"
+    // ,"-source:3.0-migration"
+    // ,"-rewrite"
+    //   ,"-new-syntax"
 
   )
 )
@@ -31,7 +31,7 @@ lazy val `memo-shared` =
     .crossType(CrossType.Pure) // [Pure, Full, Dummy], default: CrossType.Full
     .settings(sharedSettings)
     .settings(
-       libraryDependencies+="bon.jo" %%% "phy-shared" % "1.0.0-SNAPSHOT",
+      libraryDependencies += "bon.jo" %%% "phy-shared" % "1.0.0-SNAPSHOT",
 
     )
 
@@ -43,44 +43,41 @@ val AkkaHttpVersion = "10.2.4"
 val SlickVersion = "3.3.3"
 val Json4SVersion = "3.7.0-RC1"
 
-def from213(e : ModuleID) = e.cross(CrossVersion.for3Use2_13)
-def from3(e : ModuleID) = e.cross(CrossVersion.for2_13Use3)
+def from213(e: ModuleID) = e.cross(CrossVersion.for3Use2_13)
+def from3(e: ModuleID) = e.cross(CrossVersion.for2_13Use3)
 
 def depFrom213 = Seq("com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
   "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
   "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion
-  ,  "org.json4s" %% "json4s-native" % Json4SVersion) map from213
+  , "org.json4s" %% "json4s-native" % Json4SVersion) map from213
 
 lazy val `memo-data` =
   project.settings(sharedSettings).settings(
 
     libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test",
-    libraryDependencies+="bon.jo" %% "phy-shared" % "1.0.0-SNAPSHOT",
-   libraryDependencies+= "bon.jo" %% "memo-shared" % mainVersion
+    libraryDependencies += "bon.jo" %% "phy-shared" % "1.0.0-SNAPSHOT",
+
   )
-    //.dependsOn(`memo-shared`.jvm )
+    .dependsOn(`memo-shared`.jvm)
 lazy val `memo-server` =
 // select supported platforms
- project
-   //.crossType(CrossType.Pure) // [Pure, Full, Dummy], default: CrossType.Full
+  project
     .settings(sharedSettings)
     .settings(
       libraryDependencies ++= Seq(
         "org.xerial" % "sqlite-jdbc" % "3.34.0",
 
         "org.json4s" %% "json4s-core" % Json4SVersion
-      ,
-        "org.postgresql" % "postgresql" %"42.2.5"
+        ,
+        "org.postgresql" % "postgresql" % "42.2.5"
       ),
       libraryDependencies ++= depFrom213,
-      libraryDependencies+="bon.jo" %% "memo-shared" % "1.0.0-SNAPSHOT",
-    //  libraryDependencies+="bon.jo" %% "memo-data" % "1.0.0-SNAPSHOT",
+
     )
-   .dependsOn(
-    // `memo-shared`.jvm
-     //,
+    .dependsOn(
+      `memo-shared`.jvm,
       `memo-data`
-   )
+    )
 
 
 val stagePath = "I:\\work\\github-io\\rpg"
@@ -94,46 +91,45 @@ lazy val `memo-ui` =
       , "bon.jo" %%% "html-app" % "1.0.0-SNAPSHOT"
 
     )
-      ,libraryDependencies+="bon.jo" %% "memo-shared" % "1.0.0-SNAPSHOT"
+
     )
 
     .settings(
       scalaJSUseMainModuleInitializer := true,
       toGitHubIO := {
 
-        val f = ( Compile / fullOptJS).value
+        val f = (Compile / fullOptJS).value
         println(f)
         //  val source = baseDirectory
 
-          io.IO.copyFile(f.data,file(stagePath).toPath.resolve(f.data.getName).toFile)
+        io.IO.copyFile(f.data, file(stagePath).toPath.resolve(f.data.getName).toFile)
         git commitAndPush stagePath
       },
       toGitHubSnapIO := {
 
-        val f = ( Compile / fullOptJS).value
+        val f = (Compile / fullOptJS).value
         println(f)
         //  val source = baseDirectory
 
-        io.IO.copyFile(f.data,file(snapPath).toPath.resolve(f.data.getName).toFile)
+        io.IO.copyFile(f.data, file(snapPath).toPath.resolve(f.data.getName).toFile)
         git commitAndPush snapPath
       }
 
-    )
-    //.dependsOn(`memo-shared`) // defined in sbt-scalajs-crossproject
+    ).dependsOn(`memo-shared`) // defined in sbt-scalajs-crossproject
 
 
- val toGitHubIO = taskKey[Unit]("send to gitub.io")
+val toGitHubIO = taskKey[Unit]("send to gitub.io")
 val toGitHubSnapIO = taskKey[Unit]("send to gitub.io snap")
 toGitHubIO := {
 
-  val f = ( Compile / fullOptJS).value
+  val f = (Compile / fullOptJS).value
   print(f)
-//  val source = baseDirectory
-//  io.IO.copyFile()
+  //  val source = baseDirectory
+  //  io.IO.copyFile()
 }
 toGitHubSnapIO := {
 
-  val f = ( Compile / fullOptJS).value
+  val f = (Compile / fullOptJS).value
   print(f)
   //  val source = baseDirectory
   //  io.IO.copyFile()

@@ -20,7 +20,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.scalajs.js.JSON
 import scala.util.{Failure, Success, Try}
 
-object ViewsDef {
+object ViewsDef:
   val kwClass = "kwClass"
 
   def apply(): ViewsDef = new ViewsDef
@@ -35,7 +35,7 @@ object ViewsDef {
     , save: A => Future[Option[A]],
     proposeView: ProposeView[A, _], sel: A => Unit
   )(implicit executionContext: ExecutionContext)
-    extends Propose[A, Input](ioHtml, proposeView) {
+    extends Propose[A, Input](ioHtml, proposeView):
     btn.textContent = textCreer
     ioHtml.html.$keyup {
       v =>
@@ -53,7 +53,7 @@ object ViewsDef {
 
     btn.$spinner {
       ()=>
-        save(ioHtml.toValue).recover( _ => None).map {
+        save(ioHtml.toValue).recover{case _ => None}.map {
           case None => PopUp("Marche pas...")
           case Some(value) => {
             val els = proposeView.+=(value)
@@ -63,7 +63,6 @@ object ViewsDef {
         }
 
     }
-  }
 
 
 
@@ -71,7 +70,7 @@ object ViewsDef {
 
   val svgNs = "http://www.w3.org/2000/svg"
 
-  def help: Element = {
+  def help: Element =
 
     (
       $refns.svg(svgNs, { (svg: Element) =>
@@ -81,26 +80,22 @@ object ViewsDef {
           , $attrns.path(svgNs, List("d" -> "M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"))
         )
       }))
-  }
 
-  trait KewWordHtml extends HtmlCpnt{
+  trait KewWordHtml extends HtmlCpnt:
     val close = CommonHtml.closeBtn
 
     def kw(): KeyWord
 
-    override val get: IterableOnce[HTMLElement] = {
+    override val get: IterableOnce[HTMLElement] =
       val ret = KewWordHtml.keyWordWith.html(kw())
       val html = ret.get
       html.iterator.toList.head += close
       html
-    }
-  }
 
-  object KewWordHtml {
-    object WithClose {
+  object KewWordHtml:
+    object WithClose:
       implicit val keyWordWithClose: HtmlRep[KeyWord, KewWordHtml] = (memo: KeyWord) =>
         () => memo
-    }
 
     implicit val keyWordWith: HtmlRep[KeyWord, HtmlCpnt] = (kw: KeyWord) => {
       HtmlCpnt {
@@ -113,13 +108,11 @@ object ViewsDef {
         }
       }
     }
-  }
-}
 
-class ViewsDef() {
+class ViewsDef():
 
 
-  class MemoCpnt(val memo: Memo, val mList: Option[MemoListView]) extends HtmlCpnt with UpdatableCpnt[Memo] {
+  class MemoCpnt(val memo: Memo, val mList: Option[MemoListView]) extends HtmlCpnt with UpdatableCpnt[Memo]:
     def lienTilre_(memo: Memo) = $ref a {
       lienTilre =>
         lienTilre._class = "a-title"
@@ -129,12 +122,12 @@ class ViewsDef() {
 
     val lienTilre = lienTilre_(memo)
 
-    def content_(memol: Memo): HTMLElement = {
+    def content_(memol: Memo): HTMLElement =
       $ref div {
         cnt =>
           cnt._class = "m-content"
 
-          memol.memoType match {
+          memol.memoType match
             case MemoType.Text => cnt.innerHTML = memol.content.replaceAll("""#\[([^|]*)\|([^\s]*)]""", """<a href="$2">$1</a>""")
             case MemoType.Json =>
               Try {
@@ -146,13 +139,10 @@ class ViewsDef() {
                 })
 
                 mList
-              } match {
+              } match
                 case Failure(a) => s"Erreur en traitant : ${memo.content}\n$a"
                 case Success(value) => value.toString()
-              }
-          }
       }
-    }
 
     val content = content_(memo)
 
@@ -190,7 +180,7 @@ class ViewsDef() {
     override def get: IterableOnce[HTMLElement] = html
 
 
-    override def update(value: Option[Memo]): Unit = {
+    override def update(value: Option[Memo]): Unit =
 
       value foreach {
         m =>
@@ -205,34 +195,30 @@ class ViewsDef() {
           // content.innerHTML = c.innerHTML
           c.childNodes.foreach {
             p =>
-              if (!scalajs.js.isUndefined(p)) {
+              if !scalajs.js.isUndefined(p) then
                 console.log(p)
                 content.appendChild(p)
-              }
 
           }
       }
-    }
-  }
 
-  implicit val memoXml: HtmlRepParam[Memo, MemoListView, MemoCpnt] = {
+  implicit val memoXml: HtmlRepParam[Memo, MemoListView, MemoCpnt] =
     (memo, mList) => new MemoCpnt(memo, mList)
-  }
 
 
-  class MKCpnt(memoInitial: MemoKeywords, proposeView: ProposeView[KeyWord, HtmlCpnt])(implicit val executionContext: ExecutionContext) extends HtmlCpnt with UpdatableCpnt[MemoKeywords] with Deletable {
+  class MKCpnt(memoInitial: MemoKeywords, proposeView: ProposeView[KeyWord, HtmlCpnt])(implicit val executionContext: ExecutionContext) extends HtmlCpnt with UpdatableCpnt[MemoKeywords] with Deletable:
 
     val ctx = new MemoCtxView(Some(memoInitial))
 
     val kwDiv: Div = $l.t div memoInitial.keyWords.html.flatMap(_.list)
 
     val saveButton: Button = $ref.t button {
-      save: Button =>
+      (save: Button) =>
         save.textContent = "save"
         save._class = "btn-save btn btn-primary"
     }
     val editButton: Button = $ref.t button {
-      save: Button =>
+      (save: Button) =>
         save.textContent = "edit"
         save._class = "edit btn btn-primary"
     }
@@ -254,15 +240,14 @@ class ViewsDef() {
     override def get: List[HTMLElement] = l
 
 
-    def addKeyWord(selected: KeyWord): Unit = {
+    def addKeyWord(selected: KeyWord): Unit =
       keyWordsBuffer += selected
       val htmlKW = selected.html.list
       kwDiv ++= htmlKW
       deleteEvent(selected, htmlKW.head)
 
-    }
 
-    def deleteEvent(kw: KeyWord, htmlKw: HTMLElement)(implicit lubber: ListBuffer[KeyWord]): Unit = {
+    def deleteEvent(kw: KeyWord, htmlKw: HTMLElement)(implicit lubber: ListBuffer[KeyWord]): Unit =
 
       htmlKw.$classSelect(CommonHtml.closeClass).foreach { btnClose =>
         btnClose.asInstanceOf[HTMLElement].$click {
@@ -273,14 +258,12 @@ class ViewsDef() {
       }
 
 
-    }
 
-    override def update(value: Option[MemoKeywords]): Unit = {
+    override def update(value: Option[MemoKeywords]): Unit =
       cpnt.update(value.map(_.memo))
-    }
 
 
-    def save(): Future[Unit] = {
+    def save(): Future[Unit] =
 
       ctx.currentMemoOption = ctx.currentMemoOption.map { currentMemo =>
         currentMemo.copy(memo = ctx.newMemo.copy(id = currentMemo.memo.id), keyWords = keyWordsBuffer.toSet)
@@ -298,7 +281,6 @@ class ViewsDef() {
         }
       } getOrElse(Future.failed(new IllegalStateException("")))
 
-    }
 
     keyWordsBuffer zip kwDiv.$classSelect(ViewsDef.kwClass).map(_.asInstanceOf[HTMLElement]) foreach {
       deleteEvent _ tupled _
@@ -333,10 +315,8 @@ class ViewsDef() {
 
     override def delete(): FB = Daos.memoKeyWord.delete(memoInitial.memo.id.get)
 
-  }
 
 
-}
 
 
 

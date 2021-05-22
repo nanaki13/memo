@@ -8,11 +8,10 @@ import bon.jo.memo.ui.HttpDao.ExceptionServeur
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.scalajs.js
 import scala.scalajs.js.JSON
-object HttpDao {
+object HttpDao:
 
   case class ExceptionServeur(str: String, o: Int) extends Exception(str)
 
-}
 
 trait HttpDao[A, ID,JS <:  js.Any] extends Dao[A, ID] {
 

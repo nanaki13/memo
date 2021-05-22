@@ -1,6 +1,6 @@
 package bon.jo.memo.ui
 
-object Target {
+object Target:
 
   case object MemoCreation extends Target
   case object FindMemo extends Target
@@ -11,6 +11,5 @@ object Target {
 
   case object _404 extends Target
 
-}
 
 sealed trait Target extends Product

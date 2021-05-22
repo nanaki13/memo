@@ -26,7 +26,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 import scala.xml.Node
 
-case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Template with XmlTemplate {
+case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Template with XmlTemplate:
 
 
   val view = new ViewsImpl()
@@ -35,7 +35,7 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
   val currentKeyWord: mutable.ListBuffer[KeyWord] = scala.collection.mutable.ListBuffer[KeyWord]()
   //
 
-  def addToCurrentKW(keyWord: KeyWord, listView: Div)(implicit v: HtmlRep[KeyWord,ViewsDef.KewWordHtml]): Unit = {
+  def addToCurrentKW(keyWord: KeyWord, listView: Div)(implicit v: HtmlRep[KeyWord,ViewsDef.KewWordHtml]): Unit =
     currentKeyWord += keyWord
     val cpnt :ViewsDef.KewWordHtml=  keyWord.html
 
@@ -45,7 +45,6 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
       listView.removeChild(cpnt.head)
     }}
 
-  }
 
 
   override def xml: Node = <div id="root" class="container mt-5 p-2">
@@ -54,25 +53,23 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
 
 
   implicit val _404: Target = Target._404
-  implicit val tp: List[Any] => Option[Int] = {
+  implicit val tp: List[Any] => Option[Int] =
     case Nil => None
     case a => Some(a.head.asInstanceOf[Int])
-  }
   val pathToTarget: Routing.Path => Target = Routing.create {
     case Paths.pMemo => Target.MemoCreation
     case Paths.pFind => Target.FindMemo
     case Paths.pCreationKW => Target.KeyWordK
-    case o@_ => o.matches(Paths.pMemo / IntPath) match {
+    case o@_ => o.matches(Paths.pMemo / IntPath) match
       case Some(int) => Target.ReadMemo(int)
       case _ => Target._404
-    }
   }
 
   def target: Target = pathToTarget(Routing.urlPath)
 
 
 
-  def addMemo(value: Entities.MemoKeywords): Unit = {
+  def addMemo(value: Entities.MemoKeywords): Unit =
 
     val cpnt = new view.viewsDef.MKCpnt(value,proposeView)
 
@@ -91,40 +88,33 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
     })
 
     ()
-  }
 
-  object memosCOnr {
-    def remove(div: HTMLElement): Unit = {
+  object memosCOnr:
+    def remove(div: HTMLElement): Unit =
       val  p = div.parentElement
       div.safeRm()
       cnt-=1
-      if(p.children.isEmpty){
+      if p.children.isEmpty then
         p.safeRm()
-      }
-    }
 
     private var cnt = 0
     private var current: HTMLElement = _
 
     private def div = $ref div { e => e._class = "cd card-deck pb-1" }
 
-    def clean(): Unit = {
+    def clean(): Unit =
       me.$classSelect("cd").foreach(_.removeFromDom())
       cnt = 0
-    }
 
-    def +=(h: HTMLElement): Unit = {
-      if (cnt % 3 == 0) {
+    def +=(h: HTMLElement): Unit =
+      if cnt % 3 == 0 then
         current = div
         me += current
-      }
       cnt += 1
       current += h
-    }
-  }
 
 
-  override def init(p: HTMLElement): Unit = {
+  override def init(p: HTMLElement): Unit =
 
     implicit val pa: HTMLElement = p
     val spi = CommonHtml.spinner
@@ -161,39 +151,33 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
     })
 
 
-  }
 
 
-  def _404Load()(implicit p: HTMLElement) = {
+  def _404Load()(implicit p: HTMLElement) =
     p.clear()
-    p.addChild[raw.HTMLHeadingElement](<h1>page non trouvé</h1>)
-  }
+    p.addChild[raw.HTMLHeadingElement](<h1>page non trouv?</h1>)
 
 
   import bon.jo.memo.ui.ViewsDef.KewWordHtml.keyWordWith
-  private val proposeView = {
+  private val proposeView =
     ProposeView[KeyWord,HtmlCpnt]()
-  }
   private val keyWordToHtml = ViewsDef.kwIO()
 
-  def memoCreationLoad()(implicit p: HTMLElement, kws: Iterable[KeyWord]): Future[Unit] = {
+  def memoCreationLoad()(implicit p: HTMLElement, kws: Iterable[KeyWord]): Future[Unit] =
     val lView: Div = $c.div
 
-    val memoKeywWord: MemoKeyWordViewListCreate = {
+    val memoKeywWord: MemoKeyWordViewListCreate =
 
 
-      def addToCurrentKW_(keyWord: KeyWord): Unit = {
+      def addToCurrentKW_(keyWord: KeyWord): Unit =
         import ViewsDef.KewWordHtml.WithClose._
         addToCurrentKW(keyWord, lView)
-      }
 
-      val propose = {
+      val propose =
         new ProposeInput[KeyWord](_.value, "Creer/Chercher tags")(
           keyWordToHtml, Daos.keyWordDao.create, proposeView,addToCurrentKW_)
-      }
 
       new MemoKeyWordViewListCreate(propose, lView, new MemoCtxView(None), addMemo)
-    }
 
     p.appendChild(memoKeywWord.cpnt);
     memoKeywWord.memoKeywWordtx.memoType.selectFirst()
@@ -209,25 +193,21 @@ case class MemoTemplate(user: User)(implicit ec: ExecutionContext) extends Templ
       d =>
         d.foreach(addMemo)
     }
-  }
 
 
   //implicit val e: FindView.FindViewProvider.type = FindView.FindViewProvider
-  def findMemo()(implicit p: HTMLElement, kws: Iterable[KeyWord], ec: ExecutionContext): Unit = {
+  def findMemo()(implicit p: HTMLElement, kws: Iterable[KeyWord], ec: ExecutionContext): Unit =
     p ++= FindParam("Chercher").htmlp(FindViewCtx(this, kws, ec)).list
-  }
 
   val searchParams = new URLSearchParams(org.scalajs.dom.window.location.search)
   val (limit, offset) = Try {
     (Option(searchParams.get("limit")).map(_.toInt).getOrElse(-1)
       , Option(searchParams.get("from")).map(_.toInt).getOrElse(-1))
-  } match {
+  } match
     case Failure(_) => (-1, -1)
     case Success(value) => value
-  }
 
   def allMemos: Future[Iterable[MemoKeywords]] = Daos.memoKeyWord.readAll(limit = limit, offset = offset)
-}
 
 
 

@@ -21,34 +21,29 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.scalajs.js
 import scala.util.Success
-object HtmlUi {
-  object ActionRep extends HtmlRep[Action, ImuutableHtmlCpnt] {
+object HtmlUi:
+  object ActionRep extends HtmlRep[Action, ImuutableHtmlCpnt]:
     override def html(memo: Action): ImuutableHtmlCpnt = () => Some(SimpleView.bsButton(s"${memo.name}"))
-  }
 
   implicit val acctRep: HtmlRep[Action, ImuutableHtmlCpnt] = ActionRep
 
-  object Value extends HtmlUi {
+  object Value extends HtmlUi:
     override val rpg: Rpg = AppLoaderExample.Rpg
-  }
 
-  object Implicit {
+  object Implicit:
     implicit val value: PlayerUI = Value
-  }
 
-  implicit object PersoRep extends HtmlRep[Perso, PerCpnt] {
+  implicit object PersoRep extends HtmlRep[Perso, PerCpnt]:
     override def html(memo: Perso): PerCpnt = new PerCpnt(memo)
-  }
 
 
-}
 
-trait HtmlUi extends PlayerPersoUI with SimpleMessage {
+trait HtmlUi extends PlayerPersoUI with SimpleMessage:
 
   val rpg : Rpg
   val choice: Div = $c.div
 
-  override def ask(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx] = {
+  override def ask(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx] =
     println("ask")
     choice.clear()
     val p: Promise[Action] = Promise[Action]()
@@ -57,13 +52,12 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage {
         lazy val evL: Seq[(js.Function1[MouseEvent, _], HTMLElement)] = cpnt.list.map {
           e =>
             val ev = e.$click { _ =>
-              if (!p.isCompleted) {
+              if !p.isCompleted then
                 evL.foreach {
                   case (value, element) => element.removeEventListener("click", value)
                 }
                 p.success(action)
 
-              }
 
 
               choice.clear()
@@ -81,9 +75,9 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage {
       case action@(Action.Attaque.MainGauche | Action.Attaque.MainDroite | Action.Soin) =>
         val pp = Promise[TimedTrait[_]]()
         val messagep = message("cliquer sur un cible")
-        lazy val allEvent: Seq[(HTMLElement, js.Function1[MouseEvent, _])] = d.value match {
+        lazy val allEvent: Seq[(HTMLElement, js.Function1[MouseEvent, _])] = d.value match
           case p: Perso => cible.flatten { v => {
-            v.value match {
+            v.value match
               case b: Perso => {
 
                 val eAndView = rpg.cpntMap(b.id)
@@ -94,7 +88,7 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage {
                     //    h._class += " btn btn-primary"
                     h.style.cursor = "pointer"
                     h -> h.$click { _ =>
-                      if (!pp.isCompleted) {
+                      if !pp.isCompleted then
                         allEvent.foreach {
                           case (element, value) =>
                             element.removeEventListener("click", value)
@@ -103,8 +97,7 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage {
                           //                              element.classList.remove("btn-primary")
                         }
                         clear(messagep)
-                        pp.success(b)
-                      }
+                        pp.success(v)
 
 
                       // h.removeEventListener("click", c)
@@ -113,27 +106,23 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage {
                 }
 
 
-                pp.future.foreach(sel => if (!ret.isCompleted) {
+                pp.future.foreach(sel => if !ret.isCompleted then {
                   ret.success(new ActionCibled(action, List(sel)))
                 })
                 hAndEvent
               }
-            }
           }
           }
           case Action.Garde | Action.Rien => Nil
 
 
-        }
         allEvent
       case action: Action => ret.tryComplete(Success(new ActionWithoutCible(action)))
 
     }
     ret.future
 
-  }
 
   override def cpntMap: Perso => UpdatableCpnt[Perso] = a => rpg.cpntMap(a.id)._2
-}
 
 

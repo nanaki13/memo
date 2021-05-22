@@ -13,11 +13,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
 
-class TimeLineCpnt(val el: TimeLineParam, val withUI: WithUI) {
-  val ordering : Ordering[TimedTrait[_]] = {
+class TimeLineCpnt(val el: TimeLineParam, val withUI: WithUI):
+  val ordering : Ordering[TimedTrait[_]] =
     val idToOrder = el.timedObjs.map(_.id).zipWithIndex.toMap
     (a,b) => idToOrder(a.id).compare(b.id)
-  }
 
 
   import withUI.acImpl
@@ -60,43 +59,19 @@ class TimeLineCpnt(val el: TimeLineParam, val withUI: WithUI) {
     in
   }))
 
-  def update(e: Iterable[TimedTrait[_]]) = {
+  def update(e: Iterable[TimedTrait[_]]) =
     htmlName zip e foreach {
       case (element, value) =>
         element.style.left = value.pos.toString + "px"
     }
-  }
 
-  val runner: (el.T[_] => Future[el.T[_]], el.T[_]) => Future[el.T[_]] = {
-    (f,v) => {
-      console.log("runner!")
-      val ret = Promise[el.T[_]]()
-      window.setTimeout( () => {
-        console.log("launch runner!")
-        update(v)
-        f(v) onComplete {
-          case Failure(exception) => console.log(exception)
-          case Success(value) => {
-            update(value)
-            console.log("runner result")
-            console.log(value.map(_.pos))
-            ret.success(value)
 
-          }
-        }
-      }
-        ,25
-      )
-      ret.future
-    }
-  }
-
-  def doEvent(): Int = {
+  def doEvent(): Int =
 
     import bon.jo.app.HtmlUi.Implicit.value
     el.uiUpdate = update
     lazy val gameLoop: Int = window.setInterval(()=>{
-      if(el.pause == 0){
+      if el.pause == 0 then {
         el.nextState(el.timedObjs) match {
           case BattleTimeLine.NextStateResultFast(fast) => el.timedObjs = fast.toList
           case BattleTimeLine.NextStateResultAsking(fast, ask) => ask foreach{
@@ -110,10 +85,8 @@ class TimeLineCpnt(val el: TimeLineParam, val withUI: WithUI) {
 
     },25)
     gameLoop
-   // el.n(el.timedObjs,runner) foreach (println)
 
-  }
+
 
   el.resume = doEvent _
 
-}

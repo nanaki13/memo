@@ -24,7 +24,7 @@ import scala.reflect.ClassTag
 import scala.scalajs.js
 import scala.util.{Failure, Success}
 
-trait EditPage[A <: StatsWithName, B <: scalajs.js.Object] extends Ec {
+trait EditPage[A <: StatsWithName, B <: scalajs.js.Object] extends Ec:
   type Hrep = HtmlRepParam[A, SType.Param[A], EditStatWithName[A]]
   implicit val v: Hrep
 
@@ -38,7 +38,7 @@ trait EditPage[A <: StatsWithName, B <: scalajs.js.Object] extends Ec {
   }
   def random(): A
 
-  def addRandom(): Unit = {
+  def addRandom(): Unit =
     val p = random()
     val persoCpnt: EditStatWithName[A] = p.htmlp(rpg -> cpnts)
     cpnts += persoCpnt
@@ -46,9 +46,8 @@ trait EditPage[A <: StatsWithName, B <: scalajs.js.Object] extends Ec {
     persoCpnt.head.asInstanceOf[js.Dynamic].scrollIntoView(js.Dynamic.literal(
       behavior= "smooth"
     ))
-  }
 
-  def init(implicit ct: ClassTag[A]): Unit = {
+  def init(implicit ct: ClassTag[A]): Unit =
     cpnts.clear()
     rpg.deckCreation.clear()
     rpg.root += rpg.deckCreation
@@ -76,9 +75,9 @@ trait EditPage[A <: StatsWithName, B <: scalajs.js.Object] extends Ec {
         saveB.$click { _ =>
           val ops: mutable.Seq[Future[Unit]] = cpnts.map(e => (e, e.read)).map {
             case (view, v) =>
-              if (v.id == 0) {
+              if v.id == 0 then
                 (view, v.withId[A](id = Id[A]), dao.create _)
-              } else {
+              else {
                 (view, v, dao.update(_, None))
               }: (EditStatWithName[A], A, A => dao.FO)
           }.map { case (view, w, fw) => (view, fw(w)) }.map {
@@ -92,10 +91,9 @@ trait EditPage[A <: StatsWithName, B <: scalajs.js.Object] extends Ec {
             case Failure(exception) =>
               PopUp("Sauvegarde KO")
               exception.printStackTrace()
-              exception match {
+              exception match
                 case DBExeception(e) => console.log(e)
                 case _ =>
-              }
           }
         }
 
@@ -111,15 +109,13 @@ trait EditPage[A <: StatsWithName, B <: scalajs.js.Object] extends Ec {
       case Success(value) =>
     }
     rpg.createButton(addRandomButton)
-  }
 
-}
 
-trait ArmesPage {
+trait ArmesPage:
   self: Rpg =>
 
 
-  def initChoixArme(): Unit = {
+  def initChoixArme(): Unit =
     val page = new EditPage[Weapon, WeaponJS] {
       override implicit val v: Hrep = EditWeaponCpnt.Implicit.value
 
@@ -132,9 +128,8 @@ trait ArmesPage {
       override implicit val executionContext: ExecutionContext = self.executionContext
     }
     page.init
-  }
 
-  def initChoixPerso(): Unit = {
+  def initChoixPerso(): Unit =
     val page = new EditPage[Perso, PersoJS] {
       override implicit val v: Hrep = EditPersoCpnt
 
@@ -142,10 +137,8 @@ trait ArmesPage {
       override val rpg: Rpg = self
       override val dao: MappedDao[PersoJS, Perso] with PersoDao = rpg.persoDao
 
-      override def random(): Perso = Actor.randomActor(e => new Perso(0, RandomName(),"Le plus beau des héros", e))
+      override def random(): Perso = Actor.randomActor(e => new Perso(0, RandomName(),"Le plus beau des h?ros", e))
 
       override implicit val executionContext: ExecutionContext = self.executionContext
     }
     page.init
-  }
-}

@@ -15,30 +15,28 @@ import bon.jo.html.DomShell.ExtendedElement
 
 import scala.language.dynamics
 
-trait RpgSimu {
+trait RpgSimu:
     self : Rpg =>
-   def simulation() : Unit = {
-     val enSelButton = SimpleView.bsButton("Start")
-     val selected : Div = $c.div
-     val select : Div = $c.div
+      def simulation() : Unit =
+        val enSelButton = SimpleView.bsButton("Start")
+        val selected : Div = $c.div
+        val select : Div = $c.div
 
-     val cont = $c.div[Div].$row( select,selected,enSelButton.wrap(tag.div) )
-     cont.classList.add("mt-5")
-     cont.classList.add("ml-5")
-     root += cont
-     val rep : HtmlRep[Perso,ImuutableHtmlCpnt] = ((z : Perso) => () => Some(z.name.tag(tag.div)))
-     persoDao.readAll() flatMap  {
-       persos =>
-         Selection
-           .Param[Perso,PerCpnt](Some(enSelButton),selected ++= _.list,PersoRep,PersoRep)
-           .selection(persos,select)
-     } map {
-       selection =>
+        val cont = $c.div[Div].$row( select,selected,enSelButton.wrap(tag.div) )
+        cont.classList.add("mt-5")
+        cont.classList.add("ml-5")
+        root += cont
+        val rep : HtmlRep[Perso,ImuutableHtmlCpnt] = ((z : Perso) => () => Some(z.name.tag(tag.div)))
+        persoDao.readAll() flatMap  {
+         persos =>
+           Selection
+             .Param[Perso,PerCpnt](Some(enSelButton),selected ++= _.list,PersoRep,PersoRep)
+             .selection(persos,select)
+        } map {
+         selection =>
 
-         selection.foreach(e => timeLine.add(e))
-         root.clear()
-         startRpg
-     }
-   }
-}
+           selection.foreach(e => timeLine.add(e))
+           root.clear()
+           startRpg
+        }
 

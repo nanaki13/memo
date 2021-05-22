@@ -69,7 +69,7 @@ object Perso:
           b.map(_.value) match
             case List(p: Perso) =>
               p.hpVar += (a.stats.mag * 0.7f).round
-              ui.message(s"${p.name} a �t� soign� de ${(a.stats.mag * 0.7f).round} pv, il a maintenant ${p.hpVar} pv",5000)
+              ui.message(s"${p.name} a été soigné de ${(a.stats.mag * 0.7f).round} pv, il a maintenant ${p.hpVar} pv",5000)
               ui.cpntMap(p.asInstanceOf[ui.S]).update(Some(p.asInstanceOf[ui.S]))
             case _ =>
         case z => ui.message("Mais sa fait encore rien",0)

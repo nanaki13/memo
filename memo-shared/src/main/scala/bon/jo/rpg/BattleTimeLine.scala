@@ -13,44 +13,47 @@ object BattleTimeLine:
   case class NextStateResultFast( fast : Iterable[TimedTrait[_]]) extends NextStateResult
   case class NextStateResultAsking( fast : Iterable[TimedTrait[_]], ask :  Future[Iterable[TimedTrait[_]]]) extends NextStateResult
 
+
   trait TimeLineOps:
-    self: TimeLineParam =>
-
-
+    val self: TimeLineParam
+    var pause = 0
+    var uiUpdate : Iterable[TimedTrait[_]] => Unit = _ => ()
+    var timedObjs: List[TimedTrait[_]] = Nil
     var cnt = 0
+    def stop(): Unit =
+      timedObjs = Nil
+      pause = 0
+
 
     def update(pf: TimedTrait[_]): TimedTrait[_] =
 
       pf.withPos(pf.pos + pf.speed)
 
 
-    var uiUpdate : Iterable[TimedTrait[_]] => Unit = _ => ()
+
     def state(pos: Int, spooed: Int): State =
       pos match
-        case i if (i < chooseAction) => State.BeforeChooseAction
-        case i if (i >= chooseAction && (i < chooseAction + spooed)) => State.ChooseAction
-        case i if (i < action) => State.BeforeResolveAction
-        case i if (i >= action) => State.ResolveAction
+        case i if (i < self.chooseAction) => State.BeforeChooseAction
+        case i if (i >= self.chooseAction && (i < self.chooseAction + spooed)) => State.ChooseAction
+        case i if (i < self.action) => State.BeforeResolveAction
+        case i if (i >= self.action) => State.ResolveAction
         case _ => State.NoState
 
     def updateAll(a : List[TimedTrait[_]] ): List[TimedTrait[_]] =
       a.map(update)
 
 
-    var timedObjs: List[TimedTrait[_]] = Nil
+
 
     def add[A: Timed](a: A): Unit =
       timedObjs = timedObjs :+ a.timed
 
 
-    def stop(): Unit =
-      timedObjs = Nil
-      pause = 0
+
 
 
     def state(e : List[TimedTrait[_]]): Seq[(TimedTrait[_], State)] = e.map(p => (p, state(p.pos, p.speed)))
 
-    var pause = 0
 
 
     type T[A] = List[TimedTrait[A]]
@@ -103,6 +106,8 @@ object BattleTimeLine:
 
 
 
-  case class TimeLineParam(start: Int, chooseAction: Int, action: Int) extends TimeLineOps
+  case class TimeLineParam(start: Int, chooseAction: Int, action: Int) extends TimeLineOps{
+    override val self: TimeLineParam = this
+  }
 
 

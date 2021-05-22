@@ -17,7 +17,7 @@ import scala.scalajs.js
 class Propose[A, B <: raw.HTMLElement](
                                                  val ioHtml: IOHtml[B, A],
                                                  val proposeView: ProposeView[A,_]
-                                               )(implicit executionContext: ExecutionContext) {
+                                               )(implicit executionContext: ExecutionContext):
 
 
 
@@ -25,29 +25,26 @@ class Propose[A, B <: raw.HTMLElement](
 
 
 
-  val btn: Button = {
+  val btn: Button =
     SimpleView.bsButton("add")
 
-  }
 
 
 
 
 
-  val html: Div = {
+  val html: Div =
     val div: Div = $l.t div List(ioHtml.html, btn)
     div
-  }
 
 
 //  type Ev = Iterable[js.Function1[MouseEvent, _]]
   def focus():Unit = html += proposeView.html
-  def createAllEvent(d : A=>Unit):Ev = {
+  def createAllEvent(d : A=>Unit):Ev =
     proposeView.seleO.children zip  proposeView.list map {
       case (element, a) =>  (element,clickEvent(element.asInstanceOf[HTMLElement], a)(d))
     }
 
-  }
   def clickEvent(htmlp : HTMLElement,b : A)(sel : A=>Unit): js.Function1[MouseEvent, _] =  htmlp.$click { _ => sel(b) }
 
 
@@ -56,18 +53,15 @@ class Propose[A, B <: raw.HTMLElement](
 
 
 
-}
 
-object ProposeView{
-  def help: Element = {
+object ProposeView:
+  def help: Element =
 
     val r = ViewsDef.help $attr List("data-toggle" -> "tooltip", "data-delay" -> "500",
       "title" -> "Cliquer sur un tags pour l'ajouter au memo")
     r.show(false)
     jquery(r).tooltip()
     r
-  }
-}
 
 case class ProposeView[A,C<:HtmlCpnt](
                         seleO : HTMLElement = $c.div ,
@@ -76,37 +70,33 @@ case class ProposeView[A,C<:HtmlCpnt](
                       )(implicit rep  : HtmlRep[A,C]){
 
   val html: HTMLElement = $l   div List(help, seleO)
-  def doFilter(filter: A => Boolean): Unit = {
-
+  def doFilter(filter: A => Boolean): Unit =
     val s =  (list zip seleO.children).map(a => {
       val h = a._2.asInstanceOf[HTMLElement]
-      if (filter(a._1)) {
+      if filter(a._1) then {
         h.show(true);1
       } else {
         h.show(false);0
       }
     }).sum
     help.show(s > 0)
-  }
 
-  def addAll(a: IterableOnce[A]): mutable.ListBuffer[A] = {
+  def addAll(a: IterableOnce[A]): mutable.ListBuffer[A] =
     val l = a.iterator.toList
-
     l.foreach(b => {
       val h = rep.html(b).list
       h foreach(_.show(false))
       seleO ++= h
 
     })
-   list.addAll(a)
-  }
-  def +=(b: A): List[HTMLElement] = {
+    list.addAll(a)
+
+  def +=(b: A): List[HTMLElement] =
     list += b
     val h = rep.html(b)
     //val html = wrap(h)
     seleO ++= h.list
-
     h.list
-  }
+
   def wrap(a :HtmlCpnt) =  $ref div{ d => d ++= a.list}
 }

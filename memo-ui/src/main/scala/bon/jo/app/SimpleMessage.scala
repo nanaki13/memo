@@ -5,7 +5,7 @@ import bon.jo.memo.ui.PopUp
 import bon.jo.rpg.ui.PlayerMessage
 import org.scalajs.dom.window
 
-trait SimpleMessage extends PlayerMessage {
+trait SimpleMessage extends PlayerMessage:
 
   override type T = MEsageImpl
 
@@ -13,7 +13,7 @@ trait SimpleMessage extends PlayerMessage {
     d.style.color = "white"
   }
 
-  def message(str: String, timeToDisplay: Int): Unit = {
+  def message(str: String, timeToDisplay: Int): Unit =
     PopUp(str)
 //    val s = $t div (str)
 //    messageDiv.appendChild(s)
@@ -22,16 +22,12 @@ trait SimpleMessage extends PlayerMessage {
 //      messageDiv.removeChild(s)
 //    }, timeToDisplay)
 //    t
-  }
 
-  def message(str: String): MEsageImpl = {
+  def message(str: String): MEsageImpl =
     val ret = MEsageImpl($t div (str))
     ret.str._class = "alert alert-warning"
     messageDiv.appendChild(ret.str)
     ret
-  }
 
-  def clear(str: MEsageImpl): Unit = {
+  def clear(str: MEsageImpl): Unit =
     messageDiv.removeChild(str.str)
-  }
-}

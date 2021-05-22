@@ -6,52 +6,40 @@ import org.scalajs.dom.raw.{Element, HTMLElement,Node}
 
 import scala.language.dynamics
 
-object Experimental {
+object Experimental:
 
 
-  object tag extends scala.Dynamic {
+  object tag extends scala.Dynamic:
     def selectDynamic(f: String): String = f
-  }
 
-  implicit class StringToHtml(s: String) {
+  implicit class StringToHtml(s: String):
     def toHtlm : HTMLElement = document.createElement(s).asInstanceOf[HTMLElement]
-    def tag(tagHtml: String): HTMLElement = {
+    def tag(tagHtml: String): HTMLElement =
       document.createElement(tagHtml).asInstanceOf[HTMLElement] := (_.textContent = s)
 
-    }
 
-    def tagTyped[A <: Element](tagHtml: String): A = {
+    def tagTyped[A <: Element](tagHtml: String): A =
       document.createElement(tagHtml).asInstanceOf[A] := (_.textContent = s)
 
-    }
-  }
 
-  implicit class ChildToParent(s: Node) {
-    def wrap(tagHtml: String): HTMLElement = {
+  implicit class ChildToParent(s: Node):
+    def wrap(tagHtml: String): HTMLElement =
       document.createElement(tagHtml).asInstanceOf[HTMLElement] := (_ += s)
-    }
 
-    def wrap(tagHtml: HTMLElement): HTMLElement = {
+    def wrap(tagHtml: HTMLElement): HTMLElement =
       tagHtml.appendChild(tagHtml)
       tagHtml
-    }
-  }
 
-  implicit class BsHtml[A <: HTMLElement](a: A) {
-    def $row: A = {
+  implicit class BsHtml[A <: HTMLElement](a: A):
+    def $row: A =
       a.classList.add("row")
       a
-    }
 
-    def $row(col: HTMLElement*): A = {
+    def $row(col: HTMLElement*): A =
       a.classList.add("row")
       col.map(_.$col).foreach(a += _)
       a
-    }
 
-    def $col: A = {
+    def $col: A =
       a.classList.add("col")
       a
-    }
-  }
-}

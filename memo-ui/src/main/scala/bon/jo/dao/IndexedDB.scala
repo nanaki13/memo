@@ -7,14 +7,13 @@ import org.scalajs.dom.{console, window}
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.scalajs.js
 
-object IndexedDB {
+object IndexedDB:
   val db: IDBFactory = window.indexedDB
-  implicit class EventDB(val e: EventTarget) {
+  implicit class EventDB(val e: EventTarget):
     def result[A]: A = e.asInstanceOf[js.Dynamic].result.asInstanceOf[A]
-  }
   case class DBExeception(val error: ErrorEvent) extends RuntimeException()
 
-  def init(stores : String *): Future[Unit] ={
+  def init(stores : String *): Future[Unit] =
     val p = Promise[Unit]()
     val open: IDBOpenDBRequest = db.open("dao")
     open.onupgradeneeded = f => {
@@ -30,14 +29,12 @@ object IndexedDB {
       p.failure( DBExeception(f))
     }
     p.future
-  }
 
-}
 
 trait IndexedDB {
   val db: IDBFactory = window.indexedDB
 
-  def database(storeName: String): Future[IDBDatabase] = {
+  def database(storeName: String): Future[IDBDatabase] =
     val p = Promise[IDBDatabase]()
     val open: IDBOpenDBRequest = db.open("dao")
     open.onupgradeneeded = f => {
@@ -52,6 +49,5 @@ trait IndexedDB {
       p.failure(new DBExeception(f))
     }
     p.future
-  }
 
 }

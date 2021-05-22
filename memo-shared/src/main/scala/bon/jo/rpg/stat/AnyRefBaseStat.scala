@@ -120,21 +120,21 @@ trait AnyRefBaseStat[+A]:
   def to[T <: AnyRefBaseStat[_]](implicit cv: AnyRefBaseStat[A] => T): T = cv(this)
 
   /**
-   * indique la santé du personnage
+   * indique la santÃ© du personnage
    *
    * @return
    */
   def hp: A
 
   /**
-   * permet d’utiliser les talents
+   * permet d'utiliser les talents
    *
    * @return
    */
   def sp: A
 
   /**
-   * Gouverne la vitesse à laquelle le personnage se déplace sur la Timeline de combat.
+   * Gouverne la vitesse Ã  laquelle le personnage se dÃ©place sur la Timeline de combat.
    *
    * @return
    */
@@ -148,35 +148,35 @@ trait AnyRefBaseStat[+A]:
   def str: A
 
   /**
-   * Ces points s’ajoutent au calcul des attaques magiques
+   * Ces points s'ajoutent au calcul des attaques magiques
    *
    * @return
    */
   def mag: A
 
   /**
-   * Ces points servent au calcul de la défense physique
+   * Ces points servent au calcul de la dÃ©fense physique
    *
    * @return
    */
   def vit: A
 
   /**
-   * Ces points servent au calcul de la défense magique
+   * Ces points servent au calcul de la dÃ©fense magique
    *
    * @return
    */
   def psy: A
 
   /**
-   * Augmente les chances d’échapper à un effet néfaste
+   * Augmente les chances d'Ã©chapper Ã  un effet nÃ©faste
    *
    * @return
    */
   def res: A
 
   /**
-   * Gouverne les chance de réaliser un crit (x2 dégâts!)
+   * Gouverne les chance de rÃ©aliser un crit (x2 dÃ©gats!)
    *
    * @return
    */

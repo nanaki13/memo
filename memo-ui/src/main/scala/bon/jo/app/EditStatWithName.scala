@@ -1,6 +1,6 @@
 package bon.jo.app
 
-import bon.jo.app.Experimental.{StringToHtml, t}
+import bon.jo.app.Experimental._
 import bon.jo.app.SType.Param
 import bon.jo.dao.Dao
 import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
@@ -25,13 +25,11 @@ import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
 
 
-object SType{
+object SType:
   type Param[A<: StatsWithName] = (Rpg,mutable.ListBuffer[EditStatWithName[A]])
-  implicit class ExParam[A<: StatsWithName](e : Option[Param[A]]){
+  implicit class ExParam[A<: StatsWithName](e : Option[Param[A]]):
     def rpg: Rpg = e.map(_._1).getOrElse(throw new IllegalStateException())
-  }
-}
-abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[Param[A]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends ImuutableHtmlCpnt with UpdatableCpnt[A] with ReadableCpnt[A] {
+abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[Param[A]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends ImuutableHtmlCpnt with UpdatableCpnt[A] with ReadableCpnt[A]:
 
   type Param = SType.Param[A]
   implicit val rep: HtmlRepParam[A, Param, EditStatWithName[A]] // = new EditWeaponCpnt[A](_,_)(repStat)
@@ -43,7 +41,7 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
   }
   private val id = $c.span[Span] := (_.textContent = initial.id.toString)
   private val colActioin: Div = $c.div
-  private val descTa = initial.desc.tagTyped[TextArea](t.textarea)
+  private val descTa = initial.desc.tagTyped[TextArea](tag.textarea)
   def deleteButton(): Option[HTMLElement => HTMLElement] = option.map(_._1.executionContext) map {
     implicit ec =>
       SimpleView.withClose(_,{
@@ -55,7 +53,7 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
   }
 
 
-  def initialAction(initial: A):Iterable[Action] = {
+  def initialAction(initial: A):Iterable[Action] =
     (initial match {
       case Perso.ArmePerso(l,r) =>
        ( l match {
@@ -74,13 +72,12 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
       case _ : Weapon => Action.weaponValues
       case _ => Nil
     })
-  }
 
   private val actionsChoose: HTMLSelectElement = $l.t select initialAction(initial).filter(!initial.action.contains(_)).map(optionF)
 
   private val actions = ListBuffer.from(initial.action)
 
-  def updateAction(a : A)={
+  def updateAction(a : A)=
     actionsChoose.clear()
     colActioin.clear()
     val ini = initialAction(a)
@@ -88,7 +85,6 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
     actions.toList.filterNot(possible.contains).foreach(actions -= _)
     actionsChoose ++= ini.filter(!actions.contains(_)).map(optionF).toList
     actions.foreach(addToCollAction)
-  }
   private def optionF(action: Action) = $ref.t.option { (o: HTMLOptionElement) =>
     o.value = action.toString
     o.innerText = action.toString
@@ -98,7 +94,7 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
 
   private val buttonAddAction = SimpleView.bsButton("+")
 
-  def addToCollAction(a: Action): Unit = {
+  def addToCollAction(a: Action): Unit =
     colActioin += {
       SimpleView.badgeClose(a, {
         actionsChoose.appendChild(optionF(a))
@@ -106,25 +102,22 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
 
       })(_.name, BsModifier.Warning)
     }
-  }
 
 
   initial.action.foreach(addToCollAction)
   buttonAddAction $click { _ =>
-    if (actions.size < 4) {
+    if actions.size < 4 then
       getAction(actionsChoose.value).foreach { a =>
         actions += a
         addToCollAction(a)
         actionsChoose.getElementsByTagName("option").toList.foreach {
           e =>
-            if (e.asInstanceOf[HTMLOptionElement].value == a.name) {
+            if e.asInstanceOf[HTMLOptionElement].value == a.name then
               actionsChoose.removeChild(e)
-            }
         }
       }
-    } else {
+    else
       buttonAddAction.parentElement += (withClose($t span ("Pas plus de 4"), {}) := { b => b._class = "badge badge-danger" })
-    }
 
   }
 
@@ -138,21 +131,20 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
   }
 
 
-  def mainDiv: HTMLElement = {
+  def mainDiv: HTMLElement =
 
     import Experimental._
-    val r1 =  t.div.toHtlm.$row(
-      $va div(id, name), (descTa : HTMLElement).wrap(t.div)
+    val r1 =  tag.div.toHtlm.$row(
+      $va div List(id, name), (descTa : HTMLElement).wrap(tag.div)
     )
-    val r2 =  t.div.toHtlm.$row(
+    val r2 =  tag.div.toHtlm.$row(
       $t span "action" := {
         _._class = "stat-label"
       },actionsChoose,buttonAddAction
     )
 
     val r4 = copyButton
-      $va div (r1,r2,$l div (statCpnt.list),r4)
-  }
+      $va div List(r1,r2,$l div (statCpnt.list),r4)
 
   def beforeState(a : HTMLElement)=  statCpnt.list.head.parentElement.insertBefore(a,statCpnt.list.head)
   def beforeStatOption : Option[HTMLElement] = None
@@ -165,23 +157,20 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
     }).flatMap(e => deleteButton().map(_(e)))
 
 
-  override def update(value: Option[A]): Unit = {
+  override def update(value: Option[A]): Unit =
     statCpnt.update(value.map(_.stats))
     value.foreach(e => {
       id.textContent = e.id.toString
       name.value = e.name
     })
-  }
 
   def create(id: Int, name: String,desc : String, intBaseStat: IntBaseStat, action: List[Action]): A
 
-  override def read: A = {
+  override def read: A =
     create(id.textContent.toInt, name.value,descTa.value, statCpnt.read, actions.toList)
-  }
 
-  def readWithoutId: A = {
+  def readWithoutId: A =
     create(0, name.value,descTa.value, statCpnt.read, actions.toList)
-  }
 
   private val copyButton = SimpleView.bsButton("copy")
 
@@ -193,4 +182,3 @@ abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[P
   }
 
   }
-}

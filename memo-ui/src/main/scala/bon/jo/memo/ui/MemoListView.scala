@@ -13,7 +13,7 @@ import org.scalajs.dom.raw
 import org.scalajs.dom.raw.{HTMLElement, HTMLUListElement}
 
 import scala.scalajs.js.JSConverters._
-class MemoListView() extends GenId {
+class MemoListView() extends GenId:
   var data: MemoListJS = new MemoList(Nil.toJSArray)
   val tInput: Input = $c.input
   tInput.id = s"$id-i"
@@ -25,19 +25,17 @@ class MemoListView() extends GenId {
   val spanWordClass = "span-li"
 
   val deleteClass = "delete-li"
-  def spanWord: Span = {
+  def spanWord: Span =
     ($ref span (r => r._class = spanWordClass)).$to
-  }
 
-  def checkInput: Input = {
+  def checkInput: Input =
     $ref.t input ((r: Input) => {
       r._class = ckeckClass
       r.`type` = "checkbox"
     })
-  }
 
   type _HtmlRep[A] = HtmlRep[A,HtmlCpnt]
-  implicit val listElementidXmlRep: _HtmlRep[ListElementJS] = {
+  implicit val listElementidXmlRep: _HtmlRep[ListElementJS] =
     (li) =>
       (()=> $va li( {
         val inp: Input = checkInput
@@ -53,17 +51,15 @@ class MemoListView() extends GenId {
         s._class += s" $deleteClass"
         s
       }).toList).toHtmlCpnt
-  }
-  implicit val idXmlRep: _HtmlRep[MemoListJS] = {
+  implicit val idXmlRep: _HtmlRep[MemoListJS] =
     m =>  {
         m.elements.toList.html.foreach(list ++= _.list)
-      (() => list).toHtmlCpnt
+        (() => list).toHtmlCpnt
     }
-  }
 
 
   private val list : HTMLUListElement = $ref.t ul {
-    lUl : HTMLUListElement =>
+    (lUl : HTMLUListElement) =>
       lUl.id = id + "l"
   }
 
@@ -84,18 +80,17 @@ class MemoListView() extends GenId {
 
   def del(htmlkElement: HTMLElement): Unit = elementsOfClass(htmlkElement)(deleteClass).foreach(d => d.$click { _ => htmlkElement.html.removeFromDom() })
 
-  def addEvent(): Unit = {
+  def addEvent(): Unit =
 
     val ev = tInput
     ev.$Action {
-      if(tInput.value.trim.nonEmpty){
+      if tInput.value.trim.nonEmpty then
         val el: ListElementJS = new ListElement(tInput.value.trim, true)
         val htmlN = el.html.list
         list ++= htmlN
 
         htmlN.foreach(del)
         tInput.value = ""
-      }
 
     }
     ev.$keyup {
@@ -110,17 +105,12 @@ class MemoListView() extends GenId {
         }
     }
     list.children.map(_.asInstanceOf[HTMLElement]).foreach(del)
-  }
 
-  private def readWord(l: raw.HTMLElement): String = {
+  private def readWord(l: raw.HTMLElement): String =
     elementsOfClass(l)(spanWordClass).head.innerText.trim
-  }
 
-  private def readCheck(l: raw.HTMLElement): Boolean = {
+  private def readCheck(l: raw.HTMLElement): Boolean =
     elementsOfClass(l)(ckeckClass).map(_.asInstanceOf[Input]).head.checked
-  }
 
-  def read(): MemoList = {
+  def read(): MemoList =
     new MemoList(list.children.map(_.asInstanceOf[HTMLElement]).map(l => new ListElement(readWord(l), readCheck(l))).map(_.asInstanceOf[ListElementJS]).toJSArray)
-  }
-}

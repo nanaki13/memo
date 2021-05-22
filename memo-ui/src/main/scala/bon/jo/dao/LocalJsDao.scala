@@ -13,17 +13,16 @@ import scala.reflect.ClassTag
 import scala.scalajs.js
 
 
-object LocalJsDao {
+object LocalJsDao:
 
-   class MappedDaoImpl[A <: js.Object, B](override val daoJs: LocalJsDao[A])(implicit val executionContext: ExecutionContext,  val mapper: Mapper[B, A]) extends MappedDao[A, B]
+  class MappedDaoImpl[A <: js.Object, B](override val daoJs: LocalJsDao[A])(implicit val executionContext: ExecutionContext,  val mapper: Mapper[B, A]) extends MappedDao[A, B]
 
-  trait MappedDao[A <: js.Object, B] extends Dao[B, Int] with Ec {
-    def initId(implicit classTag: ClassTag[B]): Future[Unit] = {
+  trait MappedDao[A <: js.Object, B] extends Dao[B, Int] with Ec:
+    def initId(implicit classTag: ClassTag[B]): Future[Unit] =
       readIds().map {
         case Nil => List(0)
         case e => e
       }.map(_.max).map(Id.init[B](_))
-    }
 
     val mapper: Mapper[B, A]
     val daoJs: LocalJsDao[A]
@@ -32,8 +31,8 @@ object LocalJsDao {
 
     private def unmap = mapper.unmap
 
-    def createOrUpdate[AC <: B with StatsWithName](a: AC)(implicit classTag: ClassTag[AC]): FO = {
-      daoJs.fId(mapper.map(a)) match {
+    def createOrUpdate[AC <: B with StatsWithName](a: AC)(implicit classTag: ClassTag[AC]): FO =
+      daoJs.fId(mapper.map(a)) match
         case 0 => {
           val id= Id[AC]
           console.log("CREATE : "+id)
@@ -42,8 +41,6 @@ object LocalJsDao {
           create( a.withId(id))
         }
         case _ => update(a)
-      }
-    }
 
     override def create(a: B): FO = daoJs.create(map(a)).map(_.flatMap(unmap))
 
@@ -55,14 +52,11 @@ object LocalJsDao {
 
     override def delete(a: Int): FB = daoJs.delete(a)
     def  readIds(): Future[List[Int]] = daoJs.readIds()
-  }
 
-  def apply[A <: js.Object, B](jsDao: LocalJsDao[A])(implicit m: Mapper[B, A], executionContext: ExecutionContext): MappedDao[A, B] = {
+  def apply[A <: js.Object, B](jsDao: LocalJsDao[A])(implicit m: Mapper[B, A], executionContext: ExecutionContext): MappedDao[A, B] =
     new MappedDaoImpl(jsDao)
-  }
-}
 
-trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec {
+trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec:
 
   import IndexedDB._
 
@@ -75,29 +69,26 @@ trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec {
       db.transaction(js.Array(name), mode)
   }
 
-  def readIds(): Future[List[Int]] = {
+  def readIds(): Future[List[Int]] =
     console.log("readIds" + name)
     transaction("readonly").map(_.objectStore(name)).map(_.openCursor()).flatMap {
       cursor =>
         val p = Promise[List[Int]]()
         val b = ListBuffer[Int]()
-        cursor.onsuccess = {
+        cursor.onsuccess =
           s =>
             val c: idb.Cursor = s.target.result
 
-            if (c == null || js.isUndefined(c)) {
+            if c == null || js.isUndefined(c) then
               p.success(b.toList)
-            } else {
+            else
               b += c.key.asInstanceOf[Int]
               c.continue()
-            }
-        }
         cursor.onerror = e => p.failure(new DBExeception(e))
         p.future
     }
-  }
 
-  override def create(a: A): FO = {
+  override def create(a: A): FO =
 
     transaction("readwrite") flatMap {
       tr =>
@@ -108,9 +99,8 @@ trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec {
         }, () => Some(a))
 
     }
-  }
 
-  def future[B](tr: IDBTransaction, trAction: IDBTransaction => IDBRequest): Future[Option[B]] = {
+  def future[B](tr: IDBTransaction, trAction: IDBTransaction => IDBRequest): Future[Option[B]] =
     val promise = Promise[Option[B]]()
     val request = trAction(tr)
     request.onerror = e => {
@@ -125,9 +115,8 @@ trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec {
 
     trAction(tr)
     promise.future
-  }
 
-  def future[B](tr: IDBTransaction, trAction: IDBTransaction => IDBRequest, ok: () => B): Future[B] = {
+  def future[B](tr: IDBTransaction, trAction: IDBTransaction => IDBRequest, ok: () => B): Future[B] =
     val promise = Promise[B]()
 
     val request = trAction(tr)
@@ -150,48 +139,41 @@ trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec {
 
     }
     promise.future
-  }
 
 
-  override def update(a: A, idOpt: Option[Int]): FO = {
+  override def update(a: A, idOpt: Option[Int]): FO =
     transaction("readwrite") flatMap {
       tr =>
         future[Option[A]](tr, t => t.objectStore(name).put(a), () => Some(a))
     }
 
-  }
 
-  override def read(a: Int): FO = {
+  override def read(a: Int): FO =
 
     transaction("readonly") flatMap {
       tr =>
         future[A](tr, t => t.objectStore(name).get(a))
     }
-  }
 
-  override def readAll(limit: Int, offset: Int): FL = {
+  override def readAll(limit: Int, offset: Int): FL =
     transaction("readonly") map (_.objectStore(name).openCursor()) flatMap {
       cursor =>
         val p = Promise[List[A]]()
         val b = ListBuffer[A]()
-        cursor.onsuccess = {
+        cursor.onsuccess =
           s =>
             val c: idb.CursorWithValue = s.target.result
 
-            if (c == null || js.isUndefined(c)) {
+            if c == null || js.isUndefined(c) then
               p.success(b.toList)
-            } else {
+            else
               b += c.value.asInstanceOf[A]
               c.continue()
-            }
-        }
         cursor.onerror = e => p.failure(new DBExeception(e))
         p.future
     }
-  }
 
   override def delete(a: Int): FB = transaction("readwrite") flatMap {
     tr =>
       future[Boolean](tr, t => t.objectStore(name).delete(a), () => true)
   }
-}

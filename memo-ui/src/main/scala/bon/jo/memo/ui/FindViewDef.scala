@@ -9,12 +9,12 @@ import org.scalajs.dom.raw.HTMLElement
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
 
-object FindViewDef {
+object FindViewDef:
   case class FindParam(
                         buttonName: String
                       )
 
-  class FindView(val findParam: FindParam, val ctx: FindViewCtx) extends HtmlCpnt with UpdatableCpnt[FindParam]{
+  class FindView(val findParam: FindParam, val ctx: FindViewCtx) extends HtmlCpnt with UpdatableCpnt[FindParam]:
     implicit val ec: ExecutionContext = ctx.ec
     private val input = SimpleView.i
     private val button = SimpleView.bsButton(findParam.buttonName)
@@ -33,13 +33,10 @@ object FindViewDef {
     }
 
     override def update(value: Option[FindParam]): Unit = ???
-  }
 
   case class FindViewCtx(memoTemplate: MemoTemplate, kws: Iterable[KeyWord], ec: ExecutionContext)
 
-  object FindViewProvider extends HtmlRepParam[FindParam, FindViewCtx,FindView] {
+  object FindViewProvider extends HtmlRepParam[FindParam, FindViewCtx,FindView]:
     override def html(memo: FindParam, p: Option[FindViewCtx]): FindView = new FindView(memo, p.get)
-  }
 
   implicit val pr: HtmlRepParam[FindParam, FindViewCtx,FindView] = FindViewProvider
-}

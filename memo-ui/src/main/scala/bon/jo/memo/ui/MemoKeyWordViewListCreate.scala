@@ -21,7 +21,7 @@ class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: 
       listView,
       $t div "KeyWord : ",
       propose.html
-    ).toList) := ( _._class="col" ) ,addMemo) {
+    ).toList) := ( _._class="col" ) ,addMemo):
 
 
 
@@ -39,4 +39,3 @@ class MemoKeyWordViewListCreate(val propose: Propose[KeyWord, Input], listView: 
         }
       }
     }
-}

@@ -26,9 +26,9 @@ import scala.scalajs.js.JSON
 import scala.util.{Failure, Success}
 
 
-object AppLoaderExample extends App {
+object AppLoaderExample extends App:
   document.body.classList.add("bg-1")
-  object Rpg extends Rpg {
+  object Rpg extends Rpg:
     override implicit val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.global
     val weaponJsDao: WeaponDaoJs = new WeaponDaoJs {
       override implicit val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.global
@@ -41,13 +41,12 @@ object AppLoaderExample extends App {
     override val persoDao: MappedDao[Export.PersoJS, Perso] with PersoDao = PersoDao(persoJsDao)
 
     private val fromChild =  $c.a[Anchor]:= (menuLink => {menuLink._class = "nav-item menu-link"})
-    override def createButton(addRandomButton: Button): Unit = {
+    override def createButton(addRandomButton: Button): Unit =
       fromChild.clear()
       fromChild += addRandomButton
       menu.cont += fromChild
-    }
 
-    def exportF() : Unit = {
+    def exportF() : Unit =
       weaponDao.readAll().zip(persoDao.readAll()) map {
          case (ws, perso) => js.Dynamic.literal(
            w = ws.map(_.copy(id = 0)).map(weaponDao.mapper.map).toJSArray,
@@ -63,8 +62,7 @@ object AppLoaderExample extends App {
            PopUp(popUpCotnet)
          case Failure(exception) =>
        }
-    }
-    def importData(str : String) : Unit = {
+    def importData(str : String) : Unit =
       weaponDao.initId zip persoDao.initId flatMap  {
         _ =>
           val data = JSON.parse(new String(Base64.getDecoder.decode(str), "utf-8"))
@@ -77,22 +75,19 @@ object AppLoaderExample extends App {
       }
 
 
-    }
 
-    def importDataPopUp() : Unit =  {
+    def importDataPopUp() : Unit = 
       val ta : TextArea = $c.textarea[TextArea]
       val impBtn : Button =  SimpleView.bsButton("import")
       val div = $va div List(ta,impBtn)
       impBtn.$click{_=>
-        try {
+        try
           importData(ta.value)
-        }catch {
+        catch
           case (e : Exception) => PopUp("Donner invalid")
-        }
 
       }
       PopUp(div)
-    }
 
     val menu = new Menu(
       "éditer/créer Arme" -> initChoixArme,
@@ -101,13 +96,11 @@ object AppLoaderExample extends App {
       "Simulation" -> simulation,
     "Export" -> exportF,"Import" -> importDataPopUp)
 
-    def init(): HTMLElement = {
+    def init(): HTMLElement =
       root.parentElement += menu.cont
-    }
 
 
-  }
-  class Menu(val menuItems: (String, () => Unit)*) {
+  class Menu(val menuItems: (String, () => Unit)*):
     val links: Seq[HTMLElement] = menuItems.map {
       case (str, unit) =>
         $c.a[Anchor] := (menuLink => {
@@ -147,20 +140,17 @@ object AppLoaderExample extends App {
 
 
 
-  }
 
   import Rpg.executionContext
 
   IndexedDB.init(Rpg.weaponJsDao.name, Rpg.persoJsDao.name) map { _ =>
     Rpg.init()
   } onComplete{
-    case Failure(exception) => exception match {
+    case Failure(exception) => exception match
       case ex@DBExeception(e) => ex.printStackTrace();console.log(e)
       case e => e.printStackTrace()
-    }
     case Success(_) =>     PopUp("start ok")
   }
-}
 
 
 

@@ -17,7 +17,7 @@ trait Selection[A, C <: HtmlCpnt] {
 
 object Selection {
 
-  def selection[A, C <: HtmlCpnt](list: Iterable[A], target: HTMLElement, param: Param[A, C]): Future[Iterable[A]] = {
+  def selection[A, C <: HtmlCpnt](list: Iterable[A], target: HTMLElement, param: Param[A, C]): Future[Iterable[A]] =
     val res = Promise[Iterable[A]]()
     val buff = ListBuffer[A]()
     val cpnt = list map (e => (e, param.htmlRep.html(e)))
@@ -26,24 +26,21 @@ object Selection {
     } foreach {
       case (a, c, element) => element.$click { _ =>
         buff += a
-        if (param.multiple.isEmpty) {
+        if param.multiple.isEmpty then
           res.success(buff.toList)
-        } else {
+        else
           param.selListener(param.choisit.html(a))
           target.removeChild(element)
-        }
 
       }
-        element.style.cursor = "pointer"
-        target += element
-        (a, c, element)
+      element.style.cursor = "pointer"
+      target += element
+      (a, c, element)
     }
-    param.multiple match {
+    param.multiple match
       case Some(value) => value.$click(_ => res.success(buff.toList))
       case None =>
-    }
     res.future
-  }
 
   case class Param[A, C <: HtmlCpnt](
                                       multiple: Option[Button]
@@ -51,8 +48,7 @@ object Selection {
                                       , selListener: HtmlCpnt => Unit,
                                       htmlRep: HtmlRep[A, C],
                                       choisit: HtmlRep[A, C]
-                                    ) extends Selection[A, C] {
+                                    ) extends Selection[A, C]:
     def selection(list: Iterable[A], target: HTMLElement): Future[Iterable[A]] = Selection.selection(list, target, this)
-  }
 
 }

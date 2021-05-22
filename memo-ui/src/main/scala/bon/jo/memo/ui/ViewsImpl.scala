@@ -12,7 +12,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 
-class ViewsImpl(implicit executionContext: ExecutionContext) {
+class ViewsImpl(implicit executionContext: ExecutionContext):
 
 
   val viewsDef: ViewsDef = ViewsDef()
@@ -57,6 +57,5 @@ class ViewsImpl(implicit executionContext: ExecutionContext) {
     }
 
 
-}
 
 

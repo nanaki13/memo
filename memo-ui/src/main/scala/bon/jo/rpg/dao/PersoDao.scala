@@ -8,24 +8,20 @@ import bon.jo.util.Mapper
 
 import scala.concurrent.ExecutionContext
 
-trait PersoDao {
+trait PersoDao:
   self: MappedDao[PersoJS, Perso] =>
-}
 
 object PersoDao {
 
-  trait PersoDaoJs extends LocalJsDao[PersoJS] {
+  trait PersoDaoJs extends LocalJsDao[PersoJS]:
     val name = "PersoDao"
     val fId: PersoJS => Int = _.id
 
-  }
 
-  implicit object PersoMapper extends Mapper[Perso, PersoJS] {
+  implicit object PersoMapper extends Mapper[Perso, PersoJS]:
     override val map: Perso => PersoJS = PersoJS.apply
     override val unmap: PersoJS => Option[Perso] = PersoJS.unapply
-  }
 
-  def apply(jsDao: PersoDaoJs)(implicit executionContext: ExecutionContext): MappedDao[PersoJS, Perso] with PersoDao = {
+  def apply(jsDao: PersoDaoJs)(implicit executionContext: ExecutionContext): MappedDao[PersoJS, Perso] with PersoDao =
     new MappedDaoImpl(jsDao) with PersoDao
-  }
 }

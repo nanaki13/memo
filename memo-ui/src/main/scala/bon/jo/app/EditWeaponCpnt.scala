@@ -12,22 +12,19 @@ import bon.jo.dao.Dao
 import bon.jo.html.HtmlRep
 import bon.jo.html.HtmlRep.HtmlRepParam
 
-object EditWeaponCpnt extends HtmlRepParam[Weapon, SType.Param[Weapon], EditStatWithName[Weapon]] {
+object EditWeaponCpnt extends HtmlRepParam[Weapon, SType.Param[Weapon], EditStatWithName[Weapon]]:
 
-  override def html(memo: Weapon, option: Option[SType.Param[Weapon]]): EditWeaponCpnt = {
+  override def html(memo: Weapon, option: Option[SType.Param[Weapon]]): EditWeaponCpnt =
     new EditWeaponCpnt(memo, option)(EditStat)
-  }
 
 
-  object Implicit{
+  object Implicit:
     type Hrep = HtmlRepParam[Weapon, SType.Param[Weapon], EditStatWithName[Weapon]]
     implicit val value: Hrep = EditWeaponCpnt
-  }
 
 
-}
 
-class EditWeaponCpnt(initial: Weapon, option: Option[SType.Param[Weapon]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends EditStatWithName[Weapon](initial,option)(repStat){
+class EditWeaponCpnt(initial: Weapon, option: Option[SType.Param[Weapon]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends EditStatWithName[Weapon](initial,option)(repStat):
   override implicit val rep: HtmlRepParam[Weapon, SType.Param[Weapon], EditStatWithName[Weapon]] = EditWeaponCpnt
 
   override def randomValue: Weapon = new Weapon(initial.id,RandomName.randomWeaponName(),"La belle arme",1,AnyRefBaseStat[Float](Actor.randomWeaponVal _).map(_.round))
@@ -35,4 +32,3 @@ class EditWeaponCpnt(initial: Weapon, option: Option[SType.Param[Weapon]])(repSt
   override def create(id : Int,name: String,desc : String, intBaseStat: IntBaseStat, action: List[Action]): Weapon = new Weapon(id,name,desc,1,intBaseStat,action)
 
   override val dao: Dao[Weapon, Int] = option.rpg.weaponDao
-}

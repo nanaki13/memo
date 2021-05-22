@@ -7,7 +7,7 @@ import bon.jo.html.HTMLDef.{$c, $ref, HtmlOps}
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.html.HtmlRep
 import bon.jo.html.HtmlRep.PrXmlId
-import bon.jo.rpg.BattleTimeLine.TimeLineParam
+import bon.jo.rpg.BattleTimeLine.{TimeLineParam,TimeLineOps}
 import bon.jo.rpg.dao.{PersoDao, WeaponDao}
 import bon.jo.rpg.raw.Action
 import bon.jo.rpg.stat.Perso.WithUI
@@ -27,7 +27,7 @@ import scala.collection.mutable.ListBuffer
 
 
 
-trait Rpg extends Ec with ArmesPage with RpgSimu {
+trait Rpg extends Ec with ArmesPage with RpgSimu:
   def createButton(addRandomButton: Button): Unit
 
 
@@ -35,15 +35,14 @@ trait Rpg extends Ec with ArmesPage with RpgSimu {
   val weaponDao: MappedDao[WeaponJS, Weapon] with WeaponDao
   val persoDao: MappedDao[PersoJS, Perso] with PersoDao
 
-  val deckCreation: Div = {
+  val deckCreation: Div =
     println("deckCreation")
     $c.div[Div]
-  }
 
 
   var cpntMap: Map[Int, (Perso, PerCpnt)] = _
 
-  val timeLine = TimeLineParam(0, 200, 260)
+  val timeLine : TimeLineParam = TimeLineParam(0, 200, 260)
 
   val root = $ref div {
     d =>
@@ -56,7 +55,7 @@ trait Rpg extends Ec with ArmesPage with RpgSimu {
     e += root
   }
 
-  def startRpg = {
+  def startRpg =
     implicit val ui: HtmlUi = HtmlUi.Value
     implicit val repPerso: HtmlUi.PersoRep.type = HtmlUi.PersoRep
     implicit val actionPerso: HtmlRep[Action, ImuutableHtmlCpnt] = HtmlUi.acctRep
@@ -76,7 +75,6 @@ trait Rpg extends Ec with ArmesPage with RpgSimu {
     cpntTimeLine.tlView.$userCanDrag()
     cpntTimeLine.doEvent()
     onChangePage += (() => timeLine.stop())
-  }
 
 
 
@@ -91,4 +89,3 @@ trait Rpg extends Ec with ArmesPage with RpgSimu {
     startRpg
   }*/
 
-}

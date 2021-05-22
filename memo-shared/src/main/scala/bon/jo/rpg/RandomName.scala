@@ -4,8 +4,8 @@ import scala.util.Random
 
 object RandomName:
   val r = new Random()
-  val weapon = List("Epée", "Couteau", "Dague", "Sabre", "Shuruken", "Marteau")
-  val weaponMod = List("de l'enfer", "qui tue", "de l'ombre", "de la lumière", "", "divin")
+  val weapon = List("EpÃ©e", "Couteau", "Dague", "Sabre", "Shuruken", "Marteau")
+  val weaponMod = List("de l'enfer", "qui tue", "de l'ombre", "de la lumiÃ¨re", "", "divin")
   def randomWeaponName(): String =
     weapon(r.nextInt(weapon.size))+" "+weaponMod(r.nextInt(weapon.size))
 

@@ -8,12 +8,12 @@ import org.scalajs.dom.document
 import org.scalajs.dom.html.Div
 import org.scalajs.dom.raw.{HTMLElement, Node}
 
-object PopUp {
+object PopUp:
 
   private def havePopupMessage = popCount > 0
   private def noPopuMessage = !havePopupMessage
   var popCount = 0
-  lazy val popCnt: Div = {
+  lazy val popCnt: Div =
     val htmlNode : Div = $c.div
     htmlNode.style.position = "fixed"
     htmlNode.style.right = "10em"
@@ -25,15 +25,12 @@ object PopUp {
     htmlNode.draggable = true
     htmlNode.$userCanDrag()
     htmlNode
-  }
-  private def show(htmlNode: HTMLElement): Unit = {
+  private def show(htmlNode: HTMLElement): Unit =
     document.body.appendChild(htmlNode)
 
-  }
-  def apply(message: Node): Unit = {
-    if (noPopuMessage) {
+  def apply(message: Node): Unit =
+    if noPopuMessage then
       show(popCnt)
-    }
     popCount+=1
     val btn = CommonHtml.closeBtn
     btn.classList add "popup-close"
@@ -43,20 +40,15 @@ object PopUp {
     btn.$click { _ =>
       popCount -= 1
       htmlNode.removeFromDom()
-      if(noPopuMessage){
+      if noPopuMessage then
         popCnt.removeFromDom()
-      }
     }
-    if(popCount>10){
+    if popCount>10 then
       popCnt.removeChild( popCnt.children.head)
       popCount -= 1
-    }
 
-  }
 
-  def apply(message: String): Unit = {
+  def apply(message: String): Unit =
     apply($t(message))
 
 
-  }
-}
