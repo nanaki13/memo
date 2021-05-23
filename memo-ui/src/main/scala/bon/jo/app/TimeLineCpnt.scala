@@ -5,23 +5,27 @@ import bon.jo.rpg.BattleTimeLine
 import bon.jo.app.Experimental._
 import bon.jo.rpg.BattleTimeLine.TimeLineParam
 import bon.jo.rpg.raw.TimedTrait
+import bon.jo.rpg.raw
 import bon.jo.rpg.stat.Perso.WithUI
+import bon.jo.rpg.stat.{Perso, GameElement}
 import org.scalajs.dom.html.{Div, Span}
 import org.scalajs.dom.{console, window}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
+import bon.jo.rpg.BattleTimeLine.TimeLineOps
 
-class TimeLineCpnt(val el: TimeLineParam, val withUI: WithUI):
-  val ordering : Ordering[TimedTrait[_]] =
+//type Resolve = bon.jo.rpg.ActionResolver[TimedTrait[GameElement], List[TimedTrait[GameElement]]]
+class TimeLineCpnt(val withUI: WithUI)(using el:  TimeLineOps):
+  val ordering : Ordering[TimedTrait[_ <: GameElement]] =
     val idToOrder = el.timedObjs.map(_.id).zipWithIndex.toMap
     (a,b) => idToOrder(a.id).compare(b.id)
 
 
-  import withUI.acImpl
+  import withUI.given
 
-  implicit val ui: Any = withUI.o.ui
+ // implicit val ui: Any = withUI.o.ui
   val tlView: Div = $c.div
   tlView.draggable = true
 
@@ -40,12 +44,12 @@ class TimeLineCpnt(val el: TimeLineParam, val withUI: WithUI):
     val in = e.wrap(tag.div)
     in.style.height = "1em"
     val s1: Span = $c.span
-    s1.style.width = s"${el.chooseAction}px"
+    s1.style.width = s"${el.params.chooseAction}px"
     s1.style.backgroundColor = "blue"
     s1.style.height = "1em"
     s1.style.display = "inline-block"
     val s2: Span = $c.span
-    s2.style.width = s"${el.action - el.chooseAction}px"
+    s2.style.width = s"${el.params.action - el.params.chooseAction}px"
     s2.style.backgroundColor = "red"
     s2.style.height = "1em"
     s2.style.display = "inline-block"
@@ -73,8 +77,8 @@ class TimeLineCpnt(val el: TimeLineParam, val withUI: WithUI):
     lazy val gameLoop: Int = window.setInterval(()=>{
       if el.pause == 0 then {
         el.nextState(el.timedObjs) match {
-          case BattleTimeLine.NextStateResultFast(fast) => el.timedObjs = fast.toList
-          case BattleTimeLine.NextStateResultAsking(fast, ask) => ask foreach{
+          case BattleTimeLine.NextStateResult.NextStateResultFast(fast) => el.timedObjs = fast.toList
+          case BattleTimeLine.NextStateResult.NextStateResultAsking(fast, ask) => ask foreach{
             askWithResult =>
               el.timedObjs =  (fast++askWithResult).toList.sorted(ordering)
           }
@@ -88,5 +92,5 @@ class TimeLineCpnt(val el: TimeLineParam, val withUI: WithUI):
 
 
 
-  el.resume = doEvent _
+  el.resume = doEvent
 

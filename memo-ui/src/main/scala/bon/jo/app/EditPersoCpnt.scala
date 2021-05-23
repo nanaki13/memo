@@ -14,7 +14,7 @@ import bon.jo.rpg.{Action, RandomName}
 import bon.jo.rpg.stat.raw.{Actor, IntBaseStat, Perso, Weapon}
 import org.scalajs.dom.html.{Button, TextArea}
 import org.scalajs.dom.raw.{HTMLElement, HTMLLIElement, HTMLUListElement}
-
+import scala.language.dynamics
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 

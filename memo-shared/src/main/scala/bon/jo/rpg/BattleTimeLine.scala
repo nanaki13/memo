@@ -5,27 +5,42 @@ import bon.jo.rpg.TimedTrait._
 import bon.jo.rpg.ui.PlayerUI
 
 import scala.concurrent.{ExecutionContext, Future}
+import bon.jo.rpg.stat.{ GameElement}
 
 
 object BattleTimeLine:
 
-  sealed trait NextStateResult
-  case class NextStateResultFast( fast : Iterable[TimedTrait[_]]) extends NextStateResult
-  case class NextStateResultAsking( fast : Iterable[TimedTrait[_]], ask :  Future[Iterable[TimedTrait[_]]]) extends NextStateResult
+
+  type TP[A] = TimedTrait[A]
+  type LTP[A] = List[TP[A]]
+  type ITP[A] = Iterable[TP[A]]
+  type TPA = TP[GameElement]
+  type LTPA = LTP[GameElement]
+  type ITPA = ITP[GameElement]
+  enum NextStateResult(change : List[() => GameElement]):
+    case  NextStateResultFast( fast : ITP[GameElement]) extends NextStateResult(Nil)
+    case  NextStateResultAsking( fast : ITP[GameElement], ask :  Future[ITP[GameElement]])  extends NextStateResult(Nil)
 
 
-  trait TimeLineOps:
-    val self: TimeLineParam
+ // def apply(using TimeLineParam) =
+  object TimeLineOps{
+    class i()(using params :  TimeLineParam,t : Timed[GameElement]) extends TimeLineOps
+    def apply()(using params :  TimeLineParam,t :  Timed[GameElement]) : TimeLineOps = i()
+  }
+  trait TimeLineOps(using val params :  TimeLineParam)(using Timed[GameElement]):
+    
+
+ 
     var pause = 0
-    var uiUpdate : Iterable[TimedTrait[_]] => Unit = _ => ()
-    var timedObjs: List[TimedTrait[_]] = Nil
+    var uiUpdate : ITPA => Unit = _ => ()
+    var timedObjs: LTPA = Nil
     var cnt = 0
     def stop(): Unit =
       timedObjs = Nil
       pause = 0
 
 
-    def update(pf: TimedTrait[_]): TimedTrait[_] =
+    def update(pf: TPA): TPA =
 
       pf.withPos(pf.pos + pf.speed)
 
@@ -33,54 +48,56 @@ object BattleTimeLine:
 
     def state(pos: Int, spooed: Int): State =
       pos match
-        case i if (i < self.chooseAction) => State.BeforeChooseAction
-        case i if (i >= self.chooseAction && (i < self.chooseAction + spooed)) => State.ChooseAction
-        case i if (i < self.action) => State.BeforeResolveAction
-        case i if (i >= self.action) => State.ResolveAction
+        case i if (i < params.chooseAction) => State.BeforeChooseAction
+        case i if (i >= params.chooseAction && (i < params.chooseAction + spooed)) => State.ChooseAction
+        case i if (i < params.action) => State.BeforeResolveAction
+        case i if (i >= params.action) => State.ResolveAction
         case _ => State.NoState
 
-    def updateAll(a : List[TimedTrait[_]] ): List[TimedTrait[_]] =
+    def updateAll(a :LTPA ): LTPA =
       a.map(update)
 
 
 
 
-    def add[A: Timed](a: A): Unit =
+    def add(a: GameElement): Unit =
       timedObjs = timedObjs :+ a.timed
 
 
 
 
 
-    def state(e : List[TimedTrait[_]]): Seq[(TimedTrait[_], State)] = e.map(p => (p, state(p.pos, p.speed)))
+    def state(e : LTPA): Seq[(TPA, State)] = e.map(p => (p, state(p.pos, p.speed)))
 
 
-
-    type T[A] = List[TimedTrait[A]]
 
     var resume : ()=>Unit = ()=>{}
 
-    def nextState(timedObjs : List[TimedTrait[_]])(implicit acImpl: ActionResolver[TimedTrait[Any],
-      List[TimedTrait[_]]], ui: PlayerUI, ec: ExecutionContext): NextStateResult =
+
+    def nextState(timedObjs : LTPA)(implicit acImpl: ActionResolver[TPA,
+      LTPA], ui: PlayerUI, ec: ExecutionContext): NextStateResult =
 
       if pause == 0 then
         val state_ =  state(updateAll(timedObjs))
         uiUpdate(state_.map(_._1))
         val fast = state_.filter(_._2 != State.ChooseAction).map{
            (pos, state) =>
-            val cible = pos.action.cible: List[TimedTrait[_]]
+            val cible = pos.action.cible: LTPA
             state match
-              case State.BeforeChooseAction => pos//ui.message("BeforeChooseAction")
-              case State.BeforeResolveAction => pos//// ui.message("BeforeResolveAction")
+              case State.BeforeChooseAction => pos
+              case State.BeforeResolveAction => pos
               case State.ResolveAction =>
+                val message = s"${pos.simpleName} fait ${pos.action.action} ${if pos.action.cible.nonEmpty then
+                  s"sur ${pos.action.cible.map(_.simpleName).mkString(", ")}"}"
+
                 ui.message(s"${pos.simpleName} fait ${pos.action.action} sur ${pos.action.cible.map(_.simpleName).mkString(", ")}",5000)
-                pos.asInstanceOf[bon.jo.rpg.TimedTrait[Any]].resolve(pos.action.action, cible)(acImpl)
+                pos.asInstanceOf[TPA].resolve(pos.action.action, cible)(acImpl)
                 pos.withPos(0)
               case State.NoState =>pos//
               case _ => ???
         }
         if  state_.count(_._2 == State.ChooseAction)>0 then
-          val toAsk: Seq[() => Future[TimedTrait[_]]] = state_.filter(_._2 == State.ChooseAction).map {
+          val toAsk: Seq[() => Future[TPA]] = state_.filter(_._2 == State.ChooseAction).map {
              (pos,_) =>
               () => {
                 val message = ui.message(s"selectionner l'action pour ${pos.simpleName}")
@@ -98,16 +115,14 @@ object BattleTimeLine:
               }
 
           }
-          NextStateResultAsking(fast,PlayerUI.runSeq(toAsk) )
+          NextStateResult.NextStateResultAsking(fast,PlayerUI.runSeq(toAsk) )
         else
-          NextStateResultFast(fast)
+           NextStateResult.NextStateResultFast(fast)
       else
-        NextStateResultFast(timedObjs)
+         NextStateResult.NextStateResultFast(timedObjs)
 
 
 
-  case class TimeLineParam(start: Int, chooseAction: Int, action: Int) extends TimeLineOps{
-    override val self: TimeLineParam = this
-  }
+  case class TimeLineParam(start: Int, chooseAction: Int, action: Int)
 
 

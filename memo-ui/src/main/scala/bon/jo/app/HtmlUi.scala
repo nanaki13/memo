@@ -21,6 +21,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.scalajs.js
 import scala.util.Success
+import bon.jo.rpg.stat.GameElement
 object HtmlUi:
   object ActionRep extends HtmlRep[Action, ImuutableHtmlCpnt]:
     override def html(memo: Action): ImuutableHtmlCpnt = () => Some(SimpleView.bsButton(s"${memo.name}"))
@@ -43,7 +44,7 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage:
   val rpg : Rpg
   val choice: Div = $c.div
 
-  override def ask(d: TimedTrait[_], cible: List[TimedTrait[_]]): Future[ActionCtx] =
+  override def ask(d: TimedTrait[GameElement], cible: List[TimedTrait[GameElement]]): Future[ActionCtx[GameElement]] =
     println("ask")
     choice.clear()
     val p: Promise[Action] = Promise[Action]()
@@ -69,11 +70,11 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage:
         evL
 
     }
-    val ret = Promise[ActionCtx]()
+    val ret = Promise[ActionCtx[GameElement]]()
     p.future.map {
 
       case action@(Action.Attaque.MainGauche | Action.Attaque.MainDroite | Action.Soin) =>
-        val pp = Promise[TimedTrait[_]]()
+        val pp = Promise[TimedTrait[GameElement]]()
         val messagep = message("cliquer sur un cible")
         lazy val allEvent: Seq[(HTMLElement, js.Function1[MouseEvent, _])] = d.value match
           case p: Perso => cible.flatten { v => {
@@ -97,7 +98,7 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage:
                           //                              element.classList.remove("btn-primary")
                         }
                         clear(messagep)
-                        pp.success(v)
+                        pp.success(v.asInstanceOf[TimedTrait[GameElement]])
 
 
                       // h.removeEventListener("click", c)
@@ -107,13 +108,13 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage:
 
 
                 pp.future.foreach(sel => if !ret.isCompleted then {
-                  ret.success(new ActionCibled(action, List(sel)))
+                  ret.success(new ActionCibled[GameElement](action, List(sel)))
                 })
                 hAndEvent
               }
           }
           }
-          case Action.Garde | Action.Rien => Nil
+          case _ => Nil
 
 
         allEvent

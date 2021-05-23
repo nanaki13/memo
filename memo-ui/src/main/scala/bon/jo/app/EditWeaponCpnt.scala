@@ -11,7 +11,7 @@ import SType._
 import bon.jo.dao.Dao
 import bon.jo.html.HtmlRep
 import bon.jo.html.HtmlRep.HtmlRepParam
-
+import scala.language.dynamics
 object EditWeaponCpnt extends HtmlRepParam[Weapon, SType.Param[Weapon], EditStatWithName[Weapon]]:
 
   override def html(memo: Weapon, option: Option[SType.Param[Weapon]]): EditWeaponCpnt =

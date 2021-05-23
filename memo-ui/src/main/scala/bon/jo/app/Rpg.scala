@@ -11,6 +11,7 @@ import bon.jo.rpg.BattleTimeLine.{TimeLineParam,TimeLineOps}
 import bon.jo.rpg.dao.{PersoDao, WeaponDao}
 import bon.jo.rpg.raw.Action
 import bon.jo.rpg.stat.Perso.WithUI
+import bon.jo.rpg.stat.Perso.given
 import bon.jo.rpg.stat.raw.{Perso, Weapon}
 import bon.jo.util.Ec
 import org.scalajs.dom.document
@@ -42,8 +43,8 @@ trait Rpg extends Ec with ArmesPage with RpgSimu:
 
   var cpntMap: Map[Int, (Perso, PerCpnt)] = _
 
-  val timeLine : TimeLineParam = TimeLineParam(0, 200, 260)
-
+  given TimeLineParam = TimeLineParam(0, 200, 260)
+  given timeLine: TimeLineOps = TimeLineOps()
   val root = $ref div {
     d =>
       d._class = "container-fluid"
@@ -55,22 +56,25 @@ trait Rpg extends Ec with ArmesPage with RpgSimu:
     e += root
   }
 
+  def clearUI(using ui : HtmlUi)=
+    ui.choice.clear()
+    ui.messageDiv.clear()
+    root.appendChild(ui.choice)
+    root.appendChild(ui.messageDiv)
   def startRpg =
-    implicit val ui: HtmlUi = HtmlUi.Value
-    implicit val repPerso: HtmlUi.PersoRep.type = HtmlUi.PersoRep
-    implicit val actionPerso: HtmlRep[Action, ImuutableHtmlCpnt] = HtmlUi.acctRep
+    given HtmlUi = HtmlUi.Value
+    given HtmlRep[Perso, PerCpnt] = HtmlUi.PersoRep
+    given HtmlRep[Action, ImuutableHtmlCpnt] = HtmlUi.acctRep
     val linkedUI = new WithUI()
+    import linkedUI.given
     val cpnt = timeLine.timedObjs.map(_.value).map(_.asInstanceOf[Perso]).map(e => e -> e.html)
     cpntMap = cpnt.map(e => e._1.id -> e).toMap
 
     root.style.maxWidth = "80%"
     cpnt.flatMap(_._2.get).foreach(e => root += e)
 
-    ui.choice.clear()
-    ui.messageDiv.clear()
-    root.appendChild(ui.choice)
-    root.appendChild(ui.messageDiv)
-    val cpntTimeLine = new TimeLineCpnt(timeLine, linkedUI)
+    clearUI
+    val cpntTimeLine = new TimeLineCpnt( linkedUI)
     root.appendChild(cpntTimeLine.tlView)
     cpntTimeLine.tlView.$userCanDrag()
     cpntTimeLine.doEvent()

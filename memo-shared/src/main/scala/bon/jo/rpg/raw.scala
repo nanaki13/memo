@@ -1,7 +1,7 @@
 package bon.jo.rpg
 
 import bon.jo.rpg
-
+import bon.jo.rpg.stat.Perso
 object raw:
   type Action = rpg.Action
   val Action: rpg.Action.type = rpg.Action
