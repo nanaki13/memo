@@ -3,8 +3,8 @@ package bon.jo.app
 import bon.jo.html.HTMLDef.{$c, $t, $va, HtmlOps}
 import bon.jo.rpg.BattleTimeLine
 import bon.jo.app.Experimental._
-import bon.jo.rpg.BattleTimeLine.TimeLineParam
-import bon.jo.rpg.raw.TimedTrait
+import bon.jo.rpg.BattleTimeLine._
+import bon.jo.rpg.raw._
 import bon.jo.rpg.raw
 import bon.jo.rpg.stat.Perso.WithUI
 import bon.jo.rpg.stat.{Perso, GameElement}
@@ -15,12 +15,10 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
 import bon.jo.rpg.BattleTimeLine.TimeLineOps
-
+import bon.jo.rpg.ui.PlayerUI
+import scala.concurrent.ExecutionContext
 //type Resolve = bon.jo.rpg.ActionResolver[TimedTrait[GameElement], List[TimedTrait[GameElement]]]
 class TimeLineCpnt(val withUI: WithUI)(using el:  TimeLineOps):
-  val ordering : Ordering[TimedTrait[_ <: GameElement]] =
-    val idToOrder = el.timedObjs.map(_.id).zipWithIndex.toMap
-    (a,b) => idToOrder(a.id).compare(b.id)
 
 
   import withUI.given
@@ -70,19 +68,16 @@ class TimeLineCpnt(val withUI: WithUI)(using el:  TimeLineOps):
     }
 
 
+
+        
+  
   def doEvent(): Int =
 
     import bon.jo.app.HtmlUi.Implicit.value
     el.uiUpdate = update
     lazy val gameLoop: Int = window.setInterval(()=>{
       if el.pause == 0 then {
-        el.nextState(el.timedObjs) match {
-          case BattleTimeLine.NextStateResult.NextStateResultFast(fast) => el.timedObjs = fast.toList
-          case BattleTimeLine.NextStateResult.NextStateResultAsking(fast, ask) => ask foreach{
-            askWithResult =>
-              el.timedObjs =  (fast++askWithResult).toList.sorted(ordering)
-          }
-        }
+        el.doStep
       }else{
         window.clearInterval(gameLoop)
       }

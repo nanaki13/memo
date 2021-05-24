@@ -12,7 +12,7 @@ import bon.jo.app.ImuutableHtmlCpnt
 import Experimental._
 import bon.jo.app.HtmlUi.PersoRep
 import bon.jo.html.DomShell.ExtendedElement
-
+import org.scalajs.dom.console
 import scala.language.dynamics
 
 trait RpgSimu:
@@ -29,14 +29,20 @@ trait RpgSimu:
         val rep : HtmlRep[Perso,ImuutableHtmlCpnt] = ((z : Perso) => () => Some(z.name.tag(tag.div)))
         persoDao.readAll() flatMap  {
          persos =>
+             console.log("persos deteched")
            Selection
              .Param[Perso,PerCpnt](Some(enSelButton),selected ++= _.list,PersoRep,PersoRep)
              .selection(persos,select)
-        } map {
+        } foreach {
          selection =>
+           console.log(selection)
+           try
+            selection.foreach(e => timeLine.add(e))
+            root.clear()
+            console.log("startRpg")
+           catch
+            case e: Exception => console.log(e)
 
-           selection.foreach(e => timeLine.add(e))
-           root.clear()
            startRpg
         }
 

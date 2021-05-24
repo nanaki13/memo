@@ -9,8 +9,7 @@ import bon.jo.rpg.stat.raw.IntBaseStat
 import scala.reflect.ClassTag
 import scala.util.Random
 
-abstract class Actor extends ActorBaseStats with ArmedActor:
-  var hpVar: Int  = stats.hp
+abstract class Actor extends ActorBaseStats with ArmedActor
 
 object Actor:
   case class Impl(

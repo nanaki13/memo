@@ -83,7 +83,7 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage:
 
                 val eAndView = rpg.cpntMap(b.id)
 
-                lazy val hAndEvent: Seq[(HTMLElement, js.Function1[MouseEvent, _])] = eAndView._2.list.map {
+                lazy val hAndEvent: Seq[(HTMLElement, js.Function1[MouseEvent, _])] = eAndView.list.map {
                   h =>
 
                     //    h._class += " btn btn-primary"
@@ -124,6 +124,6 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage:
     ret.future
 
 
-  override def cpntMap: Perso => UpdatableCpnt[Perso] = a => rpg.cpntMap(a.id)._2
+  override def cpntMap: Int => UpdatableCpnt[GameElement] = a => rpg.cpntMap(a).asInstanceOf[UpdatableCpnt[GameElement]]
 
 

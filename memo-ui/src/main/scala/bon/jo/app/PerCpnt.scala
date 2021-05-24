@@ -29,6 +29,37 @@ class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso]:
   //    }
 
 
+  class Progress:
+    import Experimental.{html => h }
+    import  h._ 
+    val pBar =  h.div(attr("class" -> "progress-bar bg-danger" ,"role" ->"progressbar" ,"style" ->"width: 100%", "aria-valuenow" ->"100", "aria-valuemin" ->"0" ,"aria-valuemax" ->"100"))
+    val html =  h.div{
+      _class("progress")
+      childs(pBar)
+
+    }
+    def update(e : Int) = pBar.style.width = s"$e%"  
+
+  def progress(bind : Any) = {
+    import html._ 
+    html.div{
+      _class("progress")
+      html.div(attr("class" -> "progress-bar bg-danger" ,"role" ->"progressbar" ,"style" ->"width: 100%", "aria-valuenow" ->"100", "aria-valuemin" ->"0" ,"aria-valuemax" ->"100"))
+
+    }
+  }
+
+  val hpVarCpnt = Progress()
+  def updateHp(p : Perso) = 
+    val ini = p.hpVar.toFloat
+    val max = p.stats.hp.toFloat
+    var nHp = (ini/max*100f).round
+    nHp = if nHp > 0 then 
+      nHp
+    else 0 
+    hpVarCpnt.update(nHp)
+
+  updateHp(perso)
 
   def caracrAllContP(value: IntBaseStat): AnyRefBaseStat[(String, ChildParent)] =
     value.named.map{case (e,b) =>m(e,b : Any)}
@@ -75,7 +106,7 @@ class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso]:
     val ret = $va div List(
       $va div List((nameDiv.wrap(tag.div))) := { me =>
         me._class = "card-title"
-      },descDiv,
+      },descDiv,hpVarCpnt.html,
         $va div List(row(List($t("stat") +: contStat, $t("L") +: contArmL, $t("G") +: contArmR, $t("stat+") +: lcomputedStat))) := { me =>
         me._class = "card-body black-on-white"
         me.style.fontSize = "0.7em"
@@ -90,6 +121,8 @@ class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso]:
       case Some(value) =>
         nameDiv := spanNameLevel(value)
         descDiv  := spadescLevel(value)
+        org.scalajs.dom.console.log(s"updateHp ${value.hpVar}")
+        updateHp(value)
         //  nameDiv.innerText = value.name
         htmlCarac.hp._2.child.innerText = value.stats.hp.toString
       //   attDiv.innerText = value.str.toString

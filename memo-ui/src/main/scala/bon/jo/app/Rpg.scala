@@ -41,7 +41,6 @@ trait Rpg extends Ec with ArmesPage with RpgSimu:
     $c.div[Div]
 
 
-  var cpntMap: Map[Int, (Perso, PerCpnt)] = _
 
   given TimeLineParam = TimeLineParam(0, 200, 260)
   given timeLine: TimeLineOps = TimeLineOps()
@@ -55,7 +54,9 @@ trait Rpg extends Ec with ArmesPage with RpgSimu:
     e.innerHTML = ""
     e += root
   }
-
+  
+  
+  var cpntMap: Map[Int,  PerCpnt] = _
   def clearUI(using ui : HtmlUi)=
     ui.choice.clear()
     ui.messageDiv.clear()
@@ -67,11 +68,14 @@ trait Rpg extends Ec with ArmesPage with RpgSimu:
     given HtmlRep[Action, ImuutableHtmlCpnt] = HtmlUi.acctRep
     val linkedUI = new WithUI()
     import linkedUI.given
-    val cpnt = timeLine.timedObjs.map(_.value).map(_.asInstanceOf[Perso]).map(e => e -> e.html)
-    cpntMap = cpnt.map(e => e._1.id -> e).toMap
+    cpntMap = timeLine.timedObjs.map{ v =>
+      val htmlCpnt = v.value.asInstanceOf[Perso].html
+      (v.id,htmlCpnt)
+    }.toMap
+    
 
     root.style.maxWidth = "80%"
-    cpnt.flatMap(_._2.get).foreach(e => root += e)
+    cpntMap.flatMap(_._2.get).foreach(e => root += e)
 
     clearUI
     val cpntTimeLine = new TimeLineCpnt( linkedUI)

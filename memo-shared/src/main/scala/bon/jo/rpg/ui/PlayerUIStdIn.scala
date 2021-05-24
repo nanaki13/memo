@@ -11,7 +11,8 @@ import bon.jo.rpg.stat.Perso
 object PlayerUIStdIn:
   object Value extends PlayerUI:
     type T = MessagePlayer
-
+    def register(id: Int, g: bon.jo.rpg.stat.GameElement): Unit=
+      ()
     override def ask(d: TimedTrait[GameElement], cible: List[TimedTrait[GameElement]]): Future[ActionCtx[GameElement]] = fromStdIn(d, cible)
 
     override def message(str: String, timeToDisplay: Int): Unit = println(str)
@@ -22,10 +23,10 @@ object PlayerUIStdIn:
 
     }
 
-    override type S = Any
+ 
 
-    override def cpntMap: Any => UpdatableCpnt[Any] = e => new UpdatableCpnt[Any] {
-      override def update(value: Option[Any]): Unit =
+    override def cpntMap: Int => UpdatableCpnt[GameElement] = e => new UpdatableCpnt[GameElement] {
+      override def update(value: Option[GameElement]): Unit =
         println(value)
     }
 

@@ -1,4 +1,4 @@
 package bon.jo.rpg
-
-trait ActionResolver[A, B]:
-  def resolve(a: A, action: Action, b: B): Unit
+import bon.jo.rpg.BattleTimeLine.UpdateGameElement
+trait ActionResolver[A, B ]:
+  def resolve(a: A, action: Action, b: List[B]): List[UpdateGameElement]

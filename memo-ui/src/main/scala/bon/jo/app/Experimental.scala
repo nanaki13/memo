@@ -28,6 +28,9 @@ object Experimental:
     def css(f :CSSStyleDeclaration=> Unit )(using v : HTMLElement) : HTMLElement =
       f(v.style)
       v
+    def attr(attr : (String,String) *)(using v : HTMLElement) : HTMLElement =
+      v.$attr(attr.toList)
+      v
     def text(str : String)(using v : HTMLElement) : HTMLElement =
       v.textContent = str
       v

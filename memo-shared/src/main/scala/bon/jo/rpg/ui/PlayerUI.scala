@@ -10,9 +10,10 @@ import scala.concurrent.{ExecutionContext, Future}
 
 trait PlayerUI extends PlayerMessage:
 
-  type S
 
-  def cpntMap: S => UpdatableCpnt[S]
+  def cpntMap: Int => UpdatableCpnt[GameElement]
+
+ 
 
   def ask(d: TimedTrait[GameElement], cible: List[TimedTrait[GameElement]]): Future[ActionCtx[GameElement]]
 

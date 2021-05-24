@@ -6,8 +6,8 @@ import bon.jo.rpg.ui.PlayerUI
 
 import scala.concurrent.{ExecutionContext, Future}
 import bon.jo.rpg.stat.{ GameElement}
-
-
+import BattleTimeLine.UpdateGameElement
+import BattleTimeLine._
 object BattleTimeLine:
 
 
@@ -17,9 +17,15 @@ object BattleTimeLine:
   type TPA = TP[GameElement]
   type LTPA = LTP[GameElement]
   type ITPA = ITP[GameElement]
-  enum NextStateResult(change : List[() => GameElement]):
-    case  NextStateResultFast( fast : ITP[GameElement]) extends NextStateResult(Nil)
-    case  NextStateResultAsking( fast : ITP[GameElement], ask :  Future[ITP[GameElement]])  extends NextStateResult(Nil)
+  opaque type UpdateGameElement = (Int,TPA=>TPA)
+  object UpdateGameElement:
+    def apply(id : Int,tr : TPA=>TPA):UpdateGameElement = (id,tr)
+  extension (a : UpdateGameElement)
+    def idEl = a._1
+    def transfrom(b : TPA) = a._2(b)
+  enum NextStateResult(change : List[UpdateGameElement]):
+    case  NextStateResultFast( fast : ITP[GameElement],change : List[UpdateGameElement]) extends NextStateResult(change)
+    case  NextStateResultAsking( fast : ITP[GameElement], ask :  Future[ITP[GameElement]],change : List[UpdateGameElement])  extends NextStateResult(change)
 
 
  // def apply(using TimeLineParam) =
@@ -28,7 +34,7 @@ object BattleTimeLine:
     def apply()(using params :  TimeLineParam,t :  Timed[GameElement]) : TimeLineOps = i()
   }
   trait TimeLineOps(using val params :  TimeLineParam)(using Timed[GameElement]):
-    
+    println(s"inti with : $params")
 
  
     var pause = 0
@@ -57,11 +63,34 @@ object BattleTimeLine:
     def updateAll(a :LTPA ): LTPA =
       a.map(update)
 
+    def dochange(all : ITPA,update : List[UpdateGameElement])(using  ActionResolver[TPA,
+      TPA],  PlayerUI, ExecutionContext): ITPA = 
+      val mapById = all.map(e => e.id -> e).toMap
+      val updatedMap = update.map{ e => e.transfrom(mapById(e.idEl))}.map(e => e.id -> e).toMap
+      all.map{
+        e =>
+          updatedMap.getOrElse(e.id,e)
+      }
+        
+      
+        
 
+    def doStep(using  ActionResolver[TPA,
+      TPA],  PlayerUI,  ExecutionContext) = 
+      nextState(timedObjs) match 
+      case NextStateResult.NextStateResultFast(fast,change) => timedObjs = dochange(fast,change).toList.sorted(ordering)
+      case NextStateResult.NextStateResultAsking(fast, ask,change) => ask foreach{
+        askWithResult =>
+          timedObjs =  dochange(fast++askWithResult,change).toList.sorted(ordering)
+      }
 
-
+    var ordering :  Ordering[TimedTrait[GameElement]] = _
+    def evaluateCurrentOrdering() : Ordering[TimedTrait[GameElement]] =
+      val idToOrder = timedObjs.map(_.id).zipWithIndex.toMap
+      (a,b) => idToOrder(a.id).compare(b.id)
     def add(a: GameElement): Unit =
       timedObjs = timedObjs :+ a.timed
+      ordering = evaluateCurrentOrdering()
 
 
 
@@ -74,8 +103,8 @@ object BattleTimeLine:
     var resume : ()=>Unit = ()=>{}
 
 
-    def nextState(timedObjs : LTPA)(implicit acImpl: ActionResolver[TPA,
-      LTPA], ui: PlayerUI, ec: ExecutionContext): NextStateResult =
+    def nextState(timedObjs : LTPA)(using z : ActionResolver[TPA,
+      TPA], ui: PlayerUI, ec: ExecutionContext): NextStateResult =
 
       if pause == 0 then
         val state_ =  state(updateAll(timedObjs))
@@ -84,16 +113,16 @@ object BattleTimeLine:
            (pos, state) =>
             val cible = pos.action.cible: LTPA
             state match
-              case State.BeforeChooseAction => pos
-              case State.BeforeResolveAction => pos
+              case State.BeforeChooseAction => (pos,Nil)
+              case State.BeforeResolveAction => (pos,Nil)
               case State.ResolveAction =>
                 val message = s"${pos.simpleName} fait ${pos.action.action} ${if pos.action.cible.nonEmpty then
                   s"sur ${pos.action.cible.map(_.simpleName).mkString(", ")}"}"
 
                 ui.message(s"${pos.simpleName} fait ${pos.action.action} sur ${pos.action.cible.map(_.simpleName).mkString(", ")}",5000)
-                pos.asInstanceOf[TPA].resolve(pos.action.action, cible)(acImpl)
-                pos.withPos(0)
-              case State.NoState =>pos//
+                val updayedCible =  pos.resolve(pos.action.action, cible)
+                (pos.withPos(0),updayedCible)
+              case State.NoState =>(pos,Nil)
               case _ => ???
         }
         if  state_.count(_._2 == State.ChooseAction)>0 then
@@ -115,11 +144,11 @@ object BattleTimeLine:
               }
 
           }
-          NextStateResult.NextStateResultAsking(fast,PlayerUI.runSeq(toAsk) )
+          NextStateResult.NextStateResultAsking(fast.map(_._1),PlayerUI.runSeq(toAsk),fast.flatMap(_._2).toList )
         else
-           NextStateResult.NextStateResultFast(fast)
+           NextStateResult.NextStateResultFast(fast.map(_._1),fast.flatMap(_._2).toList)
       else
-         NextStateResult.NextStateResultFast(timedObjs)
+         NextStateResult.NextStateResultFast(timedObjs,Nil)
 
 
 
