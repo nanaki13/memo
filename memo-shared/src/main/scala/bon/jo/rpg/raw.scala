@@ -8,8 +8,8 @@ object raw:
   type ActionResolver[A, B] = rpg.ActionResolver[A, B]
   val BattleTimeLine: rpg.BattleTimeLine.type = rpg.BattleTimeLine
 
-  type DoActionTrait[A] = rpg.DoActionTrait[A]
-  val DoActionTrait: rpg.DoActionTrait.type = rpg.DoActionTrait
+  //type DoActionTrait[A] = rpg.DoActionTrait[A]
+ // val DoActionTrait: rpg.DoActionTrait.type = rpg.DoActionTrait
   val State: rpg.State.type = rpg.State
   type State = rpg.State
 

@@ -21,14 +21,6 @@ class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso]:
   }
 
 
-  //    def caracrContP(name : String,value : Product): (String,ChildParent) ={
-  //      val p : Option[String] = value.productElementNames.zipWithIndex.find(_._1 == name).map(_._2).map(value.productElement).map(_.toString)
-  //      val ref =  $t span  p.getOrElse("")
-  //      val cont =  $va div($t span (s"$name:"), ref)
-  //      (name,ChildParent(ref,cont))
-  //    }
-
-
   class Progress:
     import Experimental.{html => h }
     import  h._ 

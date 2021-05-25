@@ -1,12 +1,36 @@
 package bon.jo.rpg.stat
 
 import bon.jo.rpg.Action.ActionCtx
-import bon.jo.rpg.DoActionTrait.WithAction
+//import bon.jo.rpg.DoActionTrait.WithAction
 import bon.jo.rpg.stat.Actor.{Weapon, WeaponBaseState}
 import bon.jo.rpg.ui.PlayerUI
 import bon.jo.rpg.{Action, ActionResolver, Timed, TimedTrait}
 import bon.jo.rpg.BattleTimeLine._
 import scala.collection.mutable
+import bon.jo.rpg.ActionResolver.Resolver
+import bon.jo.rpg.Action.Attaque
+import bon.jo.rpg.ActionResolver.ActionResolverWithResolver
+import bon.jo.rpg.BattleTimeLine
+
+
+type AttaqueResolve =  Resolver[TimedTrait[Perso], TimedTrait[GameElement],Action.Attaque.type]
+type SoinResolve =  Resolver[TimedTrait[Perso], TimedTrait[GameElement],Action.Soin.type]
+type GardeResolve =  Resolver[TimedTrait[Perso], TimedTrait[GameElement],Action.Garde.type]
+object ResolveContext:
+  def unknwon[A <: Action]():  Resolver[TimedTrait[Perso], TimedTrait[GameElement],A] = 
+    new Resolver:
+      override def resolve(a: TimedTrait[Perso], b: TimedTrait[GameElement])(using ui : PlayerUI) : TimedTrait[GameElement] =
+        ui.message("mais sa fait rien",1000)
+        b
+trait ResolveContext:
+  given attaqueResolve: AttaqueResolve
+  given soinResolve: SoinResolve
+  given gardeResolve: GardeResolve
+  
+  given Resolver[TimedTrait[Perso], TimedTrait[GameElement],Action.Rien.type] = ResolveContext.unknwon[Action.Rien.type]()
+
+
+
 
 object Perso:
 
@@ -19,16 +43,11 @@ object Perso:
 
   trait PlayerPersoUI extends PlayerUI:
     type S = Perso
-  class WithUI()(using PlayerUI):
-
-    
-    given ActionResolver[Perso, TimedTrait[GameElement]] = new PersoOps{}
-    given ActionResolver[TimedTrait[GameElement], TimedTrait[GameElement]] =
-          new  ActionResolver[TimedTrait[GameElement], TimedTrait[GameElement]]{
-            override def resolve(a: TimedTrait[GameElement], action: Action, b: List[TimedTrait[GameElement]]): List[UpdateGameElement] = a.value match
-              case e: Perso => e.resolve(action, b.value)
-              case _ => Nil
-          }
+  class WithUI()(using PlayerUI,ResolveContext):
+    given WithUI = this
+    object PersoResolver{
+       given BattleTimeLine.Res = new PersoOps {}
+    }
 
 
 
@@ -42,36 +61,31 @@ object Perso:
     override def canChoice(a: GameElement): List[Action] = a.asInstanceOf[Perso].action
 
   given  Timed[GameElement] = PeroPero
-  trait PersoOps(using ui :  PlayerUI) extends ActionResolver[Perso, TimedTrait[GameElement]]:
-    def resolve(a: Perso, action: Action, b: List[TimedTrait[GameElement]]): List[UpdateGameElement] =
+
+
+  trait PersoOps(using   PlayerUI
+  , ResolveContext) extends ActionResolver[ TimedTrait[Perso], TimedTrait[GameElement]] with ActionResolverWithResolver[TimedTrait[Perso], TimedTrait[GameElement]]:
+    def resolve(a: TimedTrait[Perso], action: Action, b: Iterable[TimedTrait[GameElement]]): Iterable[UpdateGameElement] =
+      val ctx =  summon[ResolveContext]
+      import ctx.given
       action match
         case Action.Attaque.MainGauche | Action.Attaque.MainDroite | Action.Attaque=>
-          b.map{ e =>
-            e.value match
-              case _ : Perso =>
-                UpdateGameElement(e.id,(perTe: TPA) =>{
-                  val per = perTe.value.asInstanceOf[Perso]
-                  val newPerso = per.copy(hpVar = per.hpVar - a.stats.str)
-                  ui.message(s"${per.name} a perdu ${per.stats.str} pv, il lui reste ${newPerso.hpVar} pv",5000)
-                  ui.cpntMap(e.id).update(Some(newPerso))
-                  perTe.withValue(newPerso)})
-              case a @ _ => println(s" not handle : $a");???
-          }
+          
+          val armeActions = (for wl <- a.value.leftHandWeapon yield
+            (for ac <- wl.action yield
+              ac match
+                case  Action.Soin=> resolve[ Action.Soin.type](a,b)
+                case  Action.Attaque=> resolve[ Action.Attaque.type](a,b)
+                ).flatten).getOrElse(Nil)
+               
+            
+          
+          armeActions
+          
+        case Action.Soin=> resolve[ Action.Soin.type](a,b)
 
-        case Action.Soin=>
-          b.map{ e =>
-            e.value match
-              case _ : Perso =>
-                UpdateGameElement(e.id,(perTe: TPA) =>{
-                  val per = perTe.value.asInstanceOf[Perso]
-                  val newPerso =per.copy(hpVar = per.hpVar + (a.stats.mag * 0.7f).round)
-                  ui.message(s"${per.name} a été soigné de ${(a.stats.mag * 0.7f).round} pv, il a maintenant ${newPerso.hpVar} pv",5000)
-                  ui.cpntMap(e.id).update(Some(newPerso))
-                  perTe.withValue(newPerso)})
-              case _ => ???
-          }
         case z => 
-          ui.message("Mais sa fait encore rien",0)
+          summon[PlayerUI].message("Mais sa fait encore rien",0)
           Nil
 
 

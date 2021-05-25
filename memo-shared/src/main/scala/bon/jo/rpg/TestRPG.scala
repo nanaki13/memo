@@ -1,15 +1,20 @@
 package bon.jo.rpg
 
 import bon.jo.rpg.BattleTimeLine.TimeLineParam
-import bon.jo.rpg.DoActionTrait.WithAction
-import bon.jo.rpg.stat.Perso.{PeroPero, WithUI}
+
+import bon.jo.rpg.stat.Perso
+import bon.jo.rpg.stat._
 import bon.jo.rpg.stat.{AnyRefBaseStat, Perso}
 import bon.jo.rpg.TimedTrait._
 import bon.jo.rpg.ui.{PlayerUI, PlayerUIStdIn}
-
+import bon.jo.rpg.CalculsPersoPerso
 import scala.concurrent.ExecutionContext.Implicits.global
 import bon.jo.rpg.BattleTimeLine.TimeLineOps
 import Perso.given
+
+import bon.jo.rpg.ActionResolver.Resolver
+import bon.jo.rpg.Action.Garde
+
 
 object TestRPG extends App:
   var id = 0
@@ -24,7 +29,16 @@ object TestRPG extends App:
   given yl :  TimeLineOps = TimeLineOps()
   given PlayerUI = PlayerUIStdIn.value
 
-  val ui : WithUI = new WithUI()
+
+  given  ResolveContext = new ResolveContext{
+       def attaqueResolve = CalculsPersoPerso
+       def soinResolve = SoinPerso
+       def gardeResolve = ResolveContext.unknwon[Garde.type]()
+
+  }
+  
+
+  val ui : Perso.WithUI =  Perso.WithUI()
 
 
   val p1 = new Perso(1, "Bob", "Un bon gars", AnyRefBaseStat.randomInt(50, 10))
@@ -32,7 +46,7 @@ object TestRPG extends App:
 
 
   import ui.given
-
+  import ui.PersoResolver.given
 
 
   yl.add(p1)

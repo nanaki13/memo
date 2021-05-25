@@ -3,17 +3,19 @@ package bon.jo.rpg.ui
 import bon.jo.rpg.Action.{ActionCtx, fromStdIn}
 import bon.jo.rpg.TimedTrait
 import bon.jo.rpg.stat.GameElement
+import bon.jo.rpg.BattleTimeLine.TPA
 import bon.jo.ui.UpdatableCpnt
 
 import scala.concurrent.Future
 import bon.jo.rpg.stat.Perso
+import bon.jo.rpg.stat.GameId
 
 object PlayerUIStdIn:
   object Value extends PlayerUI:
     type T = MessagePlayer
     def register(id: Int, g: bon.jo.rpg.stat.GameElement): Unit=
       ()
-    override def ask(d: TimedTrait[GameElement], cible: List[TimedTrait[GameElement]]): Future[ActionCtx[GameElement]] = fromStdIn(d, cible)
+    override def ask(d: TimedTrait[GameElement], cible: List[TimedTrait[GameElement]]): Future[ActionCtx] = fromStdIn(d, cible)
 
     override def message(str: String, timeToDisplay: Int): Unit = println(str)
 
@@ -25,8 +27,8 @@ object PlayerUIStdIn:
 
  
 
-    override def cpntMap: Int => UpdatableCpnt[GameElement] = e => new UpdatableCpnt[GameElement] {
-      override def update(value: Option[GameElement]): Unit =
+    override def cpntMap: GameId.ID => UpdatableCpnt[TPA] = e => new UpdatableCpnt[TPA] {
+      override def update(value: Option[TPA]): Unit =
         println(value)
     }
 

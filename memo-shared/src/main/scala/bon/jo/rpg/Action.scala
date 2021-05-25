@@ -4,19 +4,34 @@ import bon.jo.rpg.Action.ActionCtx.ActionCibled
 import bon.jo.rpg.Action.Attaque.{MainDroite, MainGauche}
 import bon.jo.rpg.Action.{ActionCtx, readCibleRec}
 import bon.jo.rpg.StdinUtil.fromStdin
-import BattleTimeLine.{TP,LTP,ITP}
+import BattleTimeLine._
 import scala.concurrent.Future
+import bon.jo.rpg.stat.GameId
+import bon.jo.rpg.stat.GameElement
 
 
 sealed trait Action extends Product:
   val name = toString
 
-  def fromStdIn[A](cible: BattleTimeLine.LTP[A]): ActionCtx[A] =
+  def fromStdIn(cible: BattleTimeLine.LTP[GameElement]): ActionCtx =
     new ActionCibled(this, readCibleRec(cible))
 
 
 object Action:
 
+
+  given Action.Soin.type = Action.Soin
+  given Action.Attaque.type = Action.Attaque
+  given Action.Aoe.type = Action.Aoe
+  given Action.Garde.type = Action.Garde
+  given Action.Evasion.type = Action.Evasion
+  given Action.Voler.type = Action.Voler
+  given Action.ChangerDequipement.type = Action.ChangerDequipement
+  given Action.Talent.type = Action.Talent
+  given Action.Rien.type = Action.Rien
+  given Action.Hate.type = Action.Hate
+  given Action.Slow.type = Action.Slow
+  given Action.Cancel.type = Action.Cancel
 
 
   case object Attaque extends Action:
@@ -48,33 +63,33 @@ object Action:
     }).find(_.name == string)
   val commonValues: List[Action] = List(Voler , Garde,Evasion, Rien, ChangerDequipement)
   val weaponValues: Iterable[Action] = List(Attaque,Soin,Hate,Slow,Cancel)
-  trait ActionCtx[A]:
+  trait ActionCtx:
     def action: Action
 
-    def cible: BattleTimeLine.LTP[A]
+    def cible: Iterable[GameId.ID]
 
   object ActionCtx:
 
-    def Garde[A] :  ActionWithoutCible[A] = ActionWithoutCible(Action.Garde)
+    object Garde extends ActionWithoutCible(Action.Garde)
 
-    def Rien[A] :  ActionWithoutCible[A] = ActionWithoutCible(Action.Garde)
+    object Rien extends ActionWithoutCible(Action.Garde)
 
-    case class ActionWithoutCible[A](val action: Action) extends ActionWithoutCibleOps[A]
+    case class ActionWithoutCible(val action: Action) extends ActionWithoutCibleOps
 
-    class ActionCibled[A](val action: Action, val cible: BattleTimeLine.LTP[A]) extends ActionCtx[A]
+    class ActionCibled(val action: Action, val cible: Iterable[GameId.ID]) extends ActionCtx
 
-  trait ActionWithoutCibleOps[A] extends ActionCtx[A]:
-    override def cible: BattleTimeLine.LTP[A] = Nil
+  trait ActionWithoutCibleOps extends ActionCtx:
+    override def cible = Nil
 
 
-  def fromStdIn[A](d: TP[A], cible: LTP[A]): Future[ActionCtx[A]] =
+  def fromStdIn(d: TPA, cible: LTPA): Future[ActionCtx] =
     println(s"choisir action de ${d.simpleName}")
     Future.successful(fromStdIn match {
       case Attaque.MainGauche => Attaque.MainGauche.fromStdIn(cible)
       case Attaque.MainDroite => Attaque.MainDroite.fromStdIn(cible)
-      case Garde => ActionCtx.Garde[A]
-      case Rien => ActionCtx.Rien[A]
-      case _ => ActionCtx.Rien[A]
+      case Garde => ActionCtx.Garde
+      case Rien => ActionCtx.Rien
+      case _ => ActionCtx.Rien
     })
 
 
@@ -83,9 +98,9 @@ object Action:
     fromStdin(Action.commonValues)
 
 
-  def readCibleRec[A](cible: LTP[A]): LTP[A] =
-    def f(t: TP[A]) = t.simpleName
-    List(fromStdin(cible, f))
+  def readCibleRec(cible: ITP[GameElement]):List[GameId.ID] =
+    def f(t: TP[GameElement]) = t.simpleName
+    List(fromStdin(cible, f,_.id))
 
 
 

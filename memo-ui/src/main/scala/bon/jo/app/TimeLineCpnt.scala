@@ -75,6 +75,7 @@ class TimeLineCpnt(val withUI: WithUI)(using el:  TimeLineOps):
 
     import bon.jo.app.HtmlUi.Implicit.value
     el.uiUpdate = update
+    import withUI.PersoResolver.given
     lazy val gameLoop: Int = window.setInterval(()=>{
       if el.pause == 0 then {
         el.doStep

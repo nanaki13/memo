@@ -22,6 +22,7 @@ import scala.concurrent.{Future, Promise}
 import scala.scalajs.js
 import scala.util.Success
 import bon.jo.rpg.stat.GameElement
+import bon.jo.rpg.stat.GameId
 object HtmlUi:
   object ActionRep extends HtmlRep[Action, ImuutableHtmlCpnt]:
     override def html(memo: Action): ImuutableHtmlCpnt = () => Some(SimpleView.bsButton(s"${memo.name}"))
@@ -44,7 +45,7 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage:
   val rpg : Rpg
   val choice: Div = $c.div
 
-  override def ask(d: TimedTrait[GameElement], cible: List[TimedTrait[GameElement]]): Future[ActionCtx[GameElement]] =
+  override def ask(d: TimedTrait[GameElement], cible: List[TimedTrait[GameElement]]): Future[ActionCtx] =
     println("ask")
     choice.clear()
     val p: Promise[Action] = Promise[Action]()
@@ -70,7 +71,7 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage:
         evL
 
     }
-    val ret = Promise[ActionCtx[GameElement]]()
+    val ret = Promise[ActionCtx]()
     p.future.map {
 
       case action@(Action.Attaque.MainGauche | Action.Attaque.MainDroite | Action.Soin) =>
@@ -81,7 +82,7 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage:
             v.value match
               case b: Perso => {
 
-                val eAndView = rpg.cpntMap(b.id)
+                val eAndView = rpg.cpntMap(v.id)
 
                 lazy val hAndEvent: Seq[(HTMLElement, js.Function1[MouseEvent, _])] = eAndView.list.map {
                   h =>
@@ -108,7 +109,7 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage:
 
 
                 pp.future.foreach(sel => if !ret.isCompleted then {
-                  ret.success(new ActionCibled[GameElement](action, List(sel)))
+                  ret.success(new ActionCibled(action, List(sel.id)))
                 })
                 hAndEvent
               }
@@ -124,6 +125,13 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage:
     ret.future
 
 
-  override def cpntMap: Int => UpdatableCpnt[GameElement] = a => rpg.cpntMap(a).asInstanceOf[UpdatableCpnt[GameElement]]
+  override def cpntMap: GameId.ID => UpdatableCpnt[BattleTimeLine.TPA] = a =>{
+      o => {
+        o map (v =>  rpg.cpntMap(v.id).update(Some(v.value.asInstanceOf[Perso])))
+      
+      }
+  }
+     
+  
 
 

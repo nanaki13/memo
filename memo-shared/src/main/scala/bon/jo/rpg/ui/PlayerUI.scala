@@ -2,20 +2,23 @@ package bon.jo.rpg.ui
 
 import bon.jo.rpg.Action.ActionCtx
 import bon.jo.rpg.TimedTrait
+import bon.jo.rpg.BattleTimeLine._
 import bon.jo.rpg.stat.GameElement
 import bon.jo.ui.UpdatableCpnt
 
 import scala.concurrent.{ExecutionContext, Future}
+import bon.jo.rpg.stat.GameId
 
 
 trait PlayerUI extends PlayerMessage:
 
 
-  def cpntMap: Int => UpdatableCpnt[GameElement]
+  def cpntMap: GameId.ID => UpdatableCpnt[TPA]
+
 
  
 
-  def ask(d: TimedTrait[GameElement], cible: List[TimedTrait[GameElement]]): Future[ActionCtx[GameElement]]
+  def ask(d: TimedTrait[GameElement], cible: List[TimedTrait[GameElement]]): Future[ActionCtx]
 
 
 object PlayerUI {

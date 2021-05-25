@@ -12,12 +12,16 @@ import bon.jo.rpg.dao.{PersoDao, WeaponDao}
 import bon.jo.rpg.raw.Action
 import bon.jo.rpg.stat.Perso.WithUI
 import bon.jo.rpg.stat.Perso.given
+import bon.jo.rpg.stat._
 import bon.jo.rpg.stat.raw.{Perso, Weapon}
 import bon.jo.util.Ec
 import org.scalajs.dom.document
 import org.scalajs.dom.html.{Button, Div}
 
 import scala.collection.mutable.ListBuffer
+import bon.jo.rpg.stat.GameId
+import bon.jo.rpg.ActionResolver.Resolver
+import bon.jo.rpg._
 
 
 
@@ -56,7 +60,7 @@ trait Rpg extends Ec with ArmesPage with RpgSimu:
   }
   
   
-  var cpntMap: Map[Int,  PerCpnt] = _
+  var cpntMap: Map[GameId.ID,  PerCpnt] = _
   def clearUI(using ui : HtmlUi)=
     ui.choice.clear()
     ui.messageDiv.clear()
@@ -66,6 +70,14 @@ trait Rpg extends Ec with ArmesPage with RpgSimu:
     given HtmlUi = HtmlUi.Value
     given HtmlRep[Perso, PerCpnt] = HtmlUi.PersoRep
     given HtmlRep[Action, ImuutableHtmlCpnt] = HtmlUi.acctRep
+ //   given Resolver[Perso, Perso,Action.Attaque.type] = CalculsPersoPerso
+    given  ResolveContext = new ResolveContext{
+        def attaqueResolve = CalculsPersoPerso
+        def soinResolve = SoinPerso
+        def gardeResolve = ResolveContext.unknwon[Action.Garde.type]()
+
+    }
+  
     val linkedUI = new WithUI()
     import linkedUI.given
     cpntMap = timeLine.timedObjs.map{ v =>

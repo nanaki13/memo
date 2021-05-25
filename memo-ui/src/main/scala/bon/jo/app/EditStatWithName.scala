@@ -58,14 +58,13 @@ with UpdatableCpnt[A] with ReadableCpnt[A] with HtmlDsl:
     (initial match {
       case Perso.ArmePerso(l,r) =>
        ( l match {
-        case Some(value) => value.action.map{
-          case Action.Attaque => Attaque.MainGauche
+        case Some(value) => Attaque.MainGauche +: value.action.map{
+        
           case a => a
         }
         case None => Nil
       }) ++ (r match {
-        case Some(value) => value.action.map{
-          case Action.Attaque => Attaque.MainDroite
+        case Some(value) =>  Attaque.MainDroite +:  value.action.map{
           case a => a
         }
         case None =>Nil
