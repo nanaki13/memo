@@ -1,7 +1,7 @@
 package bon.jo.app
 
 
-import bon.jo.rpg.{Action, RandomName}
+import bon.jo.rpg.{ RandomName}
 import bon.jo.rpg.stat.Actor.Id
 import bon.jo.rpg.stat.raw.{Actor, AnyRefBaseStat, IntBaseStat, Weapon}
 
@@ -12,6 +12,8 @@ import bon.jo.dao.Dao
 import bon.jo.html.HtmlRep
 import bon.jo.html.HtmlRep.HtmlRepParam
 import scala.language.dynamics
+import bon.jo.rpg.SystemElement
+import bon.jo.rpg.Affect
 object EditWeaponCpnt extends HtmlRepParam[Weapon, SType.Param[Weapon], EditStatWithName[Weapon]]:
 
   override def html(memo: Weapon, option: Option[SType.Param[Weapon]]): EditWeaponCpnt =
@@ -29,6 +31,9 @@ class EditWeaponCpnt(initial: Weapon, option: Option[SType.Param[Weapon]])(repSt
 
   override def randomValue: Weapon = new Weapon(initial.id,RandomName.randomWeaponName(),"La belle arme",1,AnyRefBaseStat[Float](Actor.randomWeaponVal _).map(_.round))
 
-  override def create(id : Int,name: String,desc : String, intBaseStat: IntBaseStat, action: List[Action]): Weapon = new Weapon(id,name,desc,1,intBaseStat,action)
+  override def create(id : Int,name: String,desc : String, intBaseStat: IntBaseStat, action: List[Affect]): Weapon = new Weapon(id,name,desc,1,intBaseStat,action)
 
   override val dao: Dao[Weapon, Int] = option.rpg.weaponDao
+  def initialAction(initial: Weapon):Iterable[SystemElement] = Affect.values
+   def getAction(str: String): Option[SystemElement] = Some(Affect.valueOf(str))
+

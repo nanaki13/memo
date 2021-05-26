@@ -3,9 +3,9 @@ package bon.jo.rpg
 import bon.jo.rpg
 import bon.jo.rpg.stat.Perso
 object raw:
-  type Action = rpg.Action
-  val Action: rpg.Action.type = rpg.Action
-  type ActionResolver[A, B] = rpg.ActionResolver[A, B]
+  type Affect = rpg.Affect
+  val Affect: rpg.Affect.type = rpg.Affect
+  type AffectResolver[A, B] = rpg.AffectResolver[A, B]
   val BattleTimeLine: rpg.BattleTimeLine.type = rpg.BattleTimeLine
 
   //type DoActionTrait[A] = rpg.DoActionTrait[A]

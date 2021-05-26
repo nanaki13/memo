@@ -1,6 +1,6 @@
 package bon.jo.rpg.stat
 
-import bon.jo.rpg.{Action, RandomName}
+import bon.jo.rpg.{Affect,Commande , RandomName}
 import bon.jo.rpg.stat.Actor.{ActorBaseStats, WeaponBaseState}
 import bon.jo.rpg.stat.BaseState.ImplicitCommon
 import bon.jo.rpg.stat.BaseState.ImplicitCommon._
@@ -17,9 +17,9 @@ object Actor:
                     desc : String,
                     lvl:Int,
                     stats : IntBaseStat,
-                    leftHandWeapon: Option[WeaponBaseState]= None,
-                    rightHandWeapon: Option[WeaponBaseState] = None,
-                    action:List[Action] = Nil,id: Int = Id[Impl]
+                    leftHandWeapon: Option[Weapon]= None,
+                    rightHandWeapon: Option[Weapon] = None,
+                    commandes:List[Commande] = Nil,id: Int = Id[Impl]
             ) extends Actor with ArmedActor:
 
      override def withId[A  <: StatsWithName](id: Int): A = copy(id= id).asInstanceOf[A]
@@ -56,9 +56,10 @@ object Actor:
   def randomWeapon(): Weapon =
     val stat = (BaseState.`1` * AnyRefBaseStat(randomWeaponVal _))
 
-    Weapon(0,RandomName.randomWeaponName(),"La belle arme",1,stat.to[AnyRefBaseStat[Int]], Action.Attaque :: Nil)
+    Weapon(0,RandomName.randomWeaponName(),"La belle arme",1,stat.to[AnyRefBaseStat[Int]], Affect.Attaque :: Nil)
 
-  trait WeaponBaseState extends StatsWithName with Lvl
+  trait WeaponBaseState extends StatsWithName with Lvl:
+    val affects: List[Affect]
 
   object Id:
     private val cache = scala.collection.mutable.Map[Class[_],Int]()
@@ -71,7 +72,7 @@ object Actor:
     def init[A](int: Int)(implicit ct : ClassTag[A]):Unit=
       cache += ct.runtimeClass -> int
 
-  case class Weapon(id : Int ,name : String,desc : String,lvl : Int,stats: AnyRefBaseStat[Int], action: List[Action]=Action.Attaque :: Nil ) extends  WeaponBaseState:
+  case class Weapon(id : Int ,name : String,desc : String,lvl : Int,stats: AnyRefBaseStat[Int], affects: List[Affect]=Affect.Attaque :: Nil ) extends  WeaponBaseState:
 
      override def withId[A <: StatsWithName](id: Int): A = copy(id= id).asInstanceOf[A]
 

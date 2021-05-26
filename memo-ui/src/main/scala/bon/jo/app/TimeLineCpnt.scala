@@ -17,7 +17,7 @@ import scala.util.{Failure, Success}
 import bon.jo.rpg.BattleTimeLine.TimeLineOps
 import bon.jo.rpg.ui.PlayerUI
 import scala.concurrent.ExecutionContext
-//type Resolve = bon.jo.rpg.ActionResolver[TimedTrait[GameElement], List[TimedTrait[GameElement]]]
+//type Resolve = bon.jo.rpg.AffectResolver[TimedTrait[GameElement], List[TimedTrait[GameElement]]]
 class TimeLineCpnt(val withUI: WithUI)(using el:  TimeLineOps):
 
 

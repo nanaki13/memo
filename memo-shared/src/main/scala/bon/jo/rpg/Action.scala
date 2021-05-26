@@ -1,106 +1,125 @@
 package bon.jo.rpg
 
-import bon.jo.rpg.Action.ActionCtx.ActionCibled
-import bon.jo.rpg.Action.Attaque.{MainDroite, MainGauche}
-import bon.jo.rpg.Action.{ActionCtx, readCibleRec}
+
+
+import bon.jo.rpg.*
+
 import bon.jo.rpg.StdinUtil.fromStdin
-import BattleTimeLine._
+import BattleTimeLine.*
 import scala.concurrent.Future
 import bon.jo.rpg.stat.GameId
 import bon.jo.rpg.stat.GameElement
+import bon.jo.rpg.stat.Actor.Weapon
+import CommandeCtx.*
+import bon.jo.rpg.stat.Perso
 
 
-sealed trait Action extends Product:
-  val name = toString
+object CommandeCtx:
 
-  def fromStdIn(cible: BattleTimeLine.LTP[GameElement]): ActionCtx =
-    new ActionCibled(this, readCibleRec(cible))
-
-
-object Action:
-
-
-  given Action.Soin.type = Action.Soin
-  given Action.Attaque.type = Action.Attaque
-  given Action.Aoe.type = Action.Aoe
-  given Action.Garde.type = Action.Garde
-  given Action.Evasion.type = Action.Evasion
-  given Action.Voler.type = Action.Voler
-  given Action.ChangerDequipement.type = Action.ChangerDequipement
-  given Action.Talent.type = Action.Talent
-  given Action.Rien.type = Action.Rien
-  given Action.Hate.type = Action.Hate
-  given Action.Slow.type = Action.Slow
-  given Action.Cancel.type = Action.Cancel
+  def readCibleRec(cible: ITP[GameElement]):List[GameId.ID] =
+    def f(t: TP[GameElement]) = t.simpleName
+    List(fromStdin(cible, f,_.id))
+  def fromStdIn(d: TPA): Commande =
+    
+    fromStdin(d.cast[TimedTrait[Perso]].value.commandes)
 
 
-  case object Attaque extends Action:
-    case object MainDroite extends Action
+  
+  def fromStdIn(d: TPA, cible: LTPA): Future[CommandeCtx] =
+    println(s"choisir commande de ${d.simpleName}")
+    Future.successful(fromStdIn(d) match {
+      case a @ Commande.Attaque(_,_) =>  a.fromStdIn(cible)
+      case Commande.Garde =>Rien
+      case Commande.Rien => Rien
+      case _ =>Rien
+    })
 
-    case object MainGauche extends Action
 
-  case object Soin extends Action
-  case object Aoe extends Action
-  case object Garde extends Action
-  case object Evasion extends Action
-  case object Voler extends Action
-  case object ChangerDequipement extends Action
-  case object Talent extends Action
-  case object Rien extends Action
-  case object Hate extends Action
-  case object Slow extends Action
-  case object Cancel extends Action
-  val all = List(Attaque,
-    MainGauche,
-    MainDroite,
-    Soin,Aoe,Garde,Evasion,Voler,ChangerDequipement,Talent,Rien,Hate,Slow,Cancel)
-  def unapply(string: String): Option[Action] = applyFrom(all.toSet)(string)
-  def applyFrom(from : Set[Action])(string: String) : Option[Action] =
+  
+
+
+  object Rien extends CommandeCtx:
+    override def cible = Nil
+    val commande = Commande.Rien
+
+  class CommandeCibled(val commande: Commande, val cible: Iterable[GameId.ID]) extends CommandeCtx
+  class CommandeWithoutCibled(val commande: Commande) extends CommandeCtx{
+    override def cible = Nil
+  }
+
+trait CommandeCtx:
+  def commande: Commande
+
+  def cible: Iterable[GameId.ID]
+trait SystemElement:
+  val name : String
+enum LR:
+  case L 
+  case R
+  val id = toString
+object Commande:
+  def staticValues =  List(Garde,Evasion,ChangerDequipement,Voler,Rien)
+  def apply(commande : String):Commande =  staticValues.find(_.toString == commande).get
+  def apply(commande : String,left : Option[Weapon],right:Option[Weapon]):Commande=
+    (left,right) match
+      case (None,None) => Commande(commande)
+      case (l,r) => 
+        commande match
+          case LR.L.id if left.isDefined => Commande.Attaque(left.get,LR.L)
+          case LR.R.id if right.isDefined => Commande.Attaque(left.get,LR.R)
+          case _ => Commande(commande) 
+      
+
+enum Commande(val name : String) extends SystemElement:
+  case Attaque(val weapon : Weapon,val hand : LR) extends Commande(weapon.name)  
+  case Garde extends Commande("garde")  
+  case Evasion extends Commande("évasion")  
+  case ChangerDequipement extends Commande("changer d'équipement")  
+  case Voler extends Commande("voler")  
+  case Rien extends Commande("rien")  
+
+  
+  def fromStdIn(cible: BattleTimeLine.LTP[GameElement]): CommandeCtx =
+    new CommandeCibled(this, readCibleRec(cible))
+    
+
+
+enum Affect(val name : String) extends SystemElement:
+
+
+  given Affect.Soin.type = Affect.Soin
+  given Affect.Aoe.type = Affect.Aoe
+
+  given Affect.Hate.type = Affect.Hate
+  given Affect.Slow.type = Affect.Slow
+  given Affect.Cancel.type = Affect.Cancel
+
+
+  case Attaque extends Affect("attaque") 
+  case Soin extends Affect("Soin")  
+  case Aoe extends Affect("attaque")  
+
+
+ 
+ 
+  case Hate extends Affect("attaque")  
+  case Slow extends Affect("attaque")  
+  case Cancel extends Affect("attaque")  
+
+
+  def applyFrom(from : Set[Affect])(string: String) : Option[Affect] =
 
     from.map(e=> {
 
       e
     }).find(_.name == string)
-  val commonValues: List[Action] = List(Voler , Garde,Evasion, Rien, ChangerDequipement)
-  val weaponValues: Iterable[Action] = List(Attaque,Soin,Hate,Slow,Cancel)
-  trait ActionCtx:
-    def action: Action
-
-    def cible: Iterable[GameId.ID]
-
-  object ActionCtx:
-
-    object Garde extends ActionWithoutCible(Action.Garde)
-
-    object Rien extends ActionWithoutCible(Action.Garde)
-
-    case class ActionWithoutCible(val action: Action) extends ActionWithoutCibleOps
-
-    class ActionCibled(val action: Action, val cible: Iterable[GameId.ID]) extends ActionCtx
-
-  trait ActionWithoutCibleOps extends ActionCtx:
-    override def cible = Nil
-
-
-  def fromStdIn(d: TPA, cible: LTPA): Future[ActionCtx] =
-    println(s"choisir action de ${d.simpleName}")
-    Future.successful(fromStdIn match {
-      case Attaque.MainGauche => Attaque.MainGauche.fromStdIn(cible)
-      case Attaque.MainDroite => Attaque.MainDroite.fromStdIn(cible)
-      case Garde => ActionCtx.Garde
-      case Rien => ActionCtx.Rien
-      case _ => ActionCtx.Rien
-    })
 
 
 
-  def fromStdIn: Action =
-    fromStdin(Action.commonValues)
 
+  def fromStdIn: Affect =
+    fromStdin(Affect.values.toList)
 
-  def readCibleRec(cible: ITP[GameElement]):List[GameId.ID] =
-    def f(t: TP[GameElement]) = t.simpleName
-    List(fromStdin(cible, f,_.id))
 
 
 

@@ -1,7 +1,9 @@
 package bon.jo.rpg.ui
 
-import bon.jo.rpg.Action.{ActionCtx, fromStdIn}
+
 import bon.jo.rpg.TimedTrait
+
+import bon.jo.rpg.CommandeCtx
 import bon.jo.rpg.stat.GameElement
 import bon.jo.rpg.BattleTimeLine.TPA
 import bon.jo.ui.UpdatableCpnt
@@ -15,7 +17,7 @@ object PlayerUIStdIn:
     type T = MessagePlayer
     def register(id: Int, g: bon.jo.rpg.stat.GameElement): Unit=
       ()
-    override def ask(d: TimedTrait[GameElement], cible: List[TimedTrait[GameElement]]): Future[ActionCtx] = fromStdIn(d, cible)
+    override def ask(d: TimedTrait[GameElement], cible: List[TimedTrait[GameElement]]): Future[CommandeCtx] = CommandeCtx.fromStdIn(d, cible)
 
     override def message(str: String, timeToDisplay: Int): Unit = println(str)
 

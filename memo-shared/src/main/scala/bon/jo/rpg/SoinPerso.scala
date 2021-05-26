@@ -1,8 +1,8 @@
 package bon.jo.rpg
 
-import bon.jo.rpg.ActionResolver.Resolver
+import bon.jo.rpg.AffectResolver.Resolver
 import bon.jo.rpg.stat.Perso
-import bon.jo.rpg.Action.Soin
+import bon.jo.rpg.Affect.Soin
 import scala.util.Random
 import bon.jo.rpg.ui.PlayerUI
 import bon.jo.rpg.stat.GameElement
@@ -11,7 +11,7 @@ object SoinPerso extends  Resolver[TimedTrait[Perso],TimedTrait[GameElement],Soi
 
     type P = TimedTrait[Perso]
     val r = Random()
-    def resolve(attp: P,ciblep :TimedTrait[GameElement])(using ui : PlayerUI):TimedTrait[GameElement]=
+    def resolveAffect(attp: P,ciblep :TimedTrait[GameElement])(using ui : PlayerUI):TimedTrait[GameElement]=
         val att = attp.value
         val cible = ciblep.value
         println(att)

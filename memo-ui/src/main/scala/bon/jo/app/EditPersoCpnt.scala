@@ -10,16 +10,20 @@ import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.html.HtmlRep
 import bon.jo.html.HtmlRep.HtmlRepParam
 import bon.jo.memo.ui.SimpleView.bsButton
-import bon.jo.rpg.{Action, RandomName}
+import bon.jo.rpg.{Affect, RandomName}
 import bon.jo.rpg.stat.raw.{Actor, IntBaseStat, Perso, Weapon}
 import org.scalajs.dom.html.{Button, TextArea}
 import org.scalajs.dom.raw.{HTMLElement, HTMLLIElement, HTMLUListElement}
 import scala.language.dynamics
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
+import bon.jo.rpg.Affect
+import bon.jo.rpg.SystemElement
+import bon.jo.rpg.Commande
 
 val $$ =  Experimental.html   
 import $$.*
+
   
            
 object Types:
@@ -45,6 +49,10 @@ class EditPersoCpnt(initial: Perso, option: Option[(Rpg, mutable.ListBuffer[Edit
   private var varRightHand: Option[Weapon] = initial.rightHandWeapon
   private var varLeftHand: Option[Weapon] = initial.leftHandWeapon
 
+
+  def getAction(str: String): Option[bon.jo.rpg.SystemElement] = 
+    Commande(str,le)
+  def readAction(initial: A): Iterable[bon.jo.rpg.SystemElement] = ???
   def equipAction(addButton: Button, updateTitle: HTMLElement)(optionF: Option[Weapon] => Unit) =
     addButton.$click { _ =>
       option foreach {
@@ -77,6 +85,9 @@ class EditPersoCpnt(initial: Perso, option: Option[(Rpg, mutable.ListBuffer[Edit
       }
     }
 
+  def initialAction(initial: Perso):Iterable[SystemElement] =
+    Commande.staticValues ++ initial.armesCommandes()
+
 
   def txt(optionW: Option[Weapon]): String = optionW.map(_.name).getOrElse("-")
 
@@ -92,8 +103,8 @@ class EditPersoCpnt(initial: Perso, option: Option[(Rpg, mutable.ListBuffer[Edit
   private val rightArm = spanArm(initial.rightHandWeapon)
   private val handsCont = $va div List(leftArm, equipLeft, rightArm, equipRight)
 
-  override def create(id: Int, name: String,desc : String, intBaseStat: IntBaseStat, action: List[Action]): Perso =
-    new Perso(id, name,desc, intBaseStat, lvl = 1, action, leftHandWeapon = varLeftHand, rightHandWeapon = varRightHand)
+  override def create(id: Int, name: String,desc : String, intBaseStat: IntBaseStat, action: List[SystemElement]): Perso =
+    new Perso(id, name,desc, intBaseStat, lvl = 1, action.asInstanceOf[List[Commande]], leftHandWeapon = varLeftHand, rightHandWeapon = varRightHand)
 
   override def beforeStatOption: Option[HTMLElement] = Some( $va div List(handsCont))
 

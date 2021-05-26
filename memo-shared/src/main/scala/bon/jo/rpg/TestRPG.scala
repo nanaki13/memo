@@ -1,7 +1,7 @@
 package bon.jo.rpg
 
 import bon.jo.rpg.BattleTimeLine.TimeLineParam
-
+import bon.jo.rpg.resolve.PersoResolveContext._
 import bon.jo.rpg.stat.Perso
 import bon.jo.rpg.stat._
 import bon.jo.rpg.stat.{AnyRefBaseStat, Perso}
@@ -11,9 +11,9 @@ import bon.jo.rpg.CalculsPersoPerso
 import scala.concurrent.ExecutionContext.Implicits.global
 import bon.jo.rpg.BattleTimeLine.TimeLineOps
 import Perso.given
-
-import bon.jo.rpg.ActionResolver.Resolver
-import bon.jo.rpg.Action.Garde
+import bon.jo.rpg.resolve.given
+import bon.jo.rpg.AffectResolver.Resolver
+import bon.jo.rpg.Commande.Garde
 
 
 object TestRPG extends App:
@@ -30,12 +30,7 @@ object TestRPG extends App:
   given PlayerUI = PlayerUIStdIn.value
 
 
-  given  ResolveContext = new ResolveContext{
-       def attaqueResolve = CalculsPersoPerso
-       def soinResolve = SoinPerso
-       def gardeResolve = ResolveContext.unknwon[Garde.type]()
 
-  }
   
 
   val ui : Perso.WithUI =  Perso.WithUI()

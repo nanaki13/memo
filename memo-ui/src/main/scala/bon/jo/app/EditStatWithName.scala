@@ -10,8 +10,7 @@ import bon.jo.html.HtmlRep
 import bon.jo.html.HtmlRep.{HtmlRepParam, PrXmlId}
 import bon.jo.memo.ui.SimpleView.{BsModifier, withClose}
 import bon.jo.memo.ui.{PopUp, SimpleView}
-import bon.jo.rpg.Action
-import bon.jo.rpg.Action.Attaque
+
 import bon.jo.rpg.stat.Actor.Weapon
 import bon.jo.rpg.stat.StatsWithName
 import bon.jo.rpg.stat.raw.{IntBaseStat, Perso}
@@ -24,6 +23,8 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
 import scala.language.dynamics
+import bon.jo.rpg.SystemElement
+import bon.jo.rpg.Affect
 
 object SType:
   type Param[A<: StatsWithName] = (Rpg,mutable.ListBuffer[EditStatWithName[A]])
@@ -54,28 +55,12 @@ with UpdatableCpnt[A] with ReadableCpnt[A] with HtmlDsl:
   }
 
 
-  def initialAction(initial: A):Iterable[Action] =
-    (initial match {
-      case Perso.ArmePerso(l,r) =>
-       ( l match {
-        case Some(value) => Attaque.MainGauche +: value.action.map{
-        
-          case a => a
-        }
-        case None => Nil
-      }) ++ (r match {
-        case Some(value) =>  Attaque.MainDroite +:  value.action.map{
-          case a => a
-        }
-        case None =>Nil
-      }) ++Action.commonValues
-      case _ : Weapon => Action.weaponValues
-      case _ => Nil
-    })
+  def initialAction(initial: A):Iterable[SystemElement]
+  def readAction(initial: A):Iterable[SystemElement]
 
-  private val actionsChoose: HTMLSelectElement = $l.t select initialAction(initial).filter(!initial.action.contains(_)).map(optionF)
+  private val actionsChoose: HTMLSelectElement = $l.t select initialAction(initial).filter(!readAction(initial).toList.contains(_)).map(optionF)
 
-  private val actions = ListBuffer.from(initial.action)
+  private val actions = ListBuffer.from(readAction(initial))
 
   def updateAction(a : A)=
     actionsChoose.clear()
@@ -85,16 +70,16 @@ with UpdatableCpnt[A] with ReadableCpnt[A] with HtmlDsl:
     actions.toList.filterNot(possible.contains).foreach(actions -= _)
     actionsChoose ++= ini.filter(!actions.contains(_)).map(optionF).toList
     actions.foreach(addToCollAction)
-  private def optionF(action: Action) = $ref.t.option { (o: HTMLOptionElement) =>
+  private def optionF(action: SystemElement) = $ref.t.option { (o: HTMLOptionElement) =>
     o.value = action.toString
     o.innerText = action.toString
   }: HTMLOptionElement
 
-  def getAction(str: String): Option[Action] = Action.unapply(str)
+  def getAction(str: String): Option[SystemElement]
 
   private val buttonAddAction = SimpleView.bsButton("+")
 
-  def addToCollAction(a: Action): Unit =
+  def addToCollAction(a: SystemElement): Unit =
     colActioin += {
       SimpleView.badgeClose(a, {
         actionsChoose.appendChild(optionF(a))
@@ -104,7 +89,7 @@ with UpdatableCpnt[A] with ReadableCpnt[A] with HtmlDsl:
     }
 
 
-  initial.action.foreach(addToCollAction)
+  readAction(initial).foreach(addToCollAction)
   buttonAddAction $click { _ =>
     if actions.size < 4 then
       getAction(actionsChoose.value).foreach { a =>
@@ -172,7 +157,7 @@ with UpdatableCpnt[A] with ReadableCpnt[A] with HtmlDsl:
       name.value = e.name
     })
 
-  def create(id: Int, name: String,desc : String, intBaseStat: IntBaseStat, action: List[Action]): A
+  def create(id: Int, name: String,desc : String, intBaseStat: IntBaseStat, action: List[SystemElement]): A
 
   override def read: A =
     create(id.textContent.toInt, name.value,descriptionInput.value, statCpnt.read, actions.toList)

@@ -7,8 +7,8 @@ import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.html.HtmlRep
 import bon.jo.html.HtmlRep.PrXmlId
 import bon.jo.memo.ui.SimpleView
-import bon.jo.rpg.raw.Action.ActionCtx._
-import bon.jo.rpg.raw.Action._
+
+
 import bon.jo.rpg.raw._
 import bon.jo.rpg.stat.raw.Perso.PlayerPersoUI
 import bon.jo.rpg.stat.raw._
@@ -23,11 +23,16 @@ import scala.scalajs.js
 import scala.util.Success
 import bon.jo.rpg.stat.GameElement
 import bon.jo.rpg.stat.GameId
+import bon.jo.rpg.SystemElement
+import bon.jo.rpg.CommandeCtx
+import bon.jo.rpg.Commande
+import bon.jo.rpg.CommandeCtx.CommandeCibled
+import bon.jo.rpg.CommandeCtx.CommandeWithoutCibled
 object HtmlUi:
-  object ActionRep extends HtmlRep[Action, ImuutableHtmlCpnt]:
-    override def html(memo: Action): ImuutableHtmlCpnt = () => Some(SimpleView.bsButton(s"${memo.name}"))
+  object ActionRep extends HtmlRep[SystemElement, ImuutableHtmlCpnt]:
+    override def html(memo: SystemElement): ImuutableHtmlCpnt = () => Some(SimpleView.bsButton(s"${memo.name}"))
 
-  implicit val acctRep: HtmlRep[Action, ImuutableHtmlCpnt] = ActionRep
+  implicit val acctRep: HtmlRep[SystemElement, ImuutableHtmlCpnt] = ActionRep
 
   object Value extends HtmlUi:
     override val rpg: Rpg = AppLoaderExample.Rpg
@@ -45,10 +50,10 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage:
   val rpg : Rpg
   val choice: Div = $c.div
 
-  override def ask(d: TimedTrait[GameElement], cible: List[TimedTrait[GameElement]]): Future[ActionCtx] =
+  override def ask(d: TimedTrait[GameElement], cible: List[TimedTrait[GameElement]]): Future[CommandeCtx] =
     println("ask")
     choice.clear()
-    val p: Promise[Action] = Promise[Action]()
+    val p: Promise[Commande] = Promise[Commande]()
     d.canChoice.map(a => a -> a.html).foreach {
       case (action, cpnt) =>
         lazy val evL: Seq[(js.Function1[MouseEvent, _], HTMLElement)] = cpnt.list.map {
@@ -71,10 +76,10 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage:
         evL
 
     }
-    val ret = Promise[ActionCtx]()
+    val ret = Promise[CommandeCtx]()
     p.future.map {
 
-      case action@(Action.Attaque.MainGauche | Action.Attaque.MainDroite | Action.Soin) =>
+      case action@(c : Commande.Attaque ) =>
         val pp = Promise[TimedTrait[GameElement]]()
         val messagep = message("cliquer sur un cible")
         lazy val allEvent: Seq[(HTMLElement, js.Function1[MouseEvent, _])] = d.value match
@@ -109,7 +114,7 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage:
 
 
                 pp.future.foreach(sel => if !ret.isCompleted then {
-                  ret.success(new ActionCibled(action, List(sel.id)))
+                  ret.success(new CommandeCibled(action, List(sel.id)))
                 })
                 hAndEvent
               }
@@ -119,7 +124,7 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage:
 
 
         allEvent
-      case action: Action => ret.tryComplete(Success(new ActionWithoutCible(action)))
+      case action: Commande => ret.tryComplete(Success(new CommandeWithoutCibled(action)))
 
     }
     ret.future

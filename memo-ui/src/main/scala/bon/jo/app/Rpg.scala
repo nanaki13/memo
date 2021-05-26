@@ -9,10 +9,11 @@ import bon.jo.html.HtmlRep
 import bon.jo.html.HtmlRep.PrXmlId
 import bon.jo.rpg.BattleTimeLine.{TimeLineParam,TimeLineOps}
 import bon.jo.rpg.dao.{PersoDao, WeaponDao}
-import bon.jo.rpg.raw.Action
+
 import bon.jo.rpg.stat.Perso.WithUI
 import bon.jo.rpg.stat.Perso.given
 import bon.jo.rpg.stat._
+import bon.jo.rpg.resolve.PersoResolveContext._
 import bon.jo.rpg.stat.raw.{Perso, Weapon}
 import bon.jo.util.Ec
 import org.scalajs.dom.document
@@ -20,10 +21,10 @@ import org.scalajs.dom.html.{Button, Div}
 
 import scala.collection.mutable.ListBuffer
 import bon.jo.rpg.stat.GameId
-import bon.jo.rpg.ActionResolver.Resolver
+import bon.jo.rpg.AffectResolver.Resolver
 import bon.jo.rpg._
 
-
+import bon.jo.rpg.resolve.given
 
 
 
@@ -69,14 +70,9 @@ trait Rpg extends Ec with ArmesPage with RpgSimu:
   def startRpg =
     given HtmlUi = HtmlUi.Value
     given HtmlRep[Perso, PerCpnt] = HtmlUi.PersoRep
-    given HtmlRep[Action, ImuutableHtmlCpnt] = HtmlUi.acctRep
+    given HtmlRep[SystemElement, ImuutableHtmlCpnt] = HtmlUi.acctRep
  //   given Resolver[Perso, Perso,Action.Attaque.type] = CalculsPersoPerso
-    given  ResolveContext = new ResolveContext{
-        def attaqueResolve = CalculsPersoPerso
-        def soinResolve = SoinPerso
-        def gardeResolve = ResolveContext.unknwon[Action.Garde.type]()
 
-    }
   
     val linkedUI = new WithUI()
     import linkedUI.given

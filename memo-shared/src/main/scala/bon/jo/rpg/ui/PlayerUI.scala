@@ -1,6 +1,7 @@
 package bon.jo.rpg.ui
 
-import bon.jo.rpg.Action.ActionCtx
+
+import bon.jo.rpg.CommandeCtx
 import bon.jo.rpg.TimedTrait
 import bon.jo.rpg.BattleTimeLine._
 import bon.jo.rpg.stat.GameElement
@@ -18,7 +19,7 @@ trait PlayerUI extends PlayerMessage:
 
  
 
-  def ask(d: TimedTrait[GameElement], cible: List[TimedTrait[GameElement]]): Future[ActionCtx]
+  def ask(d: TimedTrait[GameElement], cible: List[TimedTrait[GameElement]]): Future[CommandeCtx]
 
 
 object PlayerUI {

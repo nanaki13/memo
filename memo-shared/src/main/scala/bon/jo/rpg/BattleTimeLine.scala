@@ -9,9 +9,9 @@ import bon.jo.rpg.stat.{ GameElement}
 import BattleTimeLine.UpdateGameElement
 import BattleTimeLine._
 import bon.jo.rpg.stat.GameId
-import bon.jo.rpg.stat.ResolveContext
+import bon.jo.rpg.resolve.PersoResolveContext._
 import bon.jo.rpg.stat.Perso.PersoOps
-import bon.jo.rpg.ActionResolver.ActionResolverWithResolver
+import bon.jo.rpg.Commande
 import bon.jo.rpg.stat.Perso
 object BattleTimeLine:
 
@@ -22,7 +22,7 @@ object BattleTimeLine:
   type TPA = TP[GameElement]
   type LTPA = LTP[GameElement]
   type ITPA = ITP[GameElement]
-  type Res = ActionResolver[TimedTrait[Perso], TimedTrait[GameElement]]  with ActionResolverWithResolver[TimedTrait[Perso], TimedTrait[GameElement]]   
+  type Res = CommandeResolver.Dispatcher[ TimedTrait[Perso], TimedTrait[GameElement]] 
   opaque type UpdateGameElement = (GameId.ID,TPA=>TPA,String)
   object UpdateGameElement:
     def apply(id : GameId.ID,tr : TPA=>TPA,name : String):UpdateGameElement = (id,tr,name)
@@ -90,7 +90,7 @@ object BattleTimeLine:
       
   
 
-    def doStep(using    PlayerUI,  ExecutionContext,Res ) = 
+    def doStep(using    PlayerUI,  ExecutionContext,CommandeResolver.Dispatcher[TP[Perso],TPA] ) = 
       nextState(timedObjs) match 
       case NextStateResult.NextStateResultFast(fast,change) => timedObjs = dochange(fast,change).toList.sorted
       case NextStateResult.NextStateResultAsking(fast, ask,change) => ask foreach{
@@ -114,7 +114,7 @@ object BattleTimeLine:
     var resume : ()=>Unit = ()=>{}
 
 
-    def nextState(timedObjs : LTPA)(using z : BattleTimeLine.Res, ui: PlayerUI, ec: ExecutionContext): NextStateResult =
+    def nextState(timedObjs : LTPA)(using z : CommandeResolver.Dispatcher[TP[Perso],TPA], ui: PlayerUI, ec: ExecutionContext): NextStateResult =
 
       if pause == 0 then
         val state_ :  Seq[(TPA, State)]=  state(updateAll(timedObjs))
@@ -126,7 +126,7 @@ object BattleTimeLine:
           None
         val fast = state_.filter(_._2 != State.ChooseAction).map{
            (pos, state) =>
-            val cible = pos.action.cible: Iterable[bon.jo.rpg.stat.GameId.ID]
+            val cible = pos.commandeCtx.cible: Iterable[bon.jo.rpg.stat.GameId.ID]
             def trueCible = cible.map(cpntMap.get(_))
             state match
               case State.BeforeChooseAction => (pos,Nil)
@@ -134,11 +134,12 @@ object BattleTimeLine:
               case State.ResolveAction =>
                 val cpnts = trueCible
 
-                val message = s"${pos.simpleName} fait ${pos.action.action} ${if pos.action.cible.nonEmpty then
+                val message = s"${pos.simpleName} fait ${pos.commandeCtx.commande} ${if pos.commandeCtx.cible.nonEmpty then
                   s"sur ${cpnts.map(_.simpleName).mkString(", ")}"}"
 
-                ui.message(s"${pos.simpleName} fait ${pos.action.action} sur ${cpnts.map(_.simpleName).mkString(", ")}",5000)
-                val updayedCible =  z.resolve(pos.cast,pos.action.action,trueCible)
+                ui.message(message,5000)
+              
+                val updayedCible =  z.resolveCommand(pos.cast, pos.commandeCtx.commande,trueCible)
                 (pos.withPos(0),updayedCible)
               case State.NoState =>(pos,Nil)
               case _ => ???
@@ -147,13 +148,13 @@ object BattleTimeLine:
           val toAsk: Seq[() => Future[TPA]] = state_.filter(_._2 == State.ChooseAction).map {
              (pos,_) =>
               () => {
-                val message = ui.message(s"selectionner l'action pour ${pos.simpleName}")
+                val message = ui.message(s"selectionner la commande pour ${pos.simpleName}")
                 pause += 1
                 ui.ask(pos, timedObjs).map { act =>
                   ui.clear(message.asInstanceOf[ui.T])
 
                   pause -= 1
-                  val ret = pos.withAction(act)
+                  val ret = pos.withCommandeCtx(act)
                   if pause == 0 then
                     resume()
 

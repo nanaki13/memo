@@ -1,6 +1,6 @@
 package bon.jo.rpg
 
-import bon.jo.rpg.Action.ActionCtx
+import bon.jo.rpg.CommandeCtx
 import bon.jo.rpg.stat.GameElement
 import bon.jo.rpg.stat.GameId
 import bon.jo.rpg.stat.GameId.ID.given
@@ -12,20 +12,20 @@ object TimedTrait:
   private def getId: GameId.ID =
     id += 1
     GameId.ID(id)
-  case class TimedObject( value: GameElement,id : GameId.ID,_pos : Int= 0,_action : ActionCtx)(using Timed[GameElement]) extends TimedTrait[GameElement]:
+  case class TimedObject( value: GameElement,id : GameId.ID,_pos : Int= 0,_commandeCtx : CommandeCtx)(using Timed[GameElement]) extends TimedTrait[GameElement]:
     override val workerTimed: Timed[GameElement] = summon[Timed[GameElement]]
     override def withPos(i: Int): TimedTrait[GameElement] = copy(_pos = i)
 
 
-    override def withAction(i: ActionCtx): TimedTrait[GameElement] = copy(_action = i)
+    override def withCommandeCtx(i: CommandeCtx): TimedTrait[GameElement] = copy(_commandeCtx = i)
     def withValue(a: GameElement): TimedTrait[GameElement]  = copy(value = a)
   extension (value: GameElement)(using Timed[GameElement]) 
-    def timed =  TimedObject(value,id   = getId,0,ActionCtx.Rien)
+    def timed =  TimedObject(value,id   = getId,0,CommandeCtx.Rien)
 
 trait TimedTrait[A] {
   val id : GameId.ID
   val _pos : Int
-  val _action : ActionCtx
+  val _commandeCtx : CommandeCtx
   val value: A
   def withPos(i: Int): TimedTrait[A]
   def withValue(a: A): TimedTrait[A]
@@ -33,15 +33,15 @@ trait TimedTrait[A] {
 
   val workerTimed: Timed[A]
 
-  def cast[T <: TimedTrait[A]] = this.asInstanceOf[T]
+  def cast[T ] = this.asInstanceOf[T]
 
   def speed: Int = workerTimed.speed(value)
 
-  def canChoice: List[Action]= workerTimed.canChoice(value)
-  def withAction(i: ActionCtx): TimedTrait[A]
+  def canChoice: List[Commande]= workerTimed.canChoice(value)
+  def withCommandeCtx(i: CommandeCtx): TimedTrait[A]
 
 
-  def action: ActionCtx = _action
+  def commandeCtx: CommandeCtx = _commandeCtx
 
  // def timed: TimedTrait[A]
 
