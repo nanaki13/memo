@@ -51,7 +51,8 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage:
   val choice: Div = $c.div
 
   override def ask(d: TimedTrait[GameElement], cible: List[TimedTrait[GameElement]]): Future[CommandeCtx] =
-    println("ask")
+
+  
     choice.clear()
     val p: Promise[Commande] = Promise[Commande]()
     d.canChoice.map(a => a -> a.html).foreach {
@@ -82,13 +83,13 @@ trait HtmlUi extends PlayerPersoUI with SimpleMessage:
       case action@(c : Commande.Attaque ) =>
         val pp = Promise[TimedTrait[GameElement]]()
         val messagep = message("cliquer sur un cible")
-        lazy val allEvent: Seq[(HTMLElement, js.Function1[MouseEvent, _])] = d.value match
-          case p: Perso => cible.flatten { v => {
-            v.value match
+        lazy val allEvent: Seq[(HTMLElement, js.Function1[MouseEvent, _])] = d.value[GameElement] match
+          case p: Perso => cible.flatten { v => {    
+            v.value[GameElement] match
               case b: Perso => {
 
                 val eAndView = rpg.cpntMap(v.id)
-
+              
                 lazy val hAndEvent: Seq[(HTMLElement, js.Function1[MouseEvent, _])] = eAndView.list.map {
                   h =>
 

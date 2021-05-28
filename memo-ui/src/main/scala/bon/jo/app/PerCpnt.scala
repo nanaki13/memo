@@ -10,7 +10,25 @@ import bon.jo.rpg.stat.raw.{AnyRefBaseStat, IntBaseStat, Perso}
 import bon.jo.ui.UpdatableCpnt
 import org.scalajs.dom.html.Span
 import org.scalajs.dom.raw.{HTMLElement, Node}
+class Progress:
+  import Experimental.{html => h }
+  import  h._ 
+  val pBar =  h.div(attr("class" -> "progress-bar bg-danger" ,"role" ->"progressbar" ,"style" ->"width: 100%", "aria-valuenow" ->"100", "aria-valuemin" ->"0" ,"aria-valuemax" ->"100"))
+  val html =  h.div{
+    _class("progress")
+    childs(pBar)
 
+  }
+  def update(e : Int) = pBar.style.width = s"$e%"  
+
+def progress(bind : Any) = {
+  import html._ 
+  html.div{
+    _class("progress")
+    html.div(attr("class" -> "progress-bar bg-danger" ,"role" ->"progressbar" ,"style" ->"width: 100%", "aria-valuenow" ->"100", "aria-valuemin" ->"0" ,"aria-valuemax" ->"100"))
+
+  }
+}
 class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso]:
 
 
@@ -21,25 +39,7 @@ class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso]:
   }
 
 
-  class Progress:
-    import Experimental.{html => h }
-    import  h._ 
-    val pBar =  h.div(attr("class" -> "progress-bar bg-danger" ,"role" ->"progressbar" ,"style" ->"width: 100%", "aria-valuenow" ->"100", "aria-valuemin" ->"0" ,"aria-valuemax" ->"100"))
-    val html =  h.div{
-      _class("progress")
-      childs(pBar)
 
-    }
-    def update(e : Int) = pBar.style.width = s"$e%"  
-
-  def progress(bind : Any) = {
-    import html._ 
-    html.div{
-      _class("progress")
-      html.div(attr("class" -> "progress-bar bg-danger" ,"role" ->"progressbar" ,"style" ->"width: 100%", "aria-valuenow" ->"100", "aria-valuemin" ->"0" ,"aria-valuemax" ->"100"))
-
-    }
-  }
 
   val hpVarCpnt = Progress()
   def updateHp(p : Perso) = 

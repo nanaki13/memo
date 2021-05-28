@@ -5,7 +5,7 @@ import bon.jo.rpg.stat.Perso
 object raw:
   type Affect = rpg.Affect
   val Affect: rpg.Affect.type = rpg.Affect
-  type AffectResolver[A, B] = rpg.AffectResolver[A, B]
+  type AffectResolver[A, B <: BattleTimeLine.TPA] = rpg.AffectResolver[A, B]
   val BattleTimeLine: rpg.BattleTimeLine.type = rpg.BattleTimeLine
 
   //type DoActionTrait[A] = rpg.DoActionTrait[A]

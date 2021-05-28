@@ -51,8 +51,8 @@ class EditPersoCpnt(initial: Perso, option: Option[(Rpg, mutable.ListBuffer[Edit
 
 
   def getAction(str: String): Option[bon.jo.rpg.SystemElement] = 
-    Commande(str,le)
-  def readAction(initial: A): Iterable[bon.jo.rpg.SystemElement] = ???
+    Some(Commande(str,varLeftHand,varRightHand))
+  def readAction(p: Perso): Iterable[bon.jo.rpg.SystemElement] = p.commandes
   def equipAction(addButton: Button, updateTitle: HTMLElement)(optionF: Option[Weapon] => Unit) =
     addButton.$click { _ =>
       option foreach {

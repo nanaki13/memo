@@ -31,9 +31,10 @@ class EditWeaponCpnt(initial: Weapon, option: Option[SType.Param[Weapon]])(repSt
 
   override def randomValue: Weapon = new Weapon(initial.id,RandomName.randomWeaponName(),"La belle arme",1,AnyRefBaseStat[Float](Actor.randomWeaponVal _).map(_.round))
 
-  override def create(id : Int,name: String,desc : String, intBaseStat: IntBaseStat, action: List[Affect]): Weapon = new Weapon(id,name,desc,1,intBaseStat,action)
+  override def create(id : Int,name: String,desc : String, intBaseStat: IntBaseStat, action: List[SystemElement]): Weapon = new Weapon(id,name,desc,1,intBaseStat,action.asInstanceOf[List[Affect]])
 
   override val dao: Dao[Weapon, Int] = option.rpg.weaponDao
-  def initialAction(initial: Weapon):Iterable[SystemElement] = Affect.values
-   def getAction(str: String): Option[SystemElement] = Some(Affect.valueOf(str))
+  def initialAction(p: Weapon):Iterable[SystemElement] = Affect.values
+  def readAction(p: Weapon): Iterable[bon.jo.rpg.SystemElement]  = p.affects
+  def getAction(str: String): Option[SystemElement] = Some(Affect.valueOf(str))
 

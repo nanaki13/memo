@@ -7,11 +7,12 @@ import bon.jo.rpg.stat._
 import bon.jo.rpg.stat.{AnyRefBaseStat, Perso}
 import bon.jo.rpg.TimedTrait._
 import bon.jo.rpg.ui.{PlayerUI, PlayerUIStdIn}
-import bon.jo.rpg.CalculsPersoPerso
+import bon.jo.rpg.resolve.PersoAttaqueResolve
 import scala.concurrent.ExecutionContext.Implicits.global
 import bon.jo.rpg.BattleTimeLine.TimeLineOps
 import Perso.given
 import bon.jo.rpg.resolve.given
+import bon.jo.rpg.resolve.PersoCtx
 import bon.jo.rpg.AffectResolver.Resolver
 import bon.jo.rpg.Commande.Garde
 
@@ -25,7 +26,7 @@ object TestRPG extends App:
 
     
   given TimeLineParam =  TimeLineParam(0, 50, 70)
-   
+  given Timed[GameElement] = summon[Timed[bon.jo.rpg.stat.Perso]]
   given yl :  TimeLineOps = TimeLineOps()
   given PlayerUI = PlayerUIStdIn.value
 
@@ -41,9 +42,9 @@ object TestRPG extends App:
 
 
   import ui.given
-  import ui.PersoResolver.given
 
-
+  val ctw = summon[PersoCtx]
+  import ctw.given
   yl.add(p1)
   yl.add(p2)
 

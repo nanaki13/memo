@@ -42,12 +42,13 @@ trait Rpg extends Ec with ArmesPage with RpgSimu:
   val persoDao: MappedDao[PersoJS, Perso] with PersoDao
 
   val deckCreation: Div =
-    println("deckCreation")
+ 
     $c.div[Div]
 
 
 
-  given TimeLineParam = TimeLineParam(0, 200, 260)
+  import GameParams.given
+  given Timed[GameElement] =bon.jo.rpg.stat.Perso.PeroPero.asInstanceOf[Timed[GameElement]]
   given timeLine: TimeLineOps = TimeLineOps()
   val root = $ref div {
     d =>

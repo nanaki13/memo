@@ -189,14 +189,12 @@ class ViewsDef():
           _tpeDiv.innerText = textType(m)
           content.innerHTML = ""
           val c = content_(m)
-          console.log(m.content)
 
-          console.log(c.childNodes)
           // content.innerHTML = c.innerHTML
           c.childNodes.foreach {
             p =>
               if !scalajs.js.isUndefined(p) then
-                console.log(p)
+               
                 content.appendChild(p)
 
           }

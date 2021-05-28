@@ -25,6 +25,7 @@ import scala.util.{Failure, Success}
 import scala.language.dynamics
 import bon.jo.rpg.SystemElement
 import bon.jo.rpg.Affect
+import bon.jo.rpg.Commande
 
 object SType:
   type Param[A<: StatsWithName] = (Rpg,mutable.ListBuffer[EditStatWithName[A]])
@@ -71,8 +72,11 @@ with UpdatableCpnt[A] with ReadableCpnt[A] with HtmlDsl:
     actionsChoose ++= ini.filter(!actions.contains(_)).map(optionF).toList
     actions.foreach(addToCollAction)
   private def optionF(action: SystemElement) = $ref.t.option { (o: HTMLOptionElement) =>
-    o.value = action.toString
-    o.innerText = action.toString
+    o.value =
+       action match
+        case Commande.Attaque(_,lr) => lr.id
+        case _ => action.toString
+    o.innerText = action.name
   }: HTMLOptionElement
 
   def getAction(str: String): Option[SystemElement]
@@ -97,7 +101,7 @@ with UpdatableCpnt[A] with ReadableCpnt[A] with HtmlDsl:
         addToCollAction(a)
         actionsChoose.getElementsByTagName("option").toList.foreach {
           e =>
-            if e.asInstanceOf[HTMLOptionElement].value == a.name then
+            if e.asInstanceOf[HTMLOptionElement].value == a.id then
               actionsChoose.removeChild(e)
         }
       }

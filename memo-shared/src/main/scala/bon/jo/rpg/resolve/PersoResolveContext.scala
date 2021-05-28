@@ -13,17 +13,21 @@ object PersoResolveContext :
     type SoinResolve =  Resolver[TimedTrait[Perso], TimedTrait[GameElement],Affect.Soin.type]
    // type GardeResolve =  Resolver[TimedTrait[Perso], TimedTrait[GameElement],Affect.Garde.type]
     type CancelResolve =  Resolver[TimedTrait[Perso], TimedTrait[GameElement],Affect.Cancel.type]
+    type SlowResolve =  Resolver[TimedTrait[Perso], TimedTrait[GameElement],Affect.Slow.type]
+    type HateResolve =  Resolver[TimedTrait[Perso], TimedTrait[GameElement],Affect.Hate.type]
     object ResolveContext:
         def unknwon[A <: Affect]():  Resolver[TimedTrait[Perso], TimedTrait[GameElement],A] = 
             new Resolver:
-                override def resolveAffect(a: TimedTrait[Perso], b: TimedTrait[GameElement])(using ui : PlayerUI) : TimedTrait[GameElement] =
-                    ui.message("mais sa fait rien",1000)
+                override def resolveAffect(a: TimedTrait[Perso], b: TimedTrait[GameElement]) : PlayerUI.UI[TimedTrait[GameElement]] =       
+                    summon[PlayerUI].message("mais sa fait rien",1000)
                     b
     trait ResolveContext:
         given attaqueResolve: AttaqueResolve
         given soinResolve: SoinResolve
       //  given gardeResolve: GardeResolve
         given cancelResolve: CancelResolve
+        given slowResolve: SlowResolve
+        given hateResolve: HateResolve
         
     //    given Resolver[TimedTrait[Perso], TimedTrait[GameElement],Affect.Rien.type] = ResolveContext.unknwon[Affect.Rien.type]()
 

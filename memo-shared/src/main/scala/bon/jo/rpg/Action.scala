@@ -21,7 +21,7 @@ object CommandeCtx:
     List(fromStdin(cible, f,_.id))
   def fromStdIn(d: TPA): Commande =
     
-    fromStdin(d.cast[TimedTrait[Perso]].value.commandes)
+    fromStdin(d.value[Perso].commandes)
 
 
   
@@ -53,6 +53,7 @@ trait CommandeCtx:
   def cible: Iterable[GameId.ID]
 trait SystemElement:
   val name : String
+  def id : String
 enum LR:
   case L 
   case R
@@ -77,18 +78,23 @@ enum Commande(val name : String) extends SystemElement:
   case ChangerDequipement extends Commande("changer d'équipement")  
   case Voler extends Commande("voler")  
   case Rien extends Commande("rien")  
-
+  val id = this match 
+    case  Attaque( weapon : Weapon, hand : LR) => hand.id
+    case _ => name
   
   def fromStdIn(cible: BattleTimeLine.LTP[GameElement]): CommandeCtx =
     new CommandeCibled(this, readCibleRec(cible))
     
 
-
+open abstract class Effect(val time : Int,val name : Affect):
+  def -- : Effect 
+case class FactorEffectt(override val time : Int ,factor : Float ,override val name : Affect) extends Effect( time , name ):
+  def -- : Effect = copy(time-1)
 enum Affect(val name : String) extends SystemElement:
 
 
   given Affect.Soin.type = Affect.Soin
-  given Affect.Aoe.type = Affect.Aoe
+  //given Affect.Aoe.type = Affect.Aoe
 
   given Affect.Hate.type = Affect.Hate
   given Affect.Slow.type = Affect.Slow
@@ -96,16 +102,12 @@ enum Affect(val name : String) extends SystemElement:
 
 
   case Attaque extends Affect("attaque") 
-  case Soin extends Affect("Soin")  
-  case Aoe extends Affect("attaque")  
-
-
- 
- 
-  case Hate extends Affect("attaque")  
-  case Slow extends Affect("attaque")  
-  case Cancel extends Affect("attaque")  
-
+  case Soin extends Affect("soin")  
+ // case Aoe extends Affect("attaque")  
+  case Hate extends Affect("hate")  
+  case Slow extends Affect("slow")  
+  case Cancel extends Affect("cancel")  
+  val id = name
 
   def applyFrom(from : Set[Affect])(string: String) : Option[Affect] =
 

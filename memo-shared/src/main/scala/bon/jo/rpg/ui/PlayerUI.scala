@@ -23,6 +23,7 @@ trait PlayerUI extends PlayerMessage:
 
 
 object PlayerUI {
+  type UI[A] = (PlayerUI,TimeLineParam) ?=> A
   def runSeq[A](toAsk: Seq[() => Future[A]],res : List[A] = Nil)(implicit ec: ExecutionContext): Future[ List[A]] =
 
     if toAsk.isEmpty then

@@ -40,7 +40,7 @@ object Actor:
 
   def randomActor[A <: Actor](create: AnyRefBaseStat[Int] => A): A =
 
-   // println((BaseState.`1` * AnyRefBaseStat(randomActorVal _)))
+   
     create((BaseState.`1` * AnyRefBaseStat(randomActorVal _)).to[AnyRefBaseStat[Int]])
 
 

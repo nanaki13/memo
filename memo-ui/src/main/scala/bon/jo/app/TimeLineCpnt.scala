@@ -10,7 +10,7 @@ import bon.jo.rpg.stat.Perso.WithUI
 import bon.jo.rpg.stat.{Perso, GameElement}
 import org.scalajs.dom.html.{Div, Span}
 import org.scalajs.dom.{console, window}
-
+import bon.jo.rpg.resolve.given
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Future, Promise}
 import scala.util.{Failure, Success}
@@ -75,7 +75,7 @@ class TimeLineCpnt(val withUI: WithUI)(using el:  TimeLineOps):
 
     import bon.jo.app.HtmlUi.Implicit.value
     el.uiUpdate = update
-    import withUI.PersoResolver.given
+    import withUI.given
     lazy val gameLoop: Int = window.setInterval(()=>{
       if el.pause == 0 then {
         el.doStep

@@ -29,17 +29,17 @@ trait RpgSimu:
         val rep : HtmlRep[Perso,ImuutableHtmlCpnt] = ((z : Perso) => () => Some(z.name.tag(tag.div)))
         persoDao.readAll() flatMap  {
          persos =>
-             console.log("persos deteched")
+            
            Selection
              .Param[Perso,PerCpnt](Some(enSelButton),selected ++= _.list,PersoRep,PersoRep)
              .selection(persos,select)
         } foreach {
          selection =>
-           console.log(selection)
+         
            try
             selection.foreach(e => timeLine.add(e))
             root.clear()
-            console.log("startRpg")
+        
            catch
             case e: Exception => console.log(e)
 

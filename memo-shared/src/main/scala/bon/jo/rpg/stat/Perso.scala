@@ -3,7 +3,7 @@ package bon.jo.rpg.stat
 
 //import bon.jo.rpg.DoActionTrait.WithAction
 import bon.jo.rpg.stat.Actor.{Weapon, WeaponBaseState}
-import bon.jo.rpg.{CommandeResolver, AffectResolverTPA}
+import bon.jo.rpg.{CommandeResolver, AffectResolver}
 import bon.jo.rpg.ui.PlayerUI
 import bon.jo.rpg.{Affect,Commande, AffectResolver, Timed, TimedTrait}
 import bon.jo.rpg.BattleTimeLine._
@@ -13,6 +13,8 @@ import bon.jo.rpg.Affect.Attaque
 import bon.jo.rpg.AffectResolver
 import bon.jo.rpg.BattleTimeLine
 import bon.jo.rpg.resolve.PersoResolveContext._
+import bon.jo.rpg.LR
+import bon.jo.rpg.resolve.PersoCtx
 
 
 
@@ -27,60 +29,26 @@ object Perso:
 
   trait PlayerPersoUI extends PlayerUI:
     type S = Perso
-  class WithUI()(using PlayerUI,ResolveContext):
+  class WithUI()(using val playerUI : PlayerUI)(using TimeLineParam):
+    
     given WithUI = this
-    object PersoResolver{
-       given PersoOps = new PersoOps 
-    }
+    given persoCtx :  PersoCtx = new PersoCtx{}
+    
 
 
 
-  object PeroPero extends Timed[GameElement]:
+  object PeroPero extends Timed[Perso]:
 
 
-    override def speed(a: GameElement): Int = (a.asInstanceOf[Perso].stats.viv / 10f).round
+    override def speed(a: Perso): Int = (a.asInstanceOf[Perso].stats.viv / 10f).round
 
-    override def simpleName(value: GameElement): String = value.asInstanceOf[Perso].name
+    override def simpleName(value: Perso): String = value.asInstanceOf[Perso].name
 
-    override def canChoice(a: GameElement): List[Commande] = 
+    override def canChoice(a: Perso): List[Commande] = 
       val perso = a.asInstanceOf[Perso]
-      perso.armesCommandes()
+      perso.commandes
 
-  given  Timed[GameElement] = PeroPero
-
-
-
-
-  class PersoOps(using   PlayerUI
-  , ResolveContext) extends  CommandeResolver.Dispatcher[ TimedTrait[Perso], TimedTrait[GameElement]]
-  with  AffectResolverTPA[TimedTrait[Perso], TimedTrait[GameElement]] :
-    val ctx =  summon[ResolveContext]
-    import ctx.given
-    def extractResolveArme(a: TimedTrait[Perso], b: Iterable[TimedTrait[GameElement]])(wl : WeaponBaseState):scala.collection.Iterable[UpdateGameElement]=
-      (for ac <- wl.affects yield
-              ac match
-                case given Affect.Soin.type=>   
-                  resolveAffect[Affect.Soin.type](a,b)
-                case given Affect.Attaque.type=>   
-                  resolveAffect[Affect.Attaque.type](a,b)
-                case given Affect.Cancel.type=>   
-                  resolveAffect[Affect.Cancel.type](a,b)
-                case z => 
-                  summon[PlayerUI].message("Mais sa fait encore rien",0)
-                  Nil
-      ).flatten
-                
-    def resolveCommand(a: TimedTrait[Perso], action: Commande, b: Iterable[TimedTrait[GameElement]]): Iterable[UpdateGameElement] =
-     
-      action match
-        case Commande.Attaque(arme,_)=> extractResolveArme(a,b)(arme)
-
-        case z => 
-          summon[PlayerUI].message("Mais sa fait encore rien",0)
-          Nil
-      
-
-
+  //given  Timed[Perso] = PeroPero
 
 
 

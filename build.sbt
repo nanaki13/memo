@@ -10,6 +10,7 @@ import Utils.git
 
 val mainVersion = "1.0.0-SNAPSHOT"
 enablePlugins(ScalaJSPlugin)
+enablePlugins(JavaAppPackaging)
 val sharedSettings = Seq(version := mainVersion,
   organization := "bon.jo",
   scalaVersion := "3.0.0",
@@ -72,12 +73,12 @@ lazy val `memo-server` =
         "org.postgresql" % "postgresql" % "42.2.5"
       ),
       libraryDependencies ++= depFrom213,
-
+      
     )
     .dependsOn(
       `memo-shared`.jvm,
       `memo-data`
-    )
+    ).enablePlugins(JavaAppPackaging)
 
 
 val stagePath = "I:\\work\\github-io\\rpg"
@@ -99,7 +100,7 @@ lazy val `memo-ui` =
       toGitHubIO := {
 
         val f = (Compile / fullOptJS).value
-        println(f)
+       
         //  val source = baseDirectory
 
         io.IO.copyFile(f.data, file(stagePath).toPath.resolve(f.data.getName).toFile)
@@ -108,7 +109,7 @@ lazy val `memo-ui` =
       toGitHubSnapIO := {
 
         val f = (Compile / fullOptJS).value
-        println(f)
+       
         //  val source = baseDirectory
 
         io.IO.copyFile(f.data, file(snapPath).toPath.resolve(f.data.getName).toFile)

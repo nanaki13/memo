@@ -35,8 +35,6 @@ object LocalJsDao:
       daoJs.fId(mapper.map(a)) match
         case 0 => {
           val id= Id[AC]
-          console.log("CREATE : "+id)
-          console.log(classTag.runtimeClass.getSimpleName)
 
           create( a.withId(id))
         }
@@ -70,7 +68,7 @@ trait LocalJsDao[A <: js.Object] extends Dao[A, Int] with IndexedDB with Ec:
   }
 
   def readIds(): Future[List[Int]] =
-    console.log("readIds" + name)
+    
     transaction("readonly").map(_.objectStore(name)).map(_.openCursor()).flatMap {
       cursor =>
         val p = Promise[List[Int]]()
