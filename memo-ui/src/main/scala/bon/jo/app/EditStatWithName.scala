@@ -120,6 +120,9 @@ with UpdatableCpnt[A] with ReadableCpnt[A] with HtmlDsl:
   }
 
 
+  @inline def labelAction : String = initial match 
+    case _ : Weapon => "Affect"
+    case _ => "Commande"
 
   def mainDiv: HTMLElement = 
     val t = Experimental.html
@@ -133,8 +136,8 @@ with UpdatableCpnt[A] with ReadableCpnt[A] with HtmlDsl:
       },
        t.div {
        row
-       cols($t span "action" := {
-        _._class = "stat-label"
+       cols($t span labelAction := {
+        _._class = "black-on-white"
         },actionsChoose,buttonAddAction)
       }, 
       t div childs(colActioin),

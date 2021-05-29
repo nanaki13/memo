@@ -14,6 +14,8 @@ package resolve {
        def cancelResolve = CancelPerso
        def slowResolve = SlowPerso
        def hateResolve = HatePerso
+       def caffeinResolve = CaffeinPerso
+       def boosterResolve = BoostPerso
       // def gardeResolve = ResolveContext.unknwon[A.Garde.type]()
 
   }
@@ -48,6 +50,10 @@ package resolve {
                     resolveAffect.resolveAffect[Affect.Slow.type](a,b)
                   case given Affect.Hate.type=>   
                     resolveAffect.resolveAffect[Affect.Hate.type](a,b)
+                  case given Affect.Booster.type=>   
+                    resolveAffect.resolveAffect[Affect.Booster.type](a,b)
+                  case given Affect.Caffein.type=>   
+                    resolveAffect.resolveAffect[Affect.Caffein.type](a,b)
                   case z => 
                     summon[PlayerUI].message("Mais sa fait encore rien",0)
                     Nil

@@ -15,6 +15,8 @@ object PersoResolveContext :
     type CancelResolve =  Resolver[TimedTrait[Perso], TimedTrait[GameElement],Affect.Cancel.type]
     type SlowResolve =  Resolver[TimedTrait[Perso], TimedTrait[GameElement],Affect.Slow.type]
     type HateResolve =  Resolver[TimedTrait[Perso], TimedTrait[GameElement],Affect.Hate.type]
+    type CaffeinResolve =  Resolver[TimedTrait[Perso], TimedTrait[GameElement],Affect.Caffein.type]
+    type BoosterResolver =  Resolver[TimedTrait[Perso], TimedTrait[GameElement],Affect.Booster.type]
     object ResolveContext:
         def unknwon[A <: Affect]():  Resolver[TimedTrait[Perso], TimedTrait[GameElement],A] = 
             new Resolver:
@@ -28,6 +30,8 @@ object PersoResolveContext :
         given cancelResolve: CancelResolve
         given slowResolve: SlowResolve
         given hateResolve: HateResolve
+        given caffeinResolve: CaffeinResolve
+        given boosterResolve: BoosterResolver
         
     //    given Resolver[TimedTrait[Perso], TimedTrait[GameElement],Affect.Rien.type] = ResolveContext.unknwon[Affect.Rien.type]()
 

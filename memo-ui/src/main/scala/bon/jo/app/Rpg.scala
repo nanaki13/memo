@@ -52,7 +52,7 @@ trait Rpg extends Ec with ArmesPage with RpgSimu:
   given timeLine: TimeLineOps = TimeLineOps()
   val root = $ref div {
     d =>
-      d._class = "container-fluid"
+      d._class = "container-fluid pt-5"
 
 
   }

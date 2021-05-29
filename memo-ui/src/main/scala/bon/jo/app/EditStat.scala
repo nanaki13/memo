@@ -55,7 +55,7 @@ class EditStat(initial: IntBaseStat) extends ImuutableHtmlCpnt with UpdatableCpn
 
   def inputsAsHtml: AnyRefBaseStat[HTMLElement] = inputs
 
-  def names: HtmlStat = AnyRefBaseStat.names.map(na => ($t span na) := (_.style.color = "stat-label"))
+  def names: HtmlStat = AnyRefBaseStat.names.map(na => ($t span na))
 
   def inputsNamed: HtmlStat = names + inputsAsHtml
 

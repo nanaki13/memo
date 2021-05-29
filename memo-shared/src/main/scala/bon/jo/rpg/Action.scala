@@ -90,7 +90,9 @@ open abstract class Effect(val time : Int,val name : Affect):
   def -- : Effect 
 case class FactorEffectt(override val time : Int ,factor : Float ,override val name : Affect) extends Effect( time , name ):
   def -- : Effect = copy(time-1)
-enum Affect(val name : String) extends SystemElement:
+
+  
+enum Affect(val name : String,val vivMod:Option[Float] = None) extends SystemElement:
 
 
   given Affect.Soin.type = Affect.Soin
@@ -103,9 +105,11 @@ enum Affect(val name : String) extends SystemElement:
 
   case Attaque extends Affect("attaque") 
   case Soin extends Affect("soin")  
- // case Aoe extends Affect("attaque")  
-  case Hate extends Affect("hate")  
-  case Slow extends Affect("slow")  
+  case Slow extends Affect("slow",Some(0.75f)) 
+  case Hate extends Affect("hate",Some(1.75f)) 
+  case Booster extends Affect("booster",Some(1.5f))  
+  case Caffein extends Affect("caffein",Some(1.25f))   
+  
   case Cancel extends Affect("cancel")  
   val id = name
 

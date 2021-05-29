@@ -15,6 +15,7 @@ object PersoAttaqueResolve extends  AttaqueResolve{
     def resolveAffect(attp:  TimedTrait[Perso],ciblep :P):PlayerUI.UI[P]=
         ( attp.value[Perso] , ciblep.value[Perso]) match
             case (att : Perso,cible :  Perso) =>
+               
                 val randomMagic  : Double = r.nextDouble * 0.15 + 0.85
                 val randomPhy  : Double = r.nextDouble * 0.15 + 0.85
                 val attM = att.stats.mag

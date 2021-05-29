@@ -7,4 +7,4 @@ import scala.util.Random
 import bon.jo.rpg.ui.PlayerUI
 import bon.jo.rpg.resolve.PersoResolveContext.*
 import bon.jo.rpg.BattleTimeLine.TimeLineParam
-object HatePerso extends  HateResolve with ReolveHasteFamily[Affect](Affect.Hate)
+object CaffeinPerso extends CaffeinResolve with ReolveHasteFamily[Affect](Affect.Caffein)

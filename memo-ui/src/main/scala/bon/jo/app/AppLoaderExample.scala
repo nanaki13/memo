@@ -94,8 +94,11 @@ object AppLoaderExample extends App:
 
       "éditer/créer Perso" -> initChoixPerso,
       "Simulation" -> simulation,
-    "Export" -> exportF,"Import" -> importDataPopUp)
-
+      "Export" -> exportF,"Import" -> importDataPopUp,
+      "News" -> (() =>
+        root.clear()
+        root += ChangeLog.head
+        ))
     def init(): HTMLElement =
       root.parentElement += menu.cont
 
@@ -129,7 +132,7 @@ object AppLoaderExample extends App:
 
 
     }
-    // <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Dropdown</a>
+
     private def aSubMenu(t: String) = $c.a[Anchor] := {
       s =>
         s._class = "nav-link dropdown-toggle"

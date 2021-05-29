@@ -32,4 +32,5 @@ object PlayerUI {
       toAsk.head().flatMap {
         e => runSeq(toAsk.tail,res :+ e)
       }
+  def apply(str : String): PlayerUI.UI[Unit] = summon[PlayerUI].message(str,0)
 }

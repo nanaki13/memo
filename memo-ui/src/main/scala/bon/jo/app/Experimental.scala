@@ -7,39 +7,45 @@ import org.scalajs.dom.raw.{Element, HTMLElement,Node}
 import bon.jo.html.HtmlEventDef.ExH
 import scala.language.dynamics
 import org.scalajs.dom.raw.CSSStyleDeclaration
-import org.scalajs.dom.raw.HTMLHtmlElement
+import org.scalajs.dom.raw.HTMLElement
 
 object Experimental:
 
   trait HtmlDsl extends scala.Dynamic{
+    type HtmlBuilder = HTMLElement ?=> HTMLElement
     def applyDynamic(str : String)(f : HTMLElement ?=> HTMLElement):HTMLElement =
       given  HTMLElement = str.toHtlm
       f
 
+    def doOnMe(f : HTMLElement => Unit):HtmlBuilder = 
+      val ret  : HTMLElement = summon
+      f(ret)
+      ret
 
-    def me(using v : HTMLElement) : HTMLElement =
-      v
-    def row(using v : HTMLElement) : HTMLElement =
-      v._class = "row"
-      v
-    def col(using v : HTMLElement) : HTMLElement =
-      v._class = "col"
-      v
-    def css(f :CSSStyleDeclaration=> Unit )(using v : HTMLElement) : HTMLElement =
-      f(v.style)
-      v
-    def attr(attr : (String,String) *)(using v : HTMLElement) : HTMLElement =
-      v.$attr(attr.toList)
-      v
-    def text(str : String)(using v : HTMLElement) : HTMLElement =
-      v.textContent = str
-      v
-    def _class(str : String)(using v : HTMLElement) : HTMLElement =
-      v._class = str
-      v
-    def childs(l : Node *)(using v : HTMLElement) : HTMLElement =
-      l foreach v.appendChild
-      v
+    def me:HtmlBuilder =
+      summon
+    def row:HtmlBuilder =
+      doOnMe(_._class = "row")
+    def col:HtmlBuilder =
+      doOnMe(_._class = "col")
+    def css(f :CSSStyleDeclaration=> Unit ):HtmlBuilder=
+      doOnMe(m => f(m.style))
+    def attr(attr : (String,String) *):HtmlBuilder =
+      doOnMe(_.$attr(attr.toList))
+  
+    def text(str : String):HtmlBuilder =
+      doOnMe(_.textContent = str)
+    def _class(str : String):HtmlBuilder =
+      doOnMe(_._class = str)
+    def addClass(str : String):HtmlBuilder =
+      doOnMe(m =>str.split("\\s+").foreach(m.classList.add))
+     
+     def apply(l : Node *):HtmlBuilder =
+      l foreach (c => doOnMe(_.appendChild(c)))
+      summon
+    def childs(l : Node *):HtmlBuilder =
+      l foreach (c => doOnMe(_.appendChild(c)))
+      summon
 
     def childs[A <: Node](customize : A => Unit,l : A *)(using v : HTMLElement) : HTMLElement =
       l foreach customize 
