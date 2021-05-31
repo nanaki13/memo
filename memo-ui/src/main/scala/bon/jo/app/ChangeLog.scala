@@ -22,19 +22,19 @@ object ChangeLog extends HtmlCpnt with HtmlDsl:
    
 
   
- 
-    val h = this
+    private given $ : HtmlDsl = this
+   
  
 
 
-    def valueTohtml(e : String)=  h.li(text(e))
+    def valueTohtml(e : String)=  $.li(text(e))
     
 
     given add : Add[HTMLElement] with
         def add(a : HTMLElement,b : HTMLElement)= 
             a.appendChild(b)
         
-        def monoid = h.ul{me}
+        def monoid = $.ul{me}
    
     def htmlTree(t : Tree[String]):HTMLElement=
         t.map(valueTohtml).reduce
@@ -65,24 +65,23 @@ object ChangeLog extends HtmlCpnt with HtmlDsl:
     given (using $  : HtmlDsl ): HtmlRep[ChangeLog,HtmlCpnt] with 
        def  html(c : ChangeLog) = HtmlCpnt(()=> Some( $.div{
                 row
-               // addClass("mx-auto")
                 $(
                     $ div{
-                      addClass("col-2")
+                      addClass("col-lg")
                       $($ h3 {
                       
                         text(c.version)  
                       })  
                     },
                     $ div{
-                        addClass("col-2")
+                        addClass("col-lg")
                         $($ h4 {
                            
                             text(c.date) 
                         })
                     },
                     $ div{
-                        addClass(s"col-6")
+                        addClass(s"col-lg")
                         $($ ul{
                             $(htmlTree(c.data))
                       
@@ -93,7 +92,7 @@ object ChangeLog extends HtmlCpnt with HtmlDsl:
     }))
 
     override val get:  IterableOnce[HTMLElement] = create()
-    private given $ : HtmlDsl = this
+
     def changeLogHtml() =  data.map(_.html)
 
     def create():Some[HTMLElement]=

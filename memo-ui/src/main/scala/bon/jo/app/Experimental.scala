@@ -16,7 +16,7 @@ object Experimental:
     def applyDynamic(str : String)(f : HTMLElement ?=> HTMLElement):HTMLElement =
       given  HTMLElement = str.toHtlm
       f
-
+    def  ->(f : HTMLElement => Unit) : HtmlBuilder  = doOnMe(f)
     def doOnMe(f : HTMLElement => Unit):HtmlBuilder = 
       val ret  : HTMLElement = summon
       f(ret)

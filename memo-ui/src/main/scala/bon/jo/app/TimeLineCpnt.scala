@@ -73,7 +73,7 @@ class TimeLineCpnt(val withUI: WithUI)(using el:  TimeLineOps):
   
   def doEvent(): Int =
 
-    import bon.jo.app.HtmlUi.Implicit.value
+   
     el.uiUpdate = update
     import withUI.given
     lazy val gameLoop: Int = window.setInterval(()=>{

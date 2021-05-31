@@ -2,7 +2,7 @@ package bon.jo.app
 
 import bon.jo.app.Export.{PersoJS, WeaponJS}
 import bon.jo.dao.IndexedDB.DBExeception
-import bon.jo.dao.LocalJsDao.MappedDao
+import bon.jo.dao.LocalJsDao.{IntMappedDaoType}
 import bon.jo.html.DomShell.ExtendedElement
 import bon.jo.html.HTMLDef.HtmlOps
 import bon.jo.html.HtmlEventDef.ExH
@@ -31,7 +31,7 @@ trait EditPage[A <: StatsWithName, B <: scalajs.js.Object] extends Ec:
   val cpnts: mutable.ListBuffer[EditStatWithName[A]] = mutable.ListBuffer.empty[EditStatWithName[A]]
 
   val rpg: Rpg
-  val dao: MappedDao[B, A]
+  val dao: IntMappedDaoType[B,A]
   val addRandomButton: Button = SimpleView.bsButton("+")
   addRandomButton.$click{
     _ => addRandom()
@@ -121,7 +121,7 @@ trait ArmesPage:
 
       override val rpg: Rpg = self
 
-      override val dao: MappedDao[WeaponJS, Weapon] = rpg.weaponDao
+      override val dao:IntMappedDaoType[WeaponJS,Weapon] = rpg.weaponDao
 
       override def random(): Weapon = Actor.randomWeapon()
 
@@ -135,7 +135,7 @@ trait ArmesPage:
 
 
       override val rpg: Rpg = self
-      override val dao: MappedDao[PersoJS, Perso] with PersoDao = rpg.persoDao
+      override val dao: IntMappedDaoType[PersoJS, Perso] with PersoDao = rpg.persoDao
 
       override def random(): Perso = Actor.randomActor(e => new Perso(0, RandomName(),"Le plus beau des héros", e))
 

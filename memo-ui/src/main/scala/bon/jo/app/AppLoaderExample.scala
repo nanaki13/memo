@@ -4,7 +4,8 @@ package bon.jo.app
 import bon.jo.app.Export.{PersoJS, WeaponJS}
 import bon.jo.dao.IndexedDB
 import bon.jo.dao.IndexedDB.DBExeception
-import bon.jo.dao.LocalJsDao.MappedDao
+import bon.jo.dao.LocalJsDao.{MappedDao, IntMappedDao}
+import bon.jo.dao.LocalJsDao.given
 import bon.jo.html.DomShell.ExtendedElement
 import bon.jo.html.HTMLDef._
 import bon.jo.html.HtmlEventDef.ExH
@@ -24,11 +25,15 @@ import scala.scalajs.js
 import scala.scalajs.js.JSConverters.JSRichIterableOnce
 import scala.scalajs.js.JSON
 import scala.util.{Failure, Success}
+import bon.jo.rpg.dao.FormuleDao.FormuleDaoJs
+import bon.jo.rpg.dao.FormuleJs
+import bon.jo.rpg.dao.Formule
+import bon.jo.rpg.dao.FormuleDao
 
 
 object AppLoaderExample extends App:
   document.body.classList.add("bg-1")
-  object Rpg extends Rpg:
+  given Rpg with
     override implicit val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.global
     val weaponJsDao: WeaponDaoJs = new WeaponDaoJs {
       override implicit val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.global
@@ -36,9 +41,14 @@ object AppLoaderExample extends App:
     val persoJsDao: PersoDaoJs = new PersoDaoJs {
       override implicit val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.global
     }
-
-    override val weaponDao: MappedDao[WeaponJS, Weapon] with WeaponDao = WeaponDao(weaponJsDao)
-    override val persoDao: MappedDao[Export.PersoJS, Perso] with PersoDao = PersoDao(persoJsDao)
+    given Conversion[String,scalajs.js.Any] = s => s.asInstanceOf[js.Any]
+    val formuleJsDao: FormuleDaoJs = new FormuleDaoJs {
+      override implicit val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.global
+    }
+    
+    override val weaponDao: MappedDao[WeaponJS, Weapon,Int] with WeaponDao with IntMappedDao[WeaponJS, Weapon]= WeaponDao(weaponJsDao)
+    override val persoDao: MappedDao[Export.PersoJS, Perso,Int] with PersoDao = PersoDao(persoJsDao)
+    override val formuleDao: MappedDao[FormuleJs, Formule,String] with FormuleDao = FormuleDao(formuleJsDao)
 
     private val fromChild =  $c.a[Anchor]:= (menuLink => {menuLink._class = "nav-item menu-link"})
     override def createButton(addRandomButton: Button): Unit =
@@ -95,6 +105,7 @@ object AppLoaderExample extends App:
       "éditer/créer Perso" -> initChoixPerso,
       "Simulation" -> simulation,
       "Export" -> exportF,"Import" -> importDataPopUp,
+      "Edit Formule" -> EditFormulePage.editPage,
       "News" -> (() =>
         root.clear()
         root += ChangeLog.head
@@ -103,7 +114,7 @@ object AppLoaderExample extends App:
       root.parentElement += menu.cont
 
 
-  class Menu(val menuItems: (String, () => Unit)*):
+  class Menu(val menuItems: (String, () => Unit)*)(using Rpg : Rpg):
     val links: Seq[HTMLElement] = menuItems.map {
       case (str, unit) =>
         $c.a[Anchor] := (menuLink => {
@@ -143,17 +154,22 @@ object AppLoaderExample extends App:
 
 
 
+  type RpgUsing = Rpg ?=> Unit
+  def rpg(using Rpg) :  Rpg  = summon
+  def init(): RpgUsing=
+    val rp = rpg
+    import rp.executionContext
 
-  import Rpg.executionContext
-
-  IndexedDB.init(Rpg.weaponJsDao.name, Rpg.persoJsDao.name) map { _ =>
-    Rpg.init()
-  } onComplete{
-    case Failure(exception) => exception match
-      case ex@DBExeception(e) => ex.printStackTrace();console.log(e)
-      case e => e.printStackTrace()
-    case Success(_) =>     PopUp("start ok")
-  }
+    IndexedDB.init(rp.weaponDao.daoJs.name, rp.persoDao.daoJs.name, rp.formuleDao.daoJs.name) map { _ =>
+      rp.init()
+    } onComplete{
+      case Failure(exception) => exception match
+        case ex@DBExeception(e) => ex.printStackTrace();console.log(e)
+        case e => e.printStackTrace()
+      case Success(_) =>     PopUp("start ok")
+    }
+  init()
+  
 
 
 

@@ -2,18 +2,18 @@ package bon.jo.rpg.dao
 
 import bon.jo.app.Export.WeaponJS
 import bon.jo.dao.LocalJsDao
-import bon.jo.dao.LocalJsDao.{MappedDao, MappedDaoImpl}
+import bon.jo.dao.LocalJsDao.{MappedDao, MappedDaoImpl,IntMappedDao}
 import bon.jo.rpg.stat.raw.Weapon
 import bon.jo.util.Mapper
 
 import scala.concurrent.ExecutionContext
 
-trait WeaponDao:
-  self: MappedDao[WeaponJS, Weapon] =>
+trait WeaponDao extends IntMappedDao[WeaponJS, Weapon]:
+  self: MappedDao[WeaponJS, Weapon,Int] =>
 
 object WeaponDao {
 
-  trait WeaponDaoJs extends LocalJsDao[WeaponJS]:
+  trait WeaponDaoJs extends LocalJsDao[WeaponJS,Int]:
     val name = "WeaponDao"
     val fId: WeaponJS => Int = _.id
 
@@ -22,6 +22,6 @@ object WeaponDao {
     override val map: Weapon => WeaponJS = WeaponJS.apply
     override val unmap: WeaponJS => Option[Weapon] = WeaponJS.unapply
 
-  def apply(jsDao: WeaponDaoJs)(implicit executionContext: ExecutionContext): MappedDao[WeaponJS, Weapon] with WeaponDao =
-    new MappedDaoImpl(jsDao) with WeaponDao
+  def apply(jsDao: WeaponDaoJs)(implicit executionContext: ExecutionContext): MappedDao[WeaponJS, Weapon,Int] with WeaponDao =
+    new MappedDaoImpl(jsDao) with WeaponDao  with IntMappedDao[WeaponJS, Weapon]
 }

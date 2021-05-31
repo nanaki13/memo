@@ -25,6 +25,10 @@ import bon.jo.rpg.AffectResolver.Resolver
 import bon.jo.rpg._
 
 import bon.jo.rpg.resolve.given
+import bon.jo.rpg.dao.FormuleJs
+import bon.jo.rpg.dao.Formule
+import bon.jo.rpg.dao.FormuleDao
+import org.scalajs.dom.raw.HTMLElement
 
 
 
@@ -35,12 +39,12 @@ import bon.jo.rpg.resolve.given
 
 trait Rpg extends Ec with ArmesPage with RpgSimu:
   def createButton(addRandomButton: Button): Unit
-
+  def init(): HTMLElement
 
   val onChangePage = ListBuffer[()=>Unit]()
-  val weaponDao: MappedDao[WeaponJS, Weapon] with WeaponDao
-  val persoDao: MappedDao[PersoJS, Perso] with PersoDao
-
+  val weaponDao: MappedDao[WeaponJS, Weapon,Int] with WeaponDao
+  val persoDao: MappedDao[PersoJS, Perso,Int] with PersoDao
+  val formuleDao: MappedDao[FormuleJs, Formule,String] with FormuleDao
   val deckCreation: Div =
  
     $c.div[Div]
@@ -69,7 +73,8 @@ trait Rpg extends Ec with ArmesPage with RpgSimu:
     root.appendChild(ui.choice)
     root.appendChild(ui.messageDiv)
   def startRpg =
-    given HtmlUi = HtmlUi.Value
+    given Rpg = this
+    given HtmlUi = new HtmlUi{}
     given HtmlRep[Perso, PerCpnt] = HtmlUi.PersoRep
     given HtmlRep[SystemElement, ImuutableHtmlCpnt] = HtmlUi.acctRep
  //   given Resolver[Perso, Perso,Action.Attaque.type] = CalculsPersoPerso

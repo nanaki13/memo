@@ -9,16 +9,23 @@ import scala.scalajs.js
 
 object IndexedDB:
   val db: IDBFactory = window.indexedDB
-  implicit class EventDB(val e: EventTarget):
+  extension ( e: EventTarget)
     def result[A]: A = e.asInstanceOf[js.Dynamic].result.asInstanceOf[A]
   case class DBExeception(val error: ErrorEvent) extends RuntimeException()
 
+  val version = 2
   def init(stores : String *): Future[Unit] =
     val p = Promise[Unit]()
-    val open: IDBOpenDBRequest = db.open("dao")
+    val open: IDBOpenDBRequest = db.open("dao",version)
     open.onupgradeneeded = f => {
       console.log("upgrade")
+   
       val dbO = f.target.asInstanceOf[js.Dynamic].result.asInstanceOf[IDBDatabase]
+      stores.foreach(e => {
+        try{dbO.deleteObjectStore(e)}
+        catch
+          case e =>
+      })
       stores.foreach( dbO.createObjectStore(_, js.Dynamic.literal(keyPath = "id")))
     }
     open.onsuccess = f => {
@@ -36,11 +43,8 @@ trait IndexedDB {
 
   def database(storeName: String): Future[IDBDatabase] =
     val p = Promise[IDBDatabase]()
-    val open: IDBOpenDBRequest = db.open("dao")
-    open.onupgradeneeded = f => {
-      val dbO = f.target.asInstanceOf[js.Dynamic].result.asInstanceOf[IDBDatabase]
-      dbO.createObjectStore(storeName, js.Dynamic.literal(keyPath = "id"))
-    }
+    val open: IDBOpenDBRequest = db.open("dao",IndexedDB.version)
+
     open.onsuccess = f => {
       println("succes database")
       p.success(f.target.asInstanceOf[js.Dynamic].result.asInstanceOf[IDBDatabase])

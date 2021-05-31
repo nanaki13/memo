@@ -34,20 +34,17 @@ object HtmlUi:
 
   implicit val acctRep: HtmlRep[SystemElement, ImuutableHtmlCpnt] = ActionRep
 
-  object Value extends HtmlUi:
-    override val rpg: Rpg = AppLoaderExample.Rpg
 
-  object Implicit:
-    implicit val value: PlayerUI = Value
+
 
   implicit object PersoRep extends HtmlRep[Perso, PerCpnt]:
     override def html(memo: Perso): PerCpnt = new PerCpnt(memo)
 
 
 
-trait HtmlUi extends PlayerPersoUI with SimpleMessage:
+trait HtmlUi( using rpg : Rpg) extends PlayerPersoUI with SimpleMessage:
 
-  val rpg : Rpg
+ 
   val choice: Div = $c.div
 
   override def ask(d: TimedTrait[GameElement], cible: List[TimedTrait[GameElement]]): Future[CommandeCtx] =
