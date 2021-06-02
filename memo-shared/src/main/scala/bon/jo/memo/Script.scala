@@ -5,8 +5,113 @@ import scala.compiletime.ops.string
 import bon.jo.rpg.stat.Actor
 import bon.jo.rpg.stat.BaseState
 import scala.util.Random
+import Script.Node._
+import scala.collection.mutable.ListBuffer
+import bon.jo.memo.Script.PhraseElement
 
+
+@main def t = 
+    import Script.*
+  
+
+
+    given (Char,Char) = ('(',')')
+
+   
+    given OpenCLose = (Exper.`(`,Exper.`)`)
+    println("5 + 2 * ((2 + 3) * (5 +( 4 - x))) + 2 * 8".toNode.toExpressionWithAsso())
+    //println("1 + (2 + (3 * 5) + 4) + 1 + 2 * 8 ".toNode.childs)
+ //   println("2 + 1  2 + 3 5 + 4 - 1".toNode)
+    val v :Value[PhraseElement]= Value(List(PhraseElement.Word(1,"1"),PhraseElement.Symbol(1,'*'),PhraseElement.Word(2,"2")))
+   // println(Script.expressionPureWithAsso("2 * 1 * 2 + 3 * 5 * 4 - 1".toNode.asInstanceOf[Root[PhraseElement]].childs(0).asInstanceOf[Value[PhraseElement]])(Exper.`*`.asInstanceOf[ PhraseElement.Symbol]))
+
+   
+
+   // println( Exper.Empty.conbineRight(PhraseElement.Word("abcd")).conbineRight(PhraseElement.Symbol('+')).conbineRight(PhraseElement.Word("abcd")).conbineRight(PhraseElement.Symbol('+')))
 object Script:
+
+
+
+    enum Node[+A]:
+        case Root( childs : List[Node[A]])
+       // case Regular( childs : List[Child[A]])
+        case Value(val values : List[A]) 
+
+        def groupValue[B](f :Value[A]=>B,combine : (B,B)=>B): B=
+            this match
+                case a : Value[A] => f.apply(a)
+                case Root(childs) => 
+                   
+                    val re = childs.map{
+                    case  z : Value[A] => f.apply(z)
+                    case  r => r.groupValue(f,combine)
+                    }.reduceLeft(combine)
+                    
+                    re
+        def parentOption : Option[Root[A]] = 
+            this match 
+                case e :  Root[A] => Some(e)
+                case _ => None
+
+    
+    def expressionPure( values : Value[PhraseElement]):Exper =
+        values.values.foldLeft(Exper.Empty)(_.conbineRight(_))
+    
+    def expressionPureWithAsso( values : Value[PhraseElement])(first : PhraseElement.Symbol):Exper =
+        var ret : Exper = Exper.Empty
+        val buff : List[PhraseElement] =  values.values
+
+        val fist = buff.indexOf(first)
+        val haveOther = buff.find( e => e != first && e.isInstanceOf[PhraseElement.Symbol] )
+        if(fist != -1 && haveOther.isDefined) then
+            val sp = buff.zipWithIndex.find( e => e._1 != first && e._1.isInstanceOf[PhraseElement.Symbol] ).get
+            val (head,tail) = buff.splitAt(sp._2+1)
+
+            expressionPure(Value(head)).conbineRight(expressionPureWithAsso(Value(tail))(first)) 
+
+        else
+           expressionPure(values)   
+            
+     //   values.values.foldLeft(Exper.Empty)(_.conbineRight(_))
+        
+      //  val exp = Exper.Empty
+      //  values.filter(!_.isInstanceOf[Separator])
+       
+    extension (a : Node[PhraseElement])
+        def toExpression() : Exper = 
+            a.groupValue(Script.expressionPure ,_ conbineRight _)
+        def toExpressionWithAsso() : Exper = 
+            a.groupValue(Script.expressionPureWithAsso(_)(Exper.`*`.asInstanceOf[ PhraseElement.Symbol]) ,_ conbineRight _)
+        
+    object Node:
+        
+        case class Ctx[A](values : List[A],result: Root[A],parent : Ctx[A] ):
+            def close : Ctx[A] = 
+                val me = flush
+                parent.copy(result = parent.result.copy(childs = parent.result.childs :+ me.result))
+
+            def flush : Ctx[A]=
+                if !values.isEmpty  then
+                    val v = Value[A](values.toList)    
+                    copy(values = Nil,result = result.copy(result.childs :+ v))
+                else
+                    this
+
+        def apply[A](list : Iterable[A])(using openClose : (A,A)):Node.Root[A]=
+            val cxt:  Ctx[A] = Ctx(Nil,Root[A](Nil),null)       
+            val (open,close) = openClose
+            list.foldLeft(cxt){
+                (n,v) =>
+                  
+                    if v==open then
+                       Ctx(Nil,Root[A](Nil),n.flush)             
+                    else 
+                    if v == close then  
+                       n.close  
+                    else 
+                       n.copy(values = n.values :+ v)
+            }.flush.result
+
     trait ToFunction[V,T] :
         def apply(v : V): T => Float
 
@@ -20,6 +125,32 @@ object Script:
         case Val(a : Any)
         case Symbol(s : String)
         case Operation(l : Exper,s : Char,r : Exper)
+        def conbineRight(e : Exper):Exper =
+
+            (this,e) match
+                case (Operation(l,s,Exper.Empty),r) =>  Operation(l,s,r)
+                case (l,Operation(Exper.Empty,s,r)) =>  Operation(l,s,r)
+                case (left,right) => 
+                    left match
+                        case Operation(l,s,Operation(li,si,Exper.Empty)) => Operation(l,s,Operation(li,si,right))
+                        case _ => 
+                            right match
+                                case Operation(Operation(Exper.Empty,si,ri),s,r) => Operation(Operation(left,si,ri),s,r)
+                                case _ => println(this);(println(e));???
+                    
+
+                case _ => println(this);(println(e));???
+            
+        def conbineRight(e : PhraseElement):Exper =
+            val exp = Exper(e)
+            (this,exp) match
+                case (Empty,a ) => a
+                case (a,Empty) => a
+                case (l,Exper.Operation(_,s,r)) => Exper.Operation(l,s,r)
+                case (Exper.Operation(l,s,_),r) => Exper.Operation(l,s,r)
+
+
+
 
         def evalFloat(using ctx : String => Float):Float = 
             this match 
@@ -49,93 +180,63 @@ object Script:
             
                 case e:  _ => throw IllegalStateException(s"$e not supported yet")
     object Exper:
-        val + = PhraseElement.Symbol('+') 
-        val * = PhraseElement.Symbol('*')
-        val / = PhraseElement.Symbol('/')
-        val - = PhraseElement.Symbol('-')
+        val + = PhraseElement.Symbol(0,'+') 
+        val * = PhraseElement.Symbol(0,'*')
+        val / = PhraseElement.Symbol(0,'/')
+        val - = PhraseElement.Symbol(0,'-')
         val operation : Set[PhraseElement] = Set(Exper.+,*,/,Exper.- )
-        val `(` = PhraseElement.Symbol('(')
-        val `)` = PhraseElement.Symbol(')')
-        def trim(p :List[IPhraseElement]):List[IPhraseElement] = 
+        val `(` = PhraseElement.Symbol(0,'(')
+        val `)` = PhraseElement.Symbol(0,')')
+        def trim(p :List[PhraseElement]):List[PhraseElement] = 
             if p.isEmpty then p 
             else 
-                val lastIsSep =  p.last._2.isInstanceOf[ PhraseElement.Separator]
-                val first =  p.head._2.isInstanceOf[ PhraseElement.Separator]
+                val lastIsSep =  p.last.isInstanceOf[ PhraseElement.Separator]
+                val first =  p.head.isInstanceOf[ PhraseElement.Separator]
                 (first, lastIsSep)  match 
                     case(true,true)  => p.drop(1).dropRight(1)
                     case(true,false)  => p.drop(1)
                     case(false,true)  => p.dropRight(1)
                     case(false,false)  => p
-        type IPhraseElement = (Int,PhraseElement)
-        def apply(string : String):Exper = Exper(Phrase(string))
-        def apply(phrase : List[IPhraseElement]):Exper=
-                val clean =  trim(phrase) 
-                val withoutIndex=  phrase.map(_._2)
-                val inP = withoutIndex.indexOf(`(`)
-                val containExp =  inP != -1
-                val plusBeforeExp = containExp && withoutIndex.indexOf(Exper.+) < inP
-                clean match
-                    case Nil => Exper.Empty
-                   
-                    case (i, `(`) :: tail =>
-                        val end = tail.map(_._2).lastIndexOf(`)`)
-                        
-                        if end != -1 then
-                            val (left,right) = tail.splitAt(end)
-                       
-                         
-                            val rTrim = trim(right.tail)
-                            if rTrim.nonEmpty then
-                               
-                                if operation.contains(rTrim.head._2) then
-                                    Exper.Operation(Exper(left),rTrim.head._2.asInstanceOf[PhraseElement.Symbol].str,Exper(rTrim.tail))
-                                else
-                                    Exper(left)
-                            else
-                                Exper(left)
-                        else
-                            throw new IllegalStateException(s"not ) find for ( at index $i")
-                     
 
-                    case head :: Nil => println(head) ;Exper(head) 
+        def apply(string : String)(using OpenCLose) :Exper =
+            Node(string.toPhrase).groupValue(Script.expressionPure ,_ conbineRight _)
 
-                    case l : List[IPhraseElement] if l.map(_._2).contains(Exper.+) && (plusBeforeExp || !containExp )=>
-                       
-                        val sep = l.map(_._2).indexOf(PhraseElement.Symbol('+'))
-                        val (le,r) = l.splitAt(sep)
-                  
-                        Exper.Operation(Exper(le),'+',Exper(r.tail))
-                    case l : List[IPhraseElement] if l.map(_._2).contains(PhraseElement.Symbol('*')) =>
-                       
-                        val sep = l.map(_._2).indexOf(PhraseElement.Symbol('*'))
-                        println(s"* l = ${ (l.map(_._2))}")
-                        val (le,r) = l.splitAt(sep)
-                        println(s"* left = ${ (le)}")
-                        println(s"* right = ${ (r)}")
-                        Exper.Operation(Exper(le),'*',Exper(r.tail))
 
-                    case z => println(s"?? => $z") ; Exper.Empty
-                   
-
-            
-        def apply(phrase : IPhraseElement):Exper=
+        def apply(phrase : PhraseElement):Exper=
             phrase match
-                case (_,PhraseElement.Word(s)) if s.toString.matches("[^\\d]+") =>   Exper.Symbol(s)
-                case(_,PhraseElement.Word(s)) => Exper.Val(s)
+                case (PhraseElement.Word(_,s)) if s.toString.matches("[^\\d]+") =>   Exper.Symbol(s)
+                case(PhraseElement.Word(_,s)) => Exper.Val(s)
+                case PhraseElement.Symbol(_,s) => Exper.Operation(Exper.Empty,s,Exper.Empty)
                 case _ => Exper.Empty
     
 
-    enum PhraseElement:
-        case Separator(str : String)
-        case EndLine(str : String)
-        case Word(str : String)
-        case Symbol(str : Char)
+    enum PhraseElement(val pos : Int):
+        case Separator(posp : Int,val str : String) extends PhraseElement(posp)
+        case EndLine(posp : Int,val str : String)  extends PhraseElement(posp)
+        case Word(posp : Int,val str : String)  extends PhraseElement(posp)
+        case Symbol(posp : Int,val str : Char)  extends PhraseElement(posp)
+        def rep : Char | String = 
+            this match 
+                case e :( Separator | Word | EndLine )=> 
+                    e match 
+                        case a : Separator => a.str
+                        case a : Word => a.str
+                        case a : EndLine => a.str
+                case a : Symbol =>
+                    a.str
+        override def equals(r : Any): Boolean=
+            r match
+                case e : PhraseElement => 
+                    
+                     this.rep == e.rep
+                case _ => false
+           
         def add(c : Char)=
             this match
-                    case Separator(v) => Separator(v:+c)
-                    case EndLine(v) =>  EndLine(v:+c) 
-                    case Symbol(v) => ???
-                    case Word(v) => Word(v:+c)      
+                    case Separator(i,v) => Separator(i,v:+c)
+                    case EndLine(i,v) =>  EndLine(i,v:+c) 
+                    case Symbol(i,v) => ???
+                    case Word(i,v) => Word(i,v:+c)      
         def accept(using s : ExporeString) : Boolean=
           
             import s.given  
@@ -150,21 +251,21 @@ object Script:
             } getOrElse false
   
     object PhraseElement:
-        def apply(char : Char)=
+        def apply(pos : Int,char : Char)=
             
          
             if char.isSep then
                
-                 Separator(char.toString)
+                 Separator(pos,char.toString)
             else if char.isEndLine then   
               
-                EndLine(char.toString)
+                EndLine(pos,char.toString)
             else if !char.isLetterOrDigit && char != '.' then  
               
-                Symbol(char)
+                Symbol(pos,char)
             else 
             
-                Word(char.toString)
+                Word(pos,char.toString)
 
 
     case class ExporeString( var i : Int,string : String):
@@ -174,12 +275,12 @@ object Script:
     class VarValue[T](var value : T)
     case class Result[T](val value: List[T])
     object Phrase:
-        def apply(str : String):List[(Int,PhraseElement)] =
+        def apply(str : String):List[PhraseElement] =
             given String = str
             val first = 0.readChar
-            var cur = PhraseElement(first)
+            var cur = PhraseElement(0,first)
           
-            var result = Result[(Int,PhraseElement)](Nil)
+            var result = Result[PhraseElement](Nil)
             given a : ExporeString = ExporeString(0,str)
             for(i <- 1 until str.length) do
                 a.i = i
@@ -188,25 +289,20 @@ object Script:
                     cur = cur.add(i.readChar) 
                   
                 if !cur.accept  then
-                    result = result.copy(value = result.value :+ (i,cur))   
-                    cur = PhraseElement(i.readChar) 
+                    result = result.copy(value = result.value :+ cur)   
+                    cur = PhraseElement(i,i.readChar) 
                        
                 
 
-            result = result.copy(value = result.value :+ (str.length-1,cur))       
+            result = result.copy(value = result.value :+ cur)       
             result.value
 
             
                 
             
 
-    def apply(str : String): Perso => Any = ???
-     //   parse(str)
-
-
     given (String => Exper.Symbol) = Exper.Symbol(_)
     given (String =>  Exper.Val) = e => Exper.Val(e.toFloat)
-   // given (String =>  Exper.Operation) = e => Exper.Operation(e.toFloat)
 
     extension (i : Int) (using s: String) 
         def readChar : Char = s.charAt(i)
@@ -219,47 +315,12 @@ object Script:
  
 
 
-        
+    type OpenCLose = (PhraseElement, PhraseElement)  
     extension (s : String)
-        def toExpression : Exper =  Exper(s)
-        def toPhrase : List[(Int,PhraseElement)] =  Phrase(s)
-        def toFunction[T](using ToFunction[Exper.Symbol,T])  : T => Float =  Exper(s).toFunctionSymbol[T]
-
-@main def t = 
-    import Script.*
-  
-
-
-    val act = Perso(1,"df","fsqf", BaseState.`1`,10,10,Nil,None,None)
-    val test = """a.hp + rand"""
-    val str = """a.str + a.hp"""
-    val map = Map[Exper.Symbol,(Actor => Float)](
-        Exper.Symbol("a.hp") -> ( _.stats.hp.toFloat),
-         Exper.Symbol("a.str") -> ( _.stats.str.toFloat),
-         Exper.Symbol("rand") -> ( _ => Random.nextFloat())
-        
-        )
-    given ToFunction[String,Actor] = str => act => str match
-        case "a.hp" => act.stats.hp.toFloat
-        case "a.res" => act.stats.res.toFloat
-        case "a.str" => act.stats.str.toFloat
-        case _ => 0
-    given  ToFunction[Exper.Symbol,Actor] = s => map(s)
-    //given (String => Float) = act.stats.map(_.toFloat).toNameValueList.map(((k,v) => ("a."+k,v))).toMap
-    
-    var ff = test.toFunction[Actor]
-
-    println(ff(act))
-
-    val ff2 = str.toFunction[Actor]
-
-    println(ff2(act))
-    println("(A + B)".toExpression)
-    println("A*A + A".toExpression.evalFloat(using (e) => 2f))
-    case class A(v : Float)
-    given  ToFunction[Exper.Symbol,A] = str => a => a.v
-    val f : A => Float = "A*A + A".toFunction[A]
-
-    println(f(A(4)))
-
-     
+        def toExpression(using OpenCLose) : Exper =  Exper(s)
+        def toExpressionWithAsso(using OpenCLose)  : Exper = s.toNode.toExpressionWithAsso()
+        def toPhrase : List[PhraseElement] =  Phrase(s)
+        def toFunction[T](using ToFunction[Exper.Symbol,T],OpenCLose)  : T => Float =  Exper(s).toFunctionSymbol[T]
+        def toNode(using OpenCLose) :Node.Root[PhraseElement] =
+            val f :List[PhraseElement] =s.toPhrase 
+            Node(f)

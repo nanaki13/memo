@@ -166,7 +166,7 @@ object AppLoaderExample extends App:
       case Failure(exception) => exception match
         case ex@DBExeception(e) => ex.printStackTrace();console.log(e)
         case e => e.printStackTrace()
-      case Success(_) =>     PopUp("start ok")
+      case Success(_) =>     PopUp("start ok");EditFormulePage.editPage()
     }
   init()
   

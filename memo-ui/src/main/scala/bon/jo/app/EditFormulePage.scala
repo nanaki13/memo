@@ -13,6 +13,7 @@ object EditFormulePage extends HtmlDsl {
         given org.scalajs.dom.raw.HTMLElement = c.root
         val parValue : HTMLInputElement  = this.input(me).asInstanceOf[HTMLInputElement]
         val result : HTMLElement  = this.div(me)
+        given OpenCLose = (Exper.`(`,Exper.`)`)
         def runExp( formule : HTMLElement):Unit = 
             println("phrase = "+formule.textContent.toPhrase)
             println("expression = "+formule.textContent.toExpression)
@@ -34,7 +35,7 @@ object EditFormulePage extends HtmlDsl {
                         runExp(formule)
         }
         addClass("mt-5 bg-change-log container rounded mx-auto")
-        text("dzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdzdz")
+
         childs(formule,parValue,result)
 
       
