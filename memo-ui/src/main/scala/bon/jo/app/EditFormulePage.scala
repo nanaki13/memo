@@ -2,41 +2,107 @@ package bon.jo.app
 
 import org.scalajs.dom.raw.HTMLElement
 import bon.jo.html.HtmlEventDef.ExH
-import org.scalajs.dom.html.Div
-import bon.jo.app.Experimental.HtmlDsl
+import bon.jo.html.HTMLDef.$c
+import org.scalajs.dom.html.{Span, Button}
+import bon.jo.app.Experimental.html.$t
+import bon.jo.app.Experimental.html.$
+import $t.*
 import bon.jo.memo.Script._
 import scala.language.dynamics
 import org.scalajs.dom.raw.HTMLInputElement
-object EditFormulePage extends HtmlDsl {
+import bon.jo.memo.ui.SimpleView
+import bon.jo.html.HTMLDef.HtmlOps
+trait EditFormulePage {
 
-    def editPage(using   c : Rpg ) : () => Unit= () =>
-        given org.scalajs.dom.raw.HTMLElement = c.root
-        val parValue : HTMLInputElement  = this.input(me).asInstanceOf[HTMLInputElement]
-        val result : HTMLElement  = this.div(me)
-        given OpenCLose = (Exper.`(`,Exper.`)`)
-        def runExp( formule : HTMLElement):Unit = 
-            println("phrase = "+formule.textContent.toPhrase)
-            println("expression = "+formule.textContent.toExpression)
-            given ToFunction[Exper.Symbol,Unit] = s => ( u => parValue.value.toFloat)
-            val f = formule.textContent.toFunction[Unit]
-            result.textContent = f(()).toString
-        val formule : HTMLElement  = this.div{
-            ->( _.contentEditable = "true")
-            ->(m =>m.$keyup{ 
+    object char :
+        var value : Char = 'a'
+    type P = List[( HTMLInputElement,HTMLInputElement)] 
+
+    var parValue :P  = List(
+            $t.input[HTMLInputElement](initializeParam) ->
+            $t.input[HTMLInputElement](initializeValue)
+
+        )
+    val formule : HTMLElement  = $.span{
+            $.->( _.contentEditable = "true")
+            $.->(m =>m.$keyup{ 
                     _ => 
-                        runExp(m)
+                        runExp
                 })
-             css(_.height = "7em")
+             $.css(_.height = "7em")
+             $ text "a"
             }
+    val result : Span  = $c.span[Span]
+    def p[A](a : A):A = 
+        println(a)
+        a
+    given ToFunction[String,P] = s =>  u =>
+   
+        u.find(_._1.value == s).map(_._2.value).map(p).getOrElse(throw new IllegalStateException(s"pas de variable $s")).toFloat
+
+
+    def runExp:Unit = 
+            given OpenCLose = (Exper.`(`,Exper.`)`)
+            println("phrase = "+formule.textContent.toPhrase)
+            println("node = "+formule.textContent.toNode)
+            println("expression = "+formule.textContent.toExpression)
+            val f = formule.textContent.toFunction[P]
+            result.textContent = f(parValue).toString
+
+
+    def initializeEventInmut:Experimental.html.HtmlBuilder[HTMLInputElement]={
+        val input = summon[HTMLInputElement]
+        input.$keyup (_ => runExp)    
+        input
+    }
+    
+
+    def initializeParam:Experimental.html.HtmlBuilder[HTMLInputElement]={
+        initializeEventInmut
+        $t.doOnMe(e => {
+           val c =  char.value
+
+           e.value = s"$c"
+
+           char.value = (c + 1.toChar).toChar
+ 
+        })  
+    }
+    def initializeValue:Experimental.html.HtmlBuilder[HTMLInputElement]={
+        initializeEventInmut
+        $t.doOnMe(_.value="1")    
+    }
+    def editPage(using   c : org.scalajs.dom.raw.HTMLElement ) : () => Unit= () =>
+       
+        val addVar : Button  = SimpleView.bsButton("+")
+        val paramCont = $.div($.childs(parValue.map((par,v)=> $.div($.childs(par,v))) : _ * ))    
+        addVar.$click{ _ =>
+            parValue = parValue :+  $t.input[HTMLInputElement](initializeParam) -> $t.input[HTMLInputElement](initializeValue)
+            val (p,v) = parValue.last
+            paramCont += $ div ($ childs (p,v))
+        }
+
+
+
       
     
-        parValue.$keyup{ 
-                    _ => 
-                        runExp(formule)
+        parValue.foreach{ 
+            (a,b) =>
+            a.$keyup (_ => runExp)
+            b.$keyup (_ => runExp)
         }
-        addClass("mt-5 bg-change-log container rounded mx-auto")
-
-        childs(formule,parValue,result)
+        
+        
+        $.addClass("mt-5 bg-change-log container rounded mx-auto")
+          
+        $.childs(formule,$.span($.childs($.span(text("=")),result)),
+                paramCont    
+        
+      , addVar )
+      runExp
 
       
 }
+
+
+

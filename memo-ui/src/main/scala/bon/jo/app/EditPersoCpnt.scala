@@ -5,7 +5,7 @@ import bon.jo.app.SType.ExParam
 import bon.jo.app.Types.Pram
 import bon.jo.dao.Dao
 import bon.jo.html.DomShell.ExtendedElement
-import bon.jo.html.HTMLDef._
+import bon.jo.html.HTMLDef.*
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.html.HtmlRep
 import bon.jo.html.HtmlRep.HtmlRepParam
@@ -21,9 +21,9 @@ import bon.jo.rpg.Affect
 import bon.jo.rpg.SystemElement
 import bon.jo.rpg.Commande
 
-val $$ =  Experimental.html   
-import $$.*
-
+  
+import Experimental.html.$ 
+import $.*
   
            
 object Types:
@@ -39,11 +39,13 @@ object EditPersoCpnt extends HtmlRepParam[Perso, Pram, EditStatWithName[Perso]]:
 
 
 
-class EditPersoCpnt(initial: Perso, option: Option[(Rpg, mutable.ListBuffer[EditStatWithName[Perso]])])(repStat: HtmlRep[IntBaseStat, EditStat]) extends EditStatWithName[Perso](initial, option)(repStat):
+class EditPersoCpnt(initial: Perso, option: Option[(Rpg, mutable.ListBuffer[EditStatWithName[Perso]])])(repStat: HtmlRep[IntBaseStat, EditStat])
+extends EditStatWithName[Perso]  (
+  initial, option)(repStat) with SType.EditStatWithDao[Perso]:
   override implicit val rep: HtmlRepParam[Perso, Pram, EditStatWithName[Perso]] = EditPersoCpnt
 
   override def randomValue: Perso = Actor.randomActor(e => new Perso(initial.id, RandomName(),"Le plus beau des héros", e))
-  override val dao: Dao[Perso, Int] = option.rpg.persoDao
+  override val  dao: Dao[Perso, Int] = option.rpg.persoDao
   val equipRight: Button = bsButton("+")
   val equipLeft: Button = bsButton("+")
   private var varRightHand: Option[Weapon] = initial.rightHandWeapon
@@ -62,7 +64,7 @@ class EditPersoCpnt(initial: Perso, option: Option[(Rpg, mutable.ListBuffer[Edit
           rpg.weaponDao.readAll().map {
             e =>
            
-              e.map(w => w -> $$.li{
+              e.map(w => w -> $.li{
                 text(w.name)
                 _class("list-group-item btn")
                 click( {
@@ -92,7 +94,7 @@ class EditPersoCpnt(initial: Perso, option: Option[(Rpg, mutable.ListBuffer[Edit
   def txt(optionW: Option[Weapon]): String = optionW.map(_.name).getOrElse("-")
 
   def spanArm(optionW: Option[Weapon]): HTMLElement = 
-    $$ span {
+    $ span {
       col
       text(txt(optionW))
     }

@@ -10,11 +10,13 @@ import bon.jo.rpg.stat.raw.{AnyRefBaseStat, IntBaseStat, Perso}
 import bon.jo.ui.UpdatableCpnt
 import org.scalajs.dom.html.Span
 import org.scalajs.dom.raw.{HTMLElement, Node}
+import Experimental.*
+import Experimental.html.*
+import Experimental.html.$.*
 class Progress:
-  import Experimental.{html => h }
-  import  h._ 
-  val pBar =  h.div(attr("class" -> "progress-bar bg-danger" ,"role" ->"progressbar" ,"style" ->"width: 100%", "aria-valuenow" ->"100", "aria-valuemin" ->"0" ,"aria-valuemax" ->"100"))
-  val html =  h.div{
+
+  val pBar =  $.div(attr("class" -> "progress-bar bg-danger" ,"role" ->"progressbar" ,"style" ->"width: 100%", "aria-valuenow" ->"100", "aria-valuemin" ->"0" ,"aria-valuemax" ->"100"))
+  val html =  $.div{
     _class("progress")
     childs(pBar)
 
@@ -22,10 +24,9 @@ class Progress:
   def update(e : Int) = pBar.style.width = s"$e%"  
 
 def progress(bind : Any) = {
-  import html._ 
-  html.div{
+    $.div{
     _class("progress")
-    html.div(attr("class" -> "progress-bar bg-danger" ,"role" ->"progressbar" ,"style" ->"width: 100%", "aria-valuenow" ->"100", "aria-valuemin" ->"0" ,"aria-valuemax" ->"100"))
+    $.div(attr("class" -> "progress-bar bg-danger" ,"role" ->"progressbar" ,"style" ->"width: 100%", "aria-valuenow" ->"100", "aria-valuemin" ->"0" ,"aria-valuemax" ->"100"))
 
   }
 }

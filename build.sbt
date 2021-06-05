@@ -11,6 +11,7 @@ import Utils.git
 val mainVersion = "1.0.0-SNAPSHOT"
 enablePlugins(ScalaJSPlugin)
 enablePlugins(JavaAppPackaging)
+javacOptions += "-Xmx2G"
 val sharedSettings = Seq(version := mainVersion,
   organization := "bon.jo",
   scalaVersion := "3.0.0",

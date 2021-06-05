@@ -1,6 +1,7 @@
 package bon.jo.app
 
 import bon.jo.html.HTMLDef.HtmlOps
+import bon.jo.html.HTMLDef.$c
 import org.scalajs.dom.document
 import org.scalajs.dom.console
 import org.scalajs.dom.raw.{Element, HTMLElement,Node}
@@ -10,53 +11,103 @@ import org.scalajs.dom.raw.CSSStyleDeclaration
 import org.scalajs.dom.raw.HTMLElement
 
 object Experimental:
-
-  trait HtmlDsl extends scala.Dynamic{
-    type HtmlBuilder = HTMLElement ?=> HTMLElement
-    def applyDynamic(str : String)(f : HTMLElement ?=> HTMLElement):HTMLElement =
-      given  HTMLElement = str.toHtlm
-      f
-    def  ->(f : HTMLElement => Unit) : HtmlBuilder  = doOnMe(f)
-    def doOnMe(f : HTMLElement => Unit):HtmlBuilder = 
-      val ret  : HTMLElement = summon
-      f(ret)
-      ret
-
-    def me:HtmlBuilder =
-      summon
-    def row:HtmlBuilder =
-      doOnMe(_._class = "row")
-    def col:HtmlBuilder =
-      doOnMe(_._class = "col")
-    def css(f :CSSStyleDeclaration=> Unit ):HtmlBuilder=
-      doOnMe(m => f(m.style))
-    def attr(attr : (String,String) *):HtmlBuilder =
-      doOnMe(_.$attr(attr.toList))
   
-    def text(str : String):HtmlBuilder =
-      doOnMe(_.textContent = str)
-    def _class(str : String):HtmlBuilder =
-      doOnMe(_._class = str)
-    def addClass(str : String):HtmlBuilder =
-      doOnMe(m =>str.split("\\s+").foreach(m.classList.add))
-     
-     def apply(l : Node *):HtmlBuilder =
-      l foreach (c => doOnMe(_.appendChild(c)))
-      summon
-    def childs(l : Node *):HtmlBuilder =
-      l foreach (c => doOnMe(_.appendChild(c)))
-      summon
 
-    def childs[A <: Node](customize : A => Unit,l : A *)(using v : HTMLElement) : HTMLElement =
-      l foreach customize 
-      l foreach v.appendChild
-      v
-    def cols[A <: HTMLElement](l : A *)(using v : HTMLElement) : HTMLElement =
-      childs[A](_._class="col",l : _ *)
+  trait HtmlDsl{
+  
+    type HtmlBuilder[A<: HTMLElement] = A?=> A
+
+
+    object $ extends scala.Dynamic :
+      def me:HtmlBuilder[HTMLElement] =
+      summon
+      def row:HtmlBuilder[HTMLElement] =
+        doOnMe(_._class = "row")
+      def col:HtmlBuilder[HTMLElement] =
+        doOnMe(_._class = "col")
+      def css(f :CSSStyleDeclaration=> Unit ):HtmlBuilder[HTMLElement]=
+        doOnMe(m => f(m.style))
+      def attr(attr : (String,String) *):HtmlBuilder[HTMLElement] =
+        doOnMe(_.$attr(attr.toList))
     
-    def click(l : => Unit)(using v : HTMLElement) : HTMLElement =
-      v.$click(_ => l)
-      v
+      def text(str : String):HtmlBuilder[HTMLElement] =
+        doOnMe(_.textContent = str)
+      def _class(str : String):HtmlBuilder[HTMLElement] =
+        doOnMe(_._class = str)
+      def addClass(str : String):HtmlBuilder[HTMLElement] =
+        doOnMe(m =>str.split("\\s+").foreach(m.classList.add))
+      
+      def apply(l : Node *):HtmlBuilder[HTMLElement] =
+        l foreach (c => doOnMe(_.appendChild(c)))
+        summon
+      def childs[A <: Node](l : A *):HtmlBuilder[HTMLElement] =
+        l foreach (c => doOnMe(_.appendChild(c)))
+        summon
+
+      def childs[A <: Node](customize : A => Unit,l : A *) : HtmlBuilder[HTMLElement] =
+        l foreach customize 
+        childs[A](l : _ * )
+      def cols[A <: HTMLElement](l : A *) : HtmlBuilder[HTMLElement] =
+        childs[HTMLElement](_._class="col",l : _ *)
+      
+      def click(l : => Unit) : HtmlBuilder[HTMLElement] =
+        doOnMe(_.$click(_ => l))
+        
+      def  ->(f : HTMLElement => Unit) : HtmlBuilder[HTMLElement]  = doOnMe(f)
+      def doOnMe(f : HTMLElement => Unit):HtmlBuilder[HTMLElement] = 
+        val ret  : HTMLElement = summon
+        f(ret)
+        ret
+
+      def applyDynamic(str : String)(f : HtmlBuilder[HTMLElement]):HTMLElement =
+        given HTMLElement = $c.selectDynamic[HTMLElement](str)
+        f
+
+
+
+    object $t extends scala.Dynamic:
+      def applyDynamic[T<: HTMLElement](str : String)(f : HtmlBuilder[T]):T =
+        given T = $c.selectDynamic[T](str)
+        f
+      def  ->[T<: HTMLElement](f : T => Unit) : HtmlBuilder[T]  = doOnMe(f)
+      def doOnMe[T<: HTMLElement](f : T => Unit):HtmlBuilder[T] = 
+        val ret  : T = summon
+        f(ret)
+        ret
+
+      def me[T<: HTMLElement]:HtmlBuilder[T] =
+        summon
+      def row[T<: HTMLElement]:HtmlBuilder[T] =
+        doOnMe(_._class = "row")
+      def col[T<: HTMLElement]:HtmlBuilder[T] =
+        doOnMe(_._class = "col")
+      def css[T<: HTMLElement](f :CSSStyleDeclaration=> Unit ):HtmlBuilder[T]=
+        doOnMe(m => f(m.style))
+      def attr[T<: HTMLElement](attr : (String,String) *):HtmlBuilder[T] =
+        doOnMe(_.$attr(attr.toList))
+    
+      def text[T<: HTMLElement](str : String):HtmlBuilder[T] =
+        doOnMe(_.textContent = str)
+      def _class[T<: HTMLElement](str : String):HtmlBuilder[T] =
+        doOnMe(_._class = str)
+      def addClass[T<: HTMLElement](str : String):HtmlBuilder[T] =
+        doOnMe(m =>str.split("\\s+").foreach(m.classList.add))
+      
+      def apply[T<: HTMLElement](l : Node *):HtmlBuilder[T] =
+        l foreach (c => doOnMe[T](_.appendChild(c)))
+        summon
+      def childs[T<: HTMLElement](l : Node *):HtmlBuilder[T] =
+        l foreach (c => doOnMe[T](_.appendChild(c)))
+        summon
+
+      def childs[T<: HTMLElement,A <: Node](customize : A => Unit,l : A *) : HtmlBuilder[T] =
+        l foreach customize 
+        childs(l : _ *)
+      def cols[T<: HTMLElement,A <: HTMLElement](l : A *) : HtmlBuilder[T] =
+        childs[T,A](_._class="col",l : _ *)
+      
+      def click[T<: HTMLElement](l : => Unit) : HtmlBuilder[T] =
+        doOnMe(_.$click(_ => l))
   }
 
 

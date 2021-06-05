@@ -31,12 +31,31 @@ object SType:
   type Param[A<: StatsWithName] = (Rpg,mutable.ListBuffer[EditStatWithName[A]])
   implicit class ExParam[A<: StatsWithName](e : Option[Param[A]]):
     def rpg: Rpg = e.map(_._1).getOrElse(throw new IllegalStateException())
-abstract class EditStatWithName[A <: StatsWithName](initial: A, option: Option[Param[A]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends ImuutableHtmlCpnt 
-with UpdatableCpnt[A] with ReadableCpnt[A] with HtmlDsl:
+  trait EditStatWithDao[A <: StatsWithName]:
+    this : EditStatWithName[A] =>
+      val dao : Dao[A,Int]
+      override def deleteButton(): Option[HTMLElement => HTMLElement] = option.map(_._1.executionContext) map {
+        implicit ec =>
+          SimpleView.withClose(_,{
+            dao.delete(read.id) onComplete{
+              case Success(value) => PopUp("Suppression OK")
+              case Failure(exception) =>   PopUp("Suppression KO")
+            }
+          },"top-right")
+      }
+abstract class EditStatWithName[A <: StatsWithName](initial: A,val option: Option[Param[A]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends ImuutableHtmlCpnt 
+with UpdatableCpnt[A] with ReadableCpnt[A] :
 
   type Param = SType.Param[A]
   implicit val rep: HtmlRepParam[A, Param, EditStatWithName[A]]
-  val dao : Dao[A,Int]
+  //val dao : Dao[A,Int]
+  override def create(): IterableOnce[HTMLElement] =
+  Some((mainDiv) := { e =>
+    e.style.display = "inline-block"
+    e._class = "m-1 p-4 card edit-card bg-2"
+    beforeStatOption.foreach(beforeState)
+
+  }).flatMap(e => deleteButton().map(_(e)))
   private val statCpnt = initial.stats.html(repStat)
   private val name = $c.input[Input] := { n =>
     n.value = initial.name
@@ -45,15 +64,7 @@ with UpdatableCpnt[A] with ReadableCpnt[A] with HtmlDsl:
   private val id = $c.span[Span] := (_.textContent = initial.id.toString)
   private val colActioin: Div = $c.div
   private val descriptionInput = initial.desc.tagTyped[TextArea](tag.textarea)
-  def deleteButton(): Option[HTMLElement => HTMLElement] = option.map(_._1.executionContext) map {
-    implicit ec =>
-      SimpleView.withClose(_,{
-        dao.delete(read.id) onComplete{
-          case Success(value) => PopUp("Suppression OK")
-          case Failure(exception) =>   PopUp("Suppression KO")
-        }
-      },"top-right")
-  }
+  def deleteButton(): Option[HTMLElement => HTMLElement]
 
 
   def initialAction(initial: A):Iterable[SystemElement]
@@ -112,7 +123,6 @@ with UpdatableCpnt[A] with ReadableCpnt[A] with HtmlDsl:
 
   def randomValue: A
 
-  //private def random(): Unit = update(Some(new Weapon(RandomName(), AnyRefBaseStat.randomInt(50, 25))))
   def random(): Unit = update(Some(randomValue))
 
   statCpnt.redrawButton.$click { _ =>
@@ -125,7 +135,8 @@ with UpdatableCpnt[A] with ReadableCpnt[A] with HtmlDsl:
     case _ => "Commande"
 
   def mainDiv: HTMLElement = 
-    val t = Experimental.html
+    val t = Experimental.html.$
+    import t.*
     t.div {
      childs( 
        t.div {
@@ -148,13 +159,7 @@ with UpdatableCpnt[A] with ReadableCpnt[A] with HtmlDsl:
 
   def beforeState(a : HTMLElement)=  statCpnt.list.head.parentElement.insertBefore(a,statCpnt.list.head)
   def beforeStatOption : Option[HTMLElement] = None
-  override def create(): IterableOnce[HTMLElement] =
-    Some((mainDiv) := { e =>
-      e.style.display = "inline-block"
-      e._class = "m-1 p-4 card edit-card bg-2"
-      beforeStatOption.foreach(beforeState)
 
-    }).flatMap(e => deleteButton().map(_(e)))
 
 
   override def update(value: Option[A]): Unit =

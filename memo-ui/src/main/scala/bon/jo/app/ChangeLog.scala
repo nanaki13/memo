@@ -6,23 +6,25 @@ import org.scalajs.dom.raw.HTMLElement
 import scala.language.dynamics
 import bon.jo.app.Experimental.HtmlDsl
 import bon.jo.common.Tree
-import bon.jo.app.Experimental.HtmlDsl
 import scala.annotation.tailrec
-import bon.jo.app.Experimental.HtmlDsl
+
 import bon.jo.html.HtmlRep
 import bon.jo.common.Add
 import Tree.*
 import Tree.given
 import Tree as t
 import bon.jo.html.HtmlRep.PrXmlId
+import Experimental.*
+import Experimental.html.*
+import Experimental.html.$.*
 case class ChangeLog(version : String,date : String,data : Tree[String])
-object ChangeLog extends HtmlCpnt with HtmlDsl:
+object ChangeLog extends HtmlCpnt:
  
     def textTree(str : String) : Tree[String] = Tree.Value(str)
    
 
   
-    private given $ : HtmlDsl = this
+
    
  
 
@@ -62,7 +64,7 @@ object ChangeLog extends HtmlCpnt with HtmlDsl:
             )
     )
     ))
-    given (using $  : HtmlDsl ): HtmlRep[ChangeLog,HtmlCpnt] with 
+    given HtmlRep[ChangeLog,HtmlCpnt] with 
        def  html(c : ChangeLog) = HtmlCpnt(()=> Some( $.div{
                 row
                 $(
@@ -97,9 +99,9 @@ object ChangeLog extends HtmlCpnt with HtmlDsl:
 
     def create():Some[HTMLElement]=
    
-    Some( this.div{
+    Some( $.div{
             addClass("mt-5 bg-change-log container rounded mx-auto")
-            childs(changeLogHtml().flatMap(_.get) :_ * )
+            $.childs(changeLogHtml().flatMap(_.get) :_ * )
         })
     
     

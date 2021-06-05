@@ -8,29 +8,17 @@ import scala.util.Random
 import Script.Node._
 import scala.collection.mutable.ListBuffer
 import bon.jo.memo.Script.PhraseElement
+import Script.*
+import scala.reflect.ClassTag
 
 
-@main def t = 
-    import Script.*
-  
-
-
-    given (Char,Char) = ('(',')')
-
-   
+package give:
     given OpenCLose = (Exper.`(`,Exper.`)`)
-    println("5 + 2 * ((2 + 3) * (5 +( 4 - x))) + 2 * 8".toNode.toExpressionWithAsso())
-    //println("1 + (2 + (3 * 5) + 4) + 1 + 2 * 8 ".toNode.childs)
- //   println("2 + 1  2 + 3 5 + 4 - 1".toNode)
-    val v :Value[PhraseElement]= Value(List(PhraseElement.Word(1,"1"),PhraseElement.Symbol(1,'*'),PhraseElement.Word(2,"2")))
-   // println(Script.expressionPureWithAsso("2 * 1 * 2 + 3 * 5 * 4 - 1".toNode.asInstanceOf[Root[PhraseElement]].childs(0).asInstanceOf[Value[PhraseElement]])(Exper.`*`.asInstanceOf[ PhraseElement.Symbol]))
 
-   
 
-   // println( Exper.Empty.conbineRight(PhraseElement.Word("abcd")).conbineRight(PhraseElement.Symbol('+')).conbineRight(PhraseElement.Word("abcd")).conbineRight(PhraseElement.Symbol('+')))
 object Script:
 
-
+    
 
     enum Node[+A]:
         case Root( childs : List[Node[A]])
@@ -57,31 +45,27 @@ object Script:
     def expressionPure( values : Value[PhraseElement]):Exper =
         values.values.foldLeft(Exper.Empty)(_.conbineRight(_))
     
-    def expressionPureWithAsso( values : Value[PhraseElement])(first : PhraseElement.Symbol):Exper =
+    def expressionPureWithAsso( values : Value[PhraseElement])(first : PhraseElement.Symbol *):Exper =
         var ret : Exper = Exper.Empty
         val buff : List[PhraseElement] =  values.values
 
-        val fist = buff.indexOf(first)
-        val haveOther = buff.find( e => e != first && e.isInstanceOf[PhraseElement.Symbol] )
+        val fist = first.map(buff.indexOf(_)).find(_ != -1).getOrElse(-1) 
+        val haveOther = buff.find( e => !first.contains(e) && e.isInstanceOf[PhraseElement.Symbol] )
         if(fist != -1 && haveOther.isDefined) then
             val sp = buff.zipWithIndex.find( e => e._1 != first && e._1.isInstanceOf[PhraseElement.Symbol] ).get
             val (head,tail) = buff.splitAt(sp._2+1)
 
-            expressionPure(Value(head)).conbineRight(expressionPureWithAsso(Value(tail))(first)) 
+            expressionPure(Value(head)).conbineRight(expressionPureWithAsso(Value(tail))(first : _ *)) 
 
         else
            expressionPure(values)   
-            
-     //   values.values.foldLeft(Exper.Empty)(_.conbineRight(_))
-        
-      //  val exp = Exper.Empty
-      //  values.filter(!_.isInstanceOf[Separator])
+
        
     extension (a : Node[PhraseElement])
         def toExpression() : Exper = 
             a.groupValue(Script.expressionPure ,_ conbineRight _)
         def toExpressionWithAsso() : Exper = 
-            a.groupValue(Script.expressionPureWithAsso(_)(Exper.`*`.asInstanceOf[ PhraseElement.Symbol]) ,_ conbineRight _)
+            a.groupValue(Script.expressionPureWithAsso(_)(Exper.`/`,Exper.`*`) ,_ conbineRight _)
         
     object Node:
         
@@ -112,8 +96,37 @@ object Script:
                        n.copy(values = n.values :+ v)
             }.flush.result
 
-    trait ToFunction[V,T] :
-        def apply(v : V): T => Float
+    extension [A <: Product] (p : A)
+        def nameToProp : Iterator[(String,Any)] = p.productElementNames zip p.productIterator
+    trait ToFunction[V,T]:
+        def apply(v:V) :  T  => Float
+    object ToFunction:
+        def apply[V,T](f :( V => T  => Float) ) : ToFunction[V,T] = v => t => f(v)(t)
+     
+    def dotted(s : String) = s"${s}."  
+    def stringFunction[A <: Product] : String => A => Float = s => a => a.nameToProp.find(_._1 == s).map(_._2).get.asInstanceOf[Float]
+    given [A<:Product,B<:Product](using prefix : List[String]) :  ToFunction[String,(A,B)]  = 
+            
+        s =>
+        val (pref,index) =  prefix.zipWithIndex.find(_._1 == s.substring(0,s.indexOf("."))).getOrElse(throw new IllegalStateException(s"no prefix $s configured"))
+        val dottedp = dotted(pref)
+            
+        index match
+            case 0 => 
+                val f = stringFunction[A](s.replaceFirst(dottedp,""))
+                (p: A,_: B)=> f(p)
+            case 1 => 
+                val f = stringFunction[B](s.replaceFirst(dottedp,""))
+                (_ : A,p : B)=> f(p)
+    given [A<:Product](using prefix : String) :  ToFunction[String,A]  = 
+        val dottedp = dotted(prefix) 
+        val f = stringFunction[A]
+        s =>
+        if prefix != s.substring(0,s.indexOf(".")) then throw new IllegalStateException(s"no prefix $s configured")
+        else 
+            p => f(s.replaceFirst(dottedp,""))(p)  
+            
+  
 
   
     extension (c : Char)
@@ -128,6 +141,8 @@ object Script:
         def conbineRight(e : Exper):Exper =
 
             (this,e) match
+                case (Empty,a ) => a
+                case (a,Empty) => a
                 case (Operation(l,s,Exper.Empty),r) =>  Operation(l,s,r)
                 case (l,Operation(Exper.Empty,s,r)) =>  Operation(l,s,r)
                 case (left,right) => 
@@ -148,45 +163,48 @@ object Script:
                 case (a,Empty) => a
                 case (l,Exper.Operation(_,s,r)) => Exper.Operation(l,s,r)
                 case (Exper.Operation(l,s,_),r) => Exper.Operation(l,s,r)
+        
 
-
-
-
-        def evalFloat(using ctx : String => Float):Float = 
+        def evaluate(using ctx : String => Float):Float = 
             this match 
-                case Val(a) => a.toString.toFloat
+                case Val(v) => v.toString.toFloat
                 case Empty => Float.NaN
                 case Symbol(a) => ctx(a)
-                case Operation(l,'+',r) => l.evalFloat+r.evalFloat
-                case Operation(l,'*',r) => l.evalFloat*r.evalFloat
-             
+                case Operation(l,op,r) =>  Exper.evaluate( l.evaluate ,op ,r.evaluate )
                 case e:  _ => throw IllegalStateException(s"$e not supported yet")
+
+    
+
+
         def toFunction[V](using ctx : ToFunction[String,V]):(v : V) => Float = 
             this match 
-                case Val(a) => (v) => a.toString.toFloat
+                case Val(va) =>  (v) =>  va.toString.toFloat
                 case Empty => (v) =>Float.NaN
-                case Symbol(a) => ctx(a)
-                case Operation(l,'+',r) => (v) => l.toFunction[V](v)+r.toFunction[V](v)
-                case Operation(l,'*',r) => (v) =>  l.toFunction[V](v)*r.toFunction[V](v)
-              
+                case Symbol(z) => ctx(z)
+                case Operation(l,op,r) => v => Exper.evaluate( l.toFunction(v) ,op ,r.toFunction(v) )
                 case e:  _ => throw IllegalStateException(s"$e not supported yet")
-        def toFunctionSymbol[V](using ctx : ToFunction[Exper.Symbol,V]):(v : V) => Float = 
-            this match 
-                case Val(a) => (v) => a.toString.toFloat
-                case Empty => (v) =>Float.NaN
-                case a : Symbol => ctx(a)
-                case Operation(l,'+',r) => (v) => l.toFunctionSymbol[V](v)+r.toFunctionSymbol[V](v)
-                case Operation(l,'*',r) => (v) =>  l.toFunctionSymbol[V](v)*r.toFunctionSymbol[V](v)
-            
-                case e:  _ => throw IllegalStateException(s"$e not supported yet")
+
+        
+
+
     object Exper:
-        val + = PhraseElement.Symbol(0,'+') 
-        val * = PhraseElement.Symbol(0,'*')
-        val / = PhraseElement.Symbol(0,'/')
-        val - = PhraseElement.Symbol(0,'-')
-        val operation : Set[PhraseElement] = Set(Exper.+,*,/,Exper.- )
-        val `(` = PhraseElement.Symbol(0,'(')
-        val `)` = PhraseElement.Symbol(0,')')
+        val + :PhraseElement.Symbol = PhraseElement.Symbol(0,'+') 
+        val *  :PhraseElement.Symbol = PhraseElement.Symbol(0,'*')
+        val / :PhraseElement.Symbol  = PhraseElement.Symbol(0,'/')
+        val -  :PhraseElement.Symbol = PhraseElement.Symbol(0,'-')
+       
+        val `(` :PhraseElement.Symbol = PhraseElement.Symbol(0,'(')
+        val `)`  :PhraseElement.Symbol= PhraseElement.Symbol(0,')')
+
+
+        def evaluate(left : Float,op : Char,right : Float):Float =
+            op match 
+                case '+' => left + right
+                case '-' => left + right
+                case '%' => left % right
+                case '/' => left / right
+                case '*' => left * right
+                case _ => throw new UnsupportedOperationException(s"I can't do $left $op $right")
         def trim(p :List[PhraseElement]):List[PhraseElement] = 
             if p.isEmpty then p 
             else 
@@ -320,7 +338,7 @@ object Script:
         def toExpression(using OpenCLose) : Exper =  Exper(s)
         def toExpressionWithAsso(using OpenCLose)  : Exper = s.toNode.toExpressionWithAsso()
         def toPhrase : List[PhraseElement] =  Phrase(s)
-        def toFunction[T](using ToFunction[Exper.Symbol,T],OpenCLose)  : T => Float =  Exper(s).toFunctionSymbol[T]
+        def toFunction[T](using ToFunction[String,T],OpenCLose)  : T => Float =  Exper(s).toFunction[T]
         def toNode(using OpenCLose) :Node.Root[PhraseElement] =
             val f :List[PhraseElement] =s.toPhrase 
             Node(f)

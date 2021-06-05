@@ -33,6 +33,7 @@ import bon.jo.rpg.dao.FormuleDao
 
 object AppLoaderExample extends App:
   document.body.classList.add("bg-1")
+  object editPage extends EditFormulePage
   given Rpg with
     override implicit val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.global
     val weaponJsDao: WeaponDaoJs = new WeaponDaoJs {
@@ -99,13 +100,14 @@ object AppLoaderExample extends App:
       }
       PopUp(div)
 
+    
     val menu = new Menu(
       "éditer/créer Arme" -> initChoixArme,
 
       "éditer/créer Perso" -> initChoixPerso,
       "Simulation" -> simulation,
       "Export" -> exportF,"Import" -> importDataPopUp,
-      "Edit Formule" -> EditFormulePage.editPage,
+      "Edit Formule" -> editPage.editPage(using root),
       "News" -> (() =>
         root.clear()
         root += ChangeLog.head
@@ -159,14 +161,14 @@ object AppLoaderExample extends App:
   def init(): RpgUsing=
     val rp = rpg
     import rp.executionContext
-
+    given HTMLElement  = rpg.root
     IndexedDB.init(rp.weaponDao.daoJs.name, rp.persoDao.daoJs.name, rp.formuleDao.daoJs.name) map { _ =>
       rp.init()
     } onComplete{
       case Failure(exception) => exception match
         case ex@DBExeception(e) => ex.printStackTrace();console.log(e)
         case e => e.printStackTrace()
-      case Success(_) =>     PopUp("start ok");EditFormulePage.editPage()
+      case Success(_) =>     PopUp("start ok"); editPage.editPage()
     }
   init()
   

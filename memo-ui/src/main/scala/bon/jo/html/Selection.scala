@@ -8,14 +8,12 @@ import org.scalajs.dom.raw.HTMLElement
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{Future, Promise}
+import scala.collection.View.Single
 
 
-trait Selection[A, C <: HtmlCpnt] {
-
-
-}
 
 object Selection {
+
 
   def selection[A, C <: HtmlCpnt](list: Iterable[A], target: HTMLElement, param: Param[A, C]): Future[Iterable[A]] =
     val res = Promise[Iterable[A]]()
@@ -48,7 +46,7 @@ object Selection {
                                       , selListener: HtmlCpnt => Unit,
                                       htmlRep: HtmlRep[A, C],
                                       choisit: HtmlRep[A, C]
-                                    ) extends Selection[A, C]:
+                                    ) :
     def selection(list: Iterable[A], target: HTMLElement): Future[Iterable[A]] = Selection.selection(list, target, this)
 
 }
