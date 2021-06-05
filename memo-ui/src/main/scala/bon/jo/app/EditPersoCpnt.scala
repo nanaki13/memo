@@ -27,7 +27,7 @@ import $.*
   
            
 object Types:
-  type Pram = (Rpg, mutable.ListBuffer[EditStatWithName[Perso]])
+  type Pram = SType.Param[Perso]
 
 object EditPersoCpnt extends HtmlRepParam[Perso, Pram, EditStatWithName[Perso]]:
 
@@ -35,7 +35,7 @@ object EditPersoCpnt extends HtmlRepParam[Perso, Pram, EditStatWithName[Perso]]:
   override def html(memo: Perso, option: Option[Pram]): EditPersoCpnt =
     new EditPersoCpnt(memo, option)(EditStat)
 
-  implicit val value: HtmlRepParam[Perso, Pram, EditStatWithName[Perso]] = this
+  given HtmlRepParam[Perso, Pram, EditStatWithName[Perso]] = this
 
 
 

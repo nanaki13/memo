@@ -107,7 +107,8 @@ object AppLoaderExample extends App:
       "éditer/créer Perso" -> initChoixPerso,
       "Simulation" -> simulation,
       "Export" -> exportF,"Import" -> importDataPopUp,
-      "Edit Formule" -> editPage.editPage(using root),
+      "Test Formule" -> editPage.editPage(using root),
+      "Edit Formule" -> (() => EditFormauleAffect.simulation),
       "News" -> (() =>
         root.clear()
         root += ChangeLog.head
@@ -168,7 +169,7 @@ object AppLoaderExample extends App:
       case Failure(exception) => exception match
         case ex@DBExeception(e) => ex.printStackTrace();console.log(e)
         case e => e.printStackTrace()
-      case Success(_) =>     PopUp("start ok"); editPage.editPage()
+      case Success(_) =>     PopUp("start ok");  EditFormauleAffect.simulation
     }
   init()
   

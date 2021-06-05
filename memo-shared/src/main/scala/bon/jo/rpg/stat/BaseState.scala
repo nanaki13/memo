@@ -20,6 +20,7 @@ object BaseState:
   object ImplicitCommon:
     implicit val iToF: Int => Float = e => e.toFloat
     implicit val fToI: Float => Int = e => e.round
+    given (AnyRefBaseStat[Int] => AnyRefBaseStat.Impl[Int]) = _.asInstanceOf[AnyRefBaseStat.Impl[Int]]
     implicit val genIntToFloat: AnyRefBaseStat[Int] => AnyRefBaseStat[Float] = AnyRefBaseStat[Float, Int](_)
     implicit val genFloatToInt: AnyRefBaseStat[Float] => AnyRefBaseStat[Int] = AnyRefBaseStat[Int, Float](_)
     //    implicit val genIntToFloatP: GenBaseState[Int] => GenBaseState[Float] = BaseStatImpl[Float, Int](_)

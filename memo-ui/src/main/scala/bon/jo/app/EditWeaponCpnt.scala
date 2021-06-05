@@ -26,7 +26,8 @@ object EditWeaponCpnt extends HtmlRepParam[Weapon, SType.Param[Weapon], EditStat
 
 
 
-class EditWeaponCpnt(initial: Weapon, option: Option[SType.Param[Weapon]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends EditStatWithName[Weapon](initial,option)(repStat):
+class EditWeaponCpnt(initial: Weapon, option: Option[SType.Param[Weapon]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends EditStatWithName[Weapon](initial,option)(repStat)
+with SType.EditStatWithDao[Weapon]:
   override implicit val rep: HtmlRepParam[Weapon, SType.Param[Weapon], EditStatWithName[Weapon]] = EditWeaponCpnt
 
   override def randomValue: Weapon = new Weapon(initial.id,RandomName.randomWeaponName(),"La belle arme",1,AnyRefBaseStat[Float](Actor.randomWeaponVal _).map(_.round))

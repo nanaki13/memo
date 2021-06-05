@@ -42,7 +42,7 @@ trait EditFormulePage {
 
 
     def runExp:Unit = 
-            given OpenCLose = (Exper.`(`,Exper.`)`)
+            import bon.jo.memo.give.given
             println("phrase = "+formule.textContent.toPhrase)
             println("node = "+formule.textContent.toNode)
             println("expression = "+formule.textContent.toExpression)
@@ -93,7 +93,7 @@ trait EditFormulePage {
         }
         
         
-        $.addClass("mt-5 bg-change-log container rounded mx-auto")
+       
           
         $.childs(formule,$.span($.childs($.span(text("=")),result)),
                 paramCont    

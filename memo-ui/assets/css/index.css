@@ -10,6 +10,11 @@ app-rpg{
   color: white;
 }
 
+.black-s-on-white {
+  background: black;
+  color: white;
+}
+
 .name-input {
   max-width: 10em;
   color: black;
@@ -59,4 +64,8 @@ app-rpg{
 .popup-close {
   position: absolute;
   right: 0;
+}
+
+.border-b {
+  border: 2px solid #00ff4080!important;
 }

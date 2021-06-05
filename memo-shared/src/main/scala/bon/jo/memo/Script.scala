@@ -18,6 +18,36 @@ package give:
 
 object Script:
 
+    val preDef :Map[String,(()=>Float)] = Map("rand" -> Random.nextFloat)
+
+    given [A<:Product,B<:Product](using prefix : List[String]) :  ToFunction[String,(A,B)]  = 
+            
+        s =>
+        preDef.map{
+            e =>
+                (e._1,(t :( A,  B)) => e._2.apply())}.getOrElse(s,{
+                    val (pref,index) =  prefix.zipWithIndex.find(_._1 == s.substring(0,s.indexOf("."))).getOrElse(throw IllegalStateException(s"no prefix $s configured"))
+                    val dottedp = dotted(pref)
+                        
+                    index match
+                        case 0 => 
+                            val f = stringFunction[A](s.replaceFirst(dottedp,""))
+                            (p: A,_: B)=> f(p)
+                        case 1 => 
+                            val f = stringFunction[B](s.replaceFirst(dottedp,""))
+                            (_ : A,p : B)=> f(p)
+                }
+
+                )
+        
+
+    given [A<:Product](using prefix : String) :  ToFunction[String,A]  = 
+        val dottedp = dotted(prefix) 
+        val f = stringFunction[A]
+        s =>
+        if prefix != s.substring(0,s.indexOf(".")) then throw IllegalStateException(s"no prefix $s configured")
+        else 
+            p => f(s.replaceFirst(dottedp,""))(p)  
     
 
     enum Node[+A]:
@@ -105,26 +135,7 @@ object Script:
      
     def dotted(s : String) = s"${s}."  
     def stringFunction[A <: Product] : String => A => Float = s => a => a.nameToProp.find(_._1 == s).map(_._2).get.asInstanceOf[Float]
-    given [A<:Product,B<:Product](using prefix : List[String]) :  ToFunction[String,(A,B)]  = 
-            
-        s =>
-        val (pref,index) =  prefix.zipWithIndex.find(_._1 == s.substring(0,s.indexOf("."))).getOrElse(throw new IllegalStateException(s"no prefix $s configured"))
-        val dottedp = dotted(pref)
-            
-        index match
-            case 0 => 
-                val f = stringFunction[A](s.replaceFirst(dottedp,""))
-                (p: A,_: B)=> f(p)
-            case 1 => 
-                val f = stringFunction[B](s.replaceFirst(dottedp,""))
-                (_ : A,p : B)=> f(p)
-    given [A<:Product](using prefix : String) :  ToFunction[String,A]  = 
-        val dottedp = dotted(prefix) 
-        val f = stringFunction[A]
-        s =>
-        if prefix != s.substring(0,s.indexOf(".")) then throw new IllegalStateException(s"no prefix $s configured")
-        else 
-            p => f(s.replaceFirst(dottedp,""))(p)  
+    
             
   
 
@@ -200,7 +211,7 @@ object Script:
         def evaluate(left : Float,op : Char,right : Float):Float =
             op match 
                 case '+' => left + right
-                case '-' => left + right
+                case '-' => left - right
                 case '%' => left % right
                 case '/' => left / right
                 case '*' => left * right
