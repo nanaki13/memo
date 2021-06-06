@@ -113,8 +113,7 @@ with UpdatableCpnt[A] with ReadableCpnt[A] :
         addToCollAction(a)
         actionsChoose.getElementsByTagName("option").toList.foreach {
           e =>
-            org.scalajs.dom.console.log( e.asInstanceOf[HTMLOptionElement].value)
-            org.scalajs.dom.console.log(  a)
+
             if e.asInstanceOf[HTMLOptionElement].value == a.id then
               actionsChoose.removeChild(e)
               org.scalajs.dom.console.log(actionsChoose)
