@@ -96,6 +96,7 @@ extends EditStatWithName[Perso]  (
   def spanArm(optionW: Option[Weapon]): HTMLElement = 
     $ span {
       col
+      _class("black-on-white")
       text(txt(optionW))
     }
       

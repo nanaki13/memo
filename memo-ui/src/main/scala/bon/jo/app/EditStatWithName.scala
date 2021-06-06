@@ -106,18 +106,25 @@ with UpdatableCpnt[A] with ReadableCpnt[A] :
 
   readAction(initial).foreach(addToCollAction)
   buttonAddAction $click { _ =>
-    if actions.size < 4 then
+    val action = getAction(actionsChoose.value)
+    if actions.size < 4 && !actions.contains(action)  then
       getAction(actionsChoose.value).foreach { a =>
         actions += a
         addToCollAction(a)
         actionsChoose.getElementsByTagName("option").toList.foreach {
           e =>
+            org.scalajs.dom.console.log( e.asInstanceOf[HTMLOptionElement].value)
+            org.scalajs.dom.console.log(  a)
             if e.asInstanceOf[HTMLOptionElement].value == a.id then
               actionsChoose.removeChild(e)
+              org.scalajs.dom.console.log(actionsChoose)
         }
       }
-    else
+    else if actions.size >= 4 then
       buttonAddAction.parentElement += (withClose($t span ("Pas plus de 4"), {}) := { b => b._class = "badge badge-danger" })
+    else // if actions.contains(action)
+      buttonAddAction.parentElement += (withClose($t span ("Déja sélectionner"), {}) := { b => b._class = "badge badge-danger" })
+
 
   }
 
@@ -180,7 +187,6 @@ with UpdatableCpnt[A] with ReadableCpnt[A] :
   private val copyButton = SimpleView.bsButton("copy")
 
   copyButton.$click { _ => {
-    //  rep.html(read,option)
     val cpnt = readWithoutId.htmlp(option)(rep)
     option.map(_._2).foreach(_ += cpnt)
     list.head.parentNode.asInstanceOf[HTMLElement] ++= cpnt.list

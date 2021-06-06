@@ -67,7 +67,7 @@ object Commande:
       case (l,r) => 
         commande match
           case LR.L.id if left.isDefined => Commande.Attaque(left.get,LR.L)
-          case LR.R.id if right.isDefined => Commande.Attaque(left.get,LR.R)
+          case LR.R.id if right.isDefined => Commande.Attaque(right.get,LR.R)
           case _ => Commande(commande) 
       
 
@@ -80,7 +80,7 @@ enum Commande(val name : String) extends SystemElement:
   case Rien extends Commande("rien")  
   val id = this match 
     case  Attaque( weapon : Weapon, hand : LR) => hand.id
-    case _ => name
+    case _ => toString
   
   def fromStdIn(cible: BattleTimeLine.LTP[GameElement]): CommandeCtx =
     new CommandeCibled(this, readCibleRec(cible))
@@ -111,14 +111,8 @@ enum Affect(val name : String,val vivMod:Option[Float] = None) extends SystemEle
   case Caffein extends Affect("caffein",Some(1.25f))   
   
   case Cancel extends Affect("cancel")  
-  val id = name
+  val id = toString
 
-  def applyFrom(from : Set[Affect])(string: String) : Option[Affect] =
-
-    from.map(e=> {
-
-      e
-    }).find(_.name == string)
 
 
 

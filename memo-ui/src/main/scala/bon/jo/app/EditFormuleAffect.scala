@@ -14,7 +14,7 @@ import bon.jo.app.HtmlUi.PersoRep
 import bon.jo.html.DomShell.ExtendedElement
 import org.scalajs.dom.console
 import scala.language.dynamics
-//import bon.jo.app.Experimental.html.$
+import bon.jo.app.Experimental.html.$
 import bon.jo.app.Experimental.html.$t
 import bon.jo.app.Experimental.html.$t.*
 import bon.jo.rpg.Affect
@@ -53,8 +53,14 @@ object EditFormauleAffect:
         val buff = ListBuffer.empty[EditStatWithName[Perso]]
         val List(attCpnt,deffCpnt) =  List(att,deff).map(_.htmlp((summon[Rpg],buff)))
         val chil = attCpnt.list ++ deffCpnt.list :+ selectAffect :+ formule
-        row
-        cols(chil : _ *)
+        childs(
+          $.div{
+             row
+             cols(chil : _ *)
+          }
+        )
+        
+       
         formule.$keyup (_ => runExp)
         def runExp:Unit = 
             import bon.jo.memo.give.given

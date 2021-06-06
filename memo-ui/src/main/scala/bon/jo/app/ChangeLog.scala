@@ -44,7 +44,7 @@ object ChangeLog extends HtmlCpnt:
 
     val data = List(ChangeLog(
         "Version 1.0.0"
-        ,"05-2021" 
+        ,"06-2021" 
         , / (t.childs(
             / {
                 t.value("Séparation des actions en Affect et commande")
@@ -55,10 +55,14 @@ object ChangeLog extends HtmlCpnt:
             / 
             {t.value("Ajout des éffets hâte,slow, caféine, booster, cancel") 
             t.childs(
-                 textTree("Les affects sont résolut avec des jets"),
+                textTree("Les affects sont résolut avec des jets"),
                 textTree("Détail des jets dans la popup")
                
                 )
+            },
+            / 
+            {t.value("Ebauchde de l'édition de fromule") 
+      
             } 
        
             )
