@@ -68,8 +68,9 @@ trait LocalJsDao[A <: js.Object,ID](using cv : Conversion[ID,js.Any]) extends Da
   val name: String
   val fId: A => ID
 
+  def keyPath : String | Array[String]
 
-  def transaction(mode: String): Future[IDBTransaction] = database(name).map {
+  def transaction(mode: String): Future[IDBTransaction] = database.map {
     db =>
       db.transaction(js.Array(name), mode)
   }
@@ -99,7 +100,8 @@ trait LocalJsDao[A <: js.Object,ID](using cv : Conversion[ID,js.Any]) extends Da
       tr =>
         //read(fId(a))
         future[Option[A]](tr, t => {
-
+          println("a = "+a)
+          console.log(a)
           t.objectStore(name).add(a)
         }, () => Some(a))
 
@@ -115,7 +117,9 @@ trait LocalJsDao[A <: js.Object,ID](using cv : Conversion[ID,js.Any]) extends Da
     request.onsuccess = s => {
 
       val a: B = s.target.result
-      promise.success(Some(a))
+      promise.success( 
+        if js.isUndefined(a) then None else Option(a)
+      )
     }
 
     trAction(tr)
@@ -157,7 +161,12 @@ trait LocalJsDao[A <: js.Object,ID](using cv : Conversion[ID,js.Any]) extends Da
 
     transaction("readonly") flatMap {
       tr =>
-        future[A](tr, t => t.objectStore(name).get(cv(a)))
+        println(cv(a))
+        future[A](tr, t => t.objectStore(name).get(cv(a))).map{
+          ret => 
+            println("retourRed = "+ret)
+            ret
+        }
     }
 
   override def readAll(limit: Int, offset: Int): FL =

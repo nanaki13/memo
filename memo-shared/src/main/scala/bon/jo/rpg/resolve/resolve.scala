@@ -8,7 +8,12 @@ import bon.jo.rpg.stat.Actor.WeaponBaseState
 import bon.jo.rpg.ui.PlayerUI
 import bon.jo.rpg.BattleTimeLine.TimeLineParam
 package resolve {
-  given resolveAffectCtx:   ResolveContext = new ResolveContext{
+  
+  object Formule:
+    given List[String] = List("att","deff")
+    type ID = (Affect,FormuleType)
+  case class Formule(affect : Affect,formuleType : FormuleType ,formule : String)
+  class DefaultResolveContext extends ResolveContext{
        def attaqueResolve = PersoAttaqueResolve
        def soinResolve = SoinPerso
        def cancelResolve = CancelPerso
@@ -21,7 +26,8 @@ package resolve {
   }
   object dispatcher extends  CommandeResolver.Dispatcher[TP[Perso],TPA] 
   given CommandeResolver.Dispatcher[TP[Perso],TPA] = dispatcher
-  trait PersoCtx(using PlayerUI,TimeLineParam):
+  trait PersoCtx(using PlayerUI,TimeLineParam,ResolveContext):
+    val resolveAffectCtx = summon[ResolveContext]
     given CommandeResolver.CommandeResolveCtx[TP[Perso],TPA] = new  CommandeResolver.CommandeResolveCtx[TP[Perso],TPA]:     
       override def attaque = 
         new CommandeResolver.Resolver[TP[Perso],TPA, bon.jo.rpg.Commande.Attaque]:
@@ -54,7 +60,7 @@ package resolve {
                     resolveAffect.resolveAffect[Affect.Booster.type](a,b)
                   case given Affect.Caffein.type=>   
                     resolveAffect.resolveAffect[Affect.Caffein.type](a,b)
-                  case z => 
+                  case _ => 
                     summon[PlayerUI].message("Mais sa fait encore rien",0)
                     Nil
         ).flatten

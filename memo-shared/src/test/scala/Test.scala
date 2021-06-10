@@ -7,14 +7,20 @@ import bon.jo.memo.give.given
 class ExampleSpec extends AnyFlatSpec with should.Matchers {
 
   "A expression" should "be the true" in {
-    "1 + 1 ".toExpression.evaluate(using (s) =>0)  should be( 2)
+    /*"1 + 1 ".toExpression.evaluate(using (s) =>0)  should be( 2)
     "1 + (5+4)".toExpression.evaluate(using (s) =>0)  should be( 10)
     "2 * (x+4)".toExpression.evaluate(using (s) =>2)  should be( 12)
     "1+2*2 * 4".toExpression.evaluate(using (s) =>2)  should be( 24)
     "1+2*2 * 4".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 17)
-    "1+2*2 * 4".toExpressionWithAsso should be(  "1+(2*2 * 4)".toExpression)
+    "1+2*(2) + 4".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 9)
+    "1+2*(5-3) + 4".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 9)
+    "1+2*(5-3) - 1  + 4".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 8)*/
+    println("1+2*(5-3) - 3/3  + 4".toExpressionWithAsso)
+    println("----------------------------------------")
+    "1+2*(5-3) - 3/3  + 4".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 8)
+    /*"1+2*2 * 4".toExpressionWithAsso should be(  "1+(2*2 * 4)".toExpression)
     "1+2/2 * 4".toExpressionWithAsso should be(  "1+(2/2 * 4)".toExpression)
-     "2 * (x+4)".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 12)
+     "2 * (x+4)".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 12)*/
   }
 
   extension [A <: Product] (p : A)
@@ -22,7 +28,7 @@ class ExampleSpec extends AnyFlatSpec with should.Matchers {
   def stringFunction[A <: Product] : String => A => Float = s => a => a.nameToProp.find(_._1 == s).map(_._2).get.asInstanceOf[Float]
   case class P(x : Float,y : Float)
   case class Y(x : Float,y : Float)
-  "A expression" should "be convert to function base" in {
+  /*"A expression" should "be convert to function base" in {
     
           given ToFunction[String,P] =  ToFunction(stringFunction[P])
 
@@ -45,6 +51,7 @@ class ExampleSpec extends AnyFlatSpec with should.Matchers {
       
 
           val calc =  "(a.x+b.x ) * (a.y + b.y)".toExpression.toFunction((P(1,2),Y(3,4)))
+          println( "(a.x+b.x ) * (a.y + b.y)".toExpression)
           calc should be (24)
 
       
@@ -55,5 +62,5 @@ class ExampleSpec extends AnyFlatSpec with should.Matchers {
     a [NoSuchElementException] should be thrownBy {
       emptyStack.pop()
     } 
-  }
+  }*/
 }

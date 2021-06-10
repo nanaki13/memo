@@ -100,39 +100,32 @@ lazy val `memo-ui` =
       scalaJSUseMainModuleInitializer := true,
       toGitHubIO := {
 
-        val f = (Compile / fullOptJS).value
-       
-        //  val source = baseDirectory
-
-        io.IO.copyFile(f.data, file(stagePath).toPath.resolve(f.data.getName).toFile)
-        git commitAndPush stagePath
+       toGitHup(stagePath,baseDirectory.value,sLog.value,(Compile / fullOptJS).value.data)
       },
       toGitHubSnapIO := {
-
-        val f = (Compile / fullOptJS).value
-       
-        //  val source = baseDirectory
-
-        io.IO.copyFile(f.data, file(snapPath).toPath.resolve(f.data.getName).toFile)
-        git commitAndPush snapPath
+      
+       toGitHup(snapPath,baseDirectory.value,sLog.value,(Compile / fullOptJS).value.data)
       }
 
     ).dependsOn(`memo-shared`) // defined in sbt-scalajs-crossproject
 
+def toGitHup(targetGitReppo : String,projectDir : File,logg : Logger,jsFile : File)={
+      val target = file(targetGitReppo)
+    
 
+       val css= projectDir.getParentFile().toPath().resolve("assets/css/index.css").toFile
+       logg.info(s"cp ${jsFile} to $target")
+       io.IO.copyFile(jsFile, target.toPath.resolve(jsFile.getName).toFile)
+       logg.info(s"cp ${css} to $target")
+       io.IO.copyFile(css, target.toPath.resolve(css.getName).toFile)
+       git commitAndPush snapPath
+       logg.info("push to git OK !") 
+}
 val toGitHubIO = taskKey[Unit]("send to gitub.io")
 val toGitHubSnapIO = taskKey[Unit]("send to gitub.io snap")
 toGitHubIO := {
-
-  val f = (Compile / fullOptJS).value
-  print(f)
-  //  val source = baseDirectory
-  //  io.IO.copyFile()
+  (Compile / fullOptJS).value
 }
 toGitHubSnapIO := {
-
-  val f = (Compile / fullOptJS).value
-  print(f)
-  //  val source = baseDirectory
-  //  io.IO.copyFile()
+  (Compile / fullOptJS).value
 }

@@ -9,6 +9,8 @@ import bon.jo.html.HtmlEventDef.ExH
 import scala.language.dynamics
 import org.scalajs.dom.raw.CSSStyleDeclaration
 import org.scalajs.dom.raw.HTMLElement
+import org.scalajs.dom.raw.HTMLInputElement
+import org.scalajs.dom.raw.HTMLOptionElement
 
 object Experimental:
   
@@ -19,6 +21,7 @@ object Experimental:
 
 
     object $ extends scala.Dynamic :
+      def tNode(str : String) = document.createTextNode(str)
       def me:HtmlBuilder[HTMLElement] =
       summon
       def row:HtmlBuilder[HTMLElement] =
@@ -74,6 +77,16 @@ object Experimental:
         val ret  : T = summon
         f(ret)
         ret
+      def value[T <: (HTMLInputElement|HTMLOptionElement)](value : Any):HtmlBuilder[T] = 
+        val ret  : T = summon
+        ret match
+          case a :HTMLInputElement => a.value = value.toString
+          case a :HTMLOptionElement => a.value = value.toString
+        ret
+      def onchange[T <: HTMLElement](f : T => Unit):HtmlBuilder[T] = 
+        val ret  : T = summon
+        ret.$change{ _ => f(ret)}
+        ret
 
       def me[T<: HTMLElement]:HtmlBuilder[T] =
         summon
@@ -85,6 +98,8 @@ object Experimental:
         doOnMe(m => f(m.style))
       def attr[T<: HTMLElement](attr : (String,String) *):HtmlBuilder[T] =
         doOnMe(_.$attr(attr.toList))
+      def btnActive[T<: HTMLElement]:HtmlBuilder[T] =
+        _class("btn btn-primary")
     
       def text[T<: HTMLElement](str : String):HtmlBuilder[T] =
         doOnMe(_.textContent = str)

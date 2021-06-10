@@ -59,7 +59,7 @@ class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso]:
 
 
   val nameDiv: Span = $c.span[Span] := spanNameLevel(perso)
-  val descDiv: Span = $c.span[Span] := spadescLevel(perso)
+  val descDiv: Span = $c.span[Span] := (_._class="black-on-white") := spadescLevel(perso)
 
   def spanNameLevel(perso: Perso)(s: Span) =
     s.clear()
@@ -98,7 +98,7 @@ class PerCpnt(val perso: Perso) extends HtmlCpnt with UpdatableCpnt[Perso]:
   override val get: IterableOnce[HTMLElement] =
     val ret = $va div List(
       $va div List((nameDiv.wrap(tag.div))) := { me =>
-        me._class = "card-title"
+        me._class = "card-title black-on-white"
       },descDiv,hpVarCpnt.html,
         $va div List(row(List($t("stat") +: contStat, $t("L") +: contArmL, $t("G") +: contArmR, $t("stat+") +: lcomputedStat))) := { me =>
         me._class = "card-body black-on-white"

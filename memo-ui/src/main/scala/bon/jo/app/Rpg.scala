@@ -26,9 +26,13 @@ import bon.jo.rpg._
 
 import bon.jo.rpg.resolve.given
 import bon.jo.rpg.dao.FormuleJs
-import bon.jo.rpg.dao.Formule
+import bon.jo.rpg.resolve.FormuleType
+import bon.jo.rpg.resolve.Formule
+import bon.jo.rpg.resolve.PersoAttaqueResolve
 import bon.jo.rpg.dao.FormuleDao
 import org.scalajs.dom.raw.HTMLElement
+import bon.jo.rpg.AffectResolver.AffectFormuleResolver
+import bon.jo.dao.Dao
 
 
 
@@ -37,14 +41,15 @@ import org.scalajs.dom.raw.HTMLElement
 
 
 
-trait Rpg extends Ec with ArmesPage with RpgSimu:
+trait Rpg extends Ec with ArmesPage with RpgSimu with AffectFormuleResolver:
   def createButton(addRandomButton: Button): Unit
   def init(): HTMLElement
 
   val onChangePage = ListBuffer[()=>Unit]()
   val weaponDao: MappedDao[WeaponJS, Weapon,Int] with WeaponDao
   val persoDao: MappedDao[PersoJS, Perso,Int] with PersoDao
-  val formuleDao: MappedDao[FormuleJs, Formule,String] with FormuleDao
+  val formuleDao: MappedDao[FormuleJs, Formule,(Affect,FormuleType)] with FormuleDao 
+
   val deckCreation: Div =
  
     $c.div[Div]
@@ -77,26 +82,42 @@ trait Rpg extends Ec with ArmesPage with RpgSimu:
     given HtmlUi = new HtmlUi{}
     given HtmlRep[Perso, PerCpnt] = HtmlUi.PersoRep
     given HtmlRep[SystemElement, ImuutableHtmlCpnt] = HtmlUi.acctRep
+
+    given Dao[bon.jo.rpg.resolve.Formule,(bon.jo.rpg.Affect, bon.jo.rpg.resolve.FormuleType)] =( formuleDao:  Dao[Formule,(Affect,FormuleType)] ) 
+
+ 
+
+   
+
+    formulesMap.map{
+      ( f  :  Map[Formule.ID,Formule] )=>
+        given Map[Formule.ID,Formule] =f
+        given ResolveContext = new resolve.DefaultResolveContext{
+          override def attaqueResolve:AttaqueResolve = (new PersoAttaqueResolve{}).createResolve
+        }
+        go
+
+    }
  //   given Resolver[Perso, Perso,Action.Attaque.type] = CalculsPersoPerso
-
+    def go(using ResolveContext):Unit=
   
-    val linkedUI = new WithUI()
-    import linkedUI.given
-    cpntMap = timeLine.timedObjs.map{ v =>
-      val htmlCpnt = v.value.asInstanceOf[Perso].html
-      (v.id,htmlCpnt)
-    }.toMap
-    
+      val linkedUI = new WithUI()
+      import linkedUI.given
+      cpntMap = timeLine.timedObjs.map{ v =>
+        val htmlCpnt = v.value.asInstanceOf[Perso].html
+        (v.id,htmlCpnt)
+      }.toMap
+      
 
-    root.style.maxWidth = "80%"
-    cpntMap.flatMap(_._2.get).foreach(e => root += e)
+      root.style.maxWidth = "80%"
+      cpntMap.flatMap(_._2.get).foreach(e => root += e)
 
-    clearUI
-    val cpntTimeLine = new TimeLineCpnt( linkedUI)
-    root.appendChild(cpntTimeLine.tlView)
-    cpntTimeLine.tlView.$userCanDrag()
-    cpntTimeLine.doEvent()
-    onChangePage += (() => timeLine.stop())
+      clearUI
+      val cpntTimeLine = new TimeLineCpnt( linkedUI)
+      root.appendChild(cpntTimeLine.tlView)
+      cpntTimeLine.tlView.$userCanDrag()
+      cpntTimeLine.doEvent()
+      onChangePage += (() => timeLine.stop())
 
 
 

@@ -12,6 +12,7 @@ import bon.jo.rpg.stat.GameElement
 import bon.jo.rpg.stat.Actor.Weapon
 import CommandeCtx.*
 import bon.jo.rpg.stat.Perso
+import bon.jo.rpg.resolve.FormuleType
 
 
 object CommandeCtx:
@@ -91,7 +92,8 @@ open abstract class Effect(val time : Int,val name : Affect):
 case class FactorEffectt(override val time : Int ,factor : Float ,override val name : Affect) extends Effect( time , name ):
   def -- : Effect = copy(time-1)
 
-  
+
+
 enum Affect(val name : String,val vivMod:Option[Float] = None) extends SystemElement:
 
 
@@ -114,6 +116,9 @@ enum Affect(val name : String,val vivMod:Option[Float] = None) extends SystemEle
   val id = toString
 
 
+  def formuleTypes : Iterable[FormuleType] = this match
+    case Affect.Attaque => Some(FormuleType.Degat)
+    case _ => Some(FormuleType.ChanceToSuccess)
 
 
 

@@ -31,6 +31,7 @@ object TestRPG extends App:
   given PlayerUI = PlayerUIStdIn.value
 
 
+  given ResolveContext = new resolve.DefaultResolveContext
 
   
 

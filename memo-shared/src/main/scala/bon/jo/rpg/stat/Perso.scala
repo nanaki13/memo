@@ -29,7 +29,7 @@ object Perso:
 
   trait PlayerPersoUI extends PlayerUI:
     type S = Perso
-  class WithUI()(using val playerUI : PlayerUI)(using TimeLineParam):
+  class WithUI()(using val playerUI : PlayerUI)(using TimeLineParam,ResolveContext):
     
     given WithUI = this
     given persoCtx :  PersoCtx = new PersoCtx{}

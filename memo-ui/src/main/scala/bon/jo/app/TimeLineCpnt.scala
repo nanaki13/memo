@@ -27,7 +27,7 @@ class TimeLineCpnt(val withUI: WithUI)(using el:  TimeLineOps):
   val tlView: Div = $c.div
   tlView.draggable = true
 
-
+  tlView._class ="time-line"
   tlView.style.position = "absolute"
   tlView.style.top = "10px"
   tlView.style.right = s"0"

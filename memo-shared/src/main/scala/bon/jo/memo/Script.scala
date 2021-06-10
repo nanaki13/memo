@@ -56,6 +56,7 @@ object Script:
         case Value(val values : List[A]) 
 
         def groupValue[B](f :Value[A]=>B,combine : (B,B)=>B): B=
+            println(this);
             this match
                 case a : Value[A] => f.apply(a)
                 case Root(childs) => 
@@ -75,17 +76,20 @@ object Script:
     def expressionPure( values : Value[PhraseElement]):Exper =
         values.values.foldLeft(Exper.Empty)(_.conbineRight(_))
     
-    def expressionPureWithAsso( values : Value[PhraseElement])(first : PhraseElement.Symbol *):Exper =
+    def expressionPureWithAsso( values : Value[PhraseElement])(minorPriority : PhraseElement.Symbol *):Exper =
         var ret : Exper = Exper.Empty
         val buff : List[PhraseElement] =  values.values
 
-        val fist = first.map(buff.indexOf(_)).find(_ != -1).getOrElse(-1) 
-        val haveOther = buff.find( e => !first.contains(e) && e.isInstanceOf[PhraseElement.Symbol] )
-        if(fist != -1 && haveOther.isDefined) then
-            val sp = buff.zipWithIndex.find( e => e._1 != first && e._1.isInstanceOf[PhraseElement.Symbol] ).get
-            val (head,tail) = buff.splitAt(sp._2+1)
+        val fist = minorPriority.map(buff.indexOf(_)).find(_ != -1).getOrElse(-1) 
+        val haveOther = buff.slice(fist,buff.size).map(buff.indexOf(_)).find(_ != -1).getOrElse(-1) 
+      
+       
+        if(fist != -1 && haveOther  != -1) then
 
-            expressionPure(Value(head)).conbineRight(expressionPureWithAsso(Value(tail))(first : _ *)) 
+            val (head,tail) = buff.splitAt(fist+1)
+       
+
+            expressionPure(Value(head)).conbineRight(expressionPureWithAsso(Value(tail))(minorPriority : _ *)) 
 
         else
            expressionPure(values)   
@@ -95,7 +99,7 @@ object Script:
         def toExpression() : Exper = 
             a.groupValue(Script.expressionPure ,_ conbineRight _)
         def toExpressionWithAsso() : Exper = 
-            a.groupValue(Script.expressionPureWithAsso(_)(Exper.`/`,Exper.`*`) ,_ conbineRight _)
+            a.groupValue(Script.expressionPureWithAsso(_)(Exper.`+`,Exper.`-`) ,_ conbineRight _)
         
     object Node:
         
@@ -149,19 +153,32 @@ object Script:
         case Val(a : Any)
         case Symbol(s : String)
         case Operation(l : Exper,s : Char,r : Exper)
+        def findLeftPalce(e : Operation): Exper => Operation = 
+            e.l match
+                case Empty =>
+                     le  =>  e.copy(l= le)
+                case op :  Operation => 
+                    le => e.copy(findLeftPalce(op)(le))
         def conbineRight(e : Exper):Exper =
 
             (this,e) match
                 case (Empty,a ) => a
                 case (a,Empty) => a
                 case (Operation(l,s,Exper.Empty),r) =>  Operation(l,s,r)
-                case (l,Operation(Exper.Empty,s,r)) =>  Operation(l,s,r)
+                case (l,Operation(Exper.Empty,s,Exper.Empty)) =>  Operation(l,s,Exper.Empty)
+                case (l,Operation(Exper.Empty,s,r)) =>  
+                    l match 
+                        case ll@Operation(a ,'+', b) => Operation(a ,'+', Operation(b,s,r))
+                        case ll@Operation(a ,'-', b) =>  Operation(a ,'-', Operation(b,s,r))
+                        case _ =>  Operation(l,s,r)
                 case (left,right) => 
                     left match
                         case Operation(l,s,Operation(li,si,Exper.Empty)) => Operation(l,s,Operation(li,si,right))
                         case _ => 
                             right match
                                 case Operation(Operation(Exper.Empty,si,ri),s,r) => Operation(Operation(left,si,ri),s,r)
+                                case op : Operation => println("----------"); println(this);(println(e));findLeftPalce(op)(left)
+                                
                                 case _ => println(this);(println(e));???
                     
 
@@ -172,6 +189,7 @@ object Script:
             (this,exp) match
                 case (Empty,a ) => a
                 case (a,Empty) => a
+                case (Operation,Operation) =>
                 case (l,Exper.Operation(_,s,r)) => Exper.Operation(l,s,r)
                 case (Exper.Operation(l,s,_),r) => Exper.Operation(l,s,r)
         
@@ -227,8 +245,11 @@ object Script:
                     case(false,true)  => p.dropRight(1)
                     case(false,false)  => p
 
-        def apply(string : String)(using OpenCLose) :Exper =
-            Node(string.toPhrase).groupValue(Script.expressionPure ,_ conbineRight _)
+        def apply(string : String,option : AssosType =  AssosType.Natural )(using OpenCLose) :Exper =
+            option match 
+                case AssosType.Natural => Node(string.toPhrase).toExpressionWithAsso()
+                case AssosType.LeftRight => Node(string.toPhrase).toExpression()
+                
 
 
         def apply(phrase : PhraseElement):Exper=
@@ -345,11 +366,14 @@ object Script:
 
 
     type OpenCLose = (PhraseElement, PhraseElement)  
+    enum AssosType:
+        case Natural;case LeftRight
     extension (s : String)
-        def toExpression(using OpenCLose) : Exper =  Exper(s)
+        def toExpression(using OpenCLose) : Exper =  Exper(s,AssosType.LeftRight)
         def toExpressionWithAsso(using OpenCLose)  : Exper = s.toNode.toExpressionWithAsso()
         def toPhrase : List[PhraseElement] =  Phrase(s)
-        def toFunction[T](using ToFunction[String,T],OpenCLose)  : T => Float =  Exper(s).toFunction[T]
+        def toFunction[T](option : AssosType = AssosType.Natural)(using ToFunction[String,T],OpenCLose)  : T => Float =  
+            Exper(s,option).toFunction[T]
         def toNode(using OpenCLose) :Node.Root[PhraseElement] =
             val f :List[PhraseElement] =s.toPhrase 
             Node(f)

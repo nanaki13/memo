@@ -27,8 +27,10 @@ import scala.scalajs.js.JSON
 import scala.util.{Failure, Success}
 import bon.jo.rpg.dao.FormuleDao.FormuleDaoJs
 import bon.jo.rpg.dao.FormuleJs
-import bon.jo.rpg.dao.Formule
+import bon.jo.rpg.resolve.Formule
 import bon.jo.rpg.dao.FormuleDao
+import bon.jo.rpg.Affect
+import bon.jo.rpg.resolve.FormuleType
 
 
 object AppLoaderExample extends App:
@@ -38,18 +40,23 @@ object AppLoaderExample extends App:
     override implicit val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.global
     val weaponJsDao: WeaponDaoJs = new WeaponDaoJs {
       override implicit val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.global
+      def keyPath : String = "id"
     }
     val persoJsDao: PersoDaoJs = new PersoDaoJs {
       override implicit val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.global
+      def keyPath : String = "id"
     }
-    given Conversion[String,scalajs.js.Any] = s => s.asInstanceOf[js.Any]
+    given Conversion[(Affect,FormuleType),scalajs.js.Any] = s => 
+      println(js.Array(s._1.id,s._2.toString))
+      js.Array(s._1.id,s._2.toString)
     val formuleJsDao: FormuleDaoJs = new FormuleDaoJs {
       override implicit val executionContext: ExecutionContext = scala.concurrent.ExecutionContext.global
+      def keyPath : Array[String] = Array("affect","formuleType")
     }
     
     override val weaponDao: MappedDao[WeaponJS, Weapon,Int] with WeaponDao with IntMappedDao[WeaponJS, Weapon]= WeaponDao(weaponJsDao)
     override val persoDao: MappedDao[Export.PersoJS, Perso,Int] with PersoDao = PersoDao(persoJsDao)
-    override val formuleDao: MappedDao[FormuleJs, Formule,String] with FormuleDao = FormuleDao(formuleJsDao)
+    override val formuleDao: MappedDao[FormuleJs, Formule,(Affect,FormuleType)] with FormuleDao = FormuleDao(formuleJsDao)
 
     private val fromChild =  $c.a[Anchor]:= (menuLink => {menuLink._class = "nav-item menu-link"})
     override def createButton(addRandomButton: Button): Unit =
@@ -163,7 +170,7 @@ object AppLoaderExample extends App:
     val rp = rpg
     import rp.executionContext
     given HTMLElement  = rpg.root
-    IndexedDB.init(rp.weaponDao.daoJs.name, rp.persoDao.daoJs.name, rp.formuleDao.daoJs.name) map { _ =>
+    IndexedDB.init(rp.weaponDao.daoJs, rp.persoDao.daoJs, rp.formuleDao.daoJs) map { _ =>
       rp.init()
     } onComplete{
       case Failure(exception) => exception match

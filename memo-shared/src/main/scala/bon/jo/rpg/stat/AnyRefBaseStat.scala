@@ -6,7 +6,7 @@ import bon.jo.common.Affects.Affect
 import bon.jo.common.Alg
 
 import scala.util.Random
-trait AnyRefBaseStat[+A]:
+trait AnyRefBaseStat[+A] extends Product:
   def named: AnyRefBaseStat[(String,A)] =
     AnyRefBaseStat(toNameValueList.map(e => (e._1,e)))
 

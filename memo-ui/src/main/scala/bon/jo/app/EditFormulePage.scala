@@ -46,7 +46,7 @@ trait EditFormulePage {
             println("phrase = "+formule.textContent.toPhrase)
             println("node = "+formule.textContent.toNode)
             println("expression = "+formule.textContent.toExpression)
-            val f = formule.textContent.toFunction[P]
+            val f = formule.textContent.toFunction[P]()
             result.textContent = f(parValue).toString
 
 

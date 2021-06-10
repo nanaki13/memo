@@ -7,3 +7,4 @@ target
 .vscode
 memo-ui/memo-ui-fastopt.js
 **/metals.sbt
+.scalafmt.conf
