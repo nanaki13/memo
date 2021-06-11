@@ -10,7 +10,9 @@ import scala.collection.mutable.ListBuffer
 import bon.jo.memo.Script.PhraseElement
 import Script.*
 import scala.reflect.ClassTag
-
+import bon.jo.common.ec.*
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext
 
 package give:
     given OpenCLose = (Exper.`(`,Exper.`)`)
@@ -18,6 +20,7 @@ package give:
 
 object Script:
 
+    val logger = SimpleLog[Script.type]
     val preDef :Map[String,(()=>Float)] = Map("rand" -> Random.nextFloat)
 
     given [A<:Product,B<:Product](using prefix : List[String]) :  ToFunction[String,(A,B)]  = 
@@ -56,7 +59,7 @@ object Script:
         case Value(val values : List[A]) 
 
         def groupValue[B](f :Value[A]=>B,combine : (B,B)=>B): B=
-            println(this);
+          
             this match
                 case a : Value[A] => f.apply(a)
                 case Root(childs) => 
@@ -73,8 +76,8 @@ object Script:
                 case _ => None
 
     
-    def expressionPure( values : Value[PhraseElement]):Exper =
-        values.values.foldLeft(Exper.Empty)(_.conbineRight(_))
+    def expressionPure( values : Value[PhraseElement])(minorPriority : Seq[PhraseElement.Symbol] = Seq.empty):Exper =
+        values.values.foldLeft(Exper.Empty)(_.conbineRight(_)(minorPriority.map(_.str) : _ * ))
     
     def expressionPureWithAsso( values : Value[PhraseElement])(minorPriority : PhraseElement.Symbol *):Exper =
         var ret : Exper = Exper.Empty
@@ -85,19 +88,16 @@ object Script:
       
        
         if(fist != -1 && haveOther  != -1) then
-
             val (head,tail) = buff.splitAt(fist+1)
-       
-
-            expressionPure(Value(head)).conbineRight(expressionPureWithAsso(Value(tail))(minorPriority : _ *)) 
+            expressionPure(Value(head))(minorPriority).conbineRight(expressionPureWithAsso(Value(tail))(minorPriority : _ *)) 
 
         else
-           expressionPure(values)   
+           expressionPure(values)(minorPriority)   
 
        
     extension (a : Node[PhraseElement])
         def toExpression() : Exper = 
-            a.groupValue(Script.expressionPure ,_ conbineRight _)
+            a.groupValue(v => Script.expressionPure(v)() ,_ conbineRight _)
         def toExpressionWithAsso() : Exper = 
             a.groupValue(Script.expressionPureWithAsso(_)(Exper.`+`,Exper.`-`) ,_ conbineRight _)
         
@@ -142,6 +142,25 @@ object Script:
     
             
   
+    trait SimpleLog[T]:
+        val debug = true
+        def log(s : Any) = if debug then println(s)
+        def loga(s : Any) : Unit = 
+            val a : Exec[Unit] = Future(if debug then println(s))
+            SimpleLog.run(a)
+            
+    object SimpleLog:
+        class Impl[T] extends SimpleLog[T]
+       
+        import scala.concurrent.ExecutionContext.Implicits.given
+        def run(e : Exec[Unit]) = e.onComplete{
+            case _ => println("LOG ASYN OK OU KO")
+        }
+        object RootLogger extends SimpleLog[Nothing]
+        val all = collection.mutable.Map[ClassTag[_],SimpleLog[_]]()
+        def apply[T](using ct : ClassTag[T]) : SimpleLog[T]= 
+            println(ct)
+            all.getOrElseUpdate(ct,Impl[T]()).asInstanceOf[SimpleLog[T]]
 
   
     extension (c : Char)
@@ -153,15 +172,9 @@ object Script:
         case Val(a : Any)
         case Symbol(s : String)
         case Operation(l : Exper,s : Char,r : Exper)
-        def findLeftPalce(e : Operation): Exper => Operation = 
-            e.l match
-                case Empty =>
-                     le  =>  e.copy(l= le)
-                case op :  Operation => 
-                    le => e.copy(findLeftPalce(op)(le))
-        def conbineRight(e : Exper):Exper =
 
-            (this,e) match
+        def conbineRight(e : Exper):Exper =
+            val ret = (this,e) match
                 case (Empty,a ) => a
                 case (a,Empty) => a
                 case (Operation(l,s,Exper.Empty),r) =>  Operation(l,s,r)
@@ -177,29 +190,67 @@ object Script:
                         case _ => 
                             right match
                                 case Operation(Operation(Exper.Empty,si,ri),s,r) => Operation(Operation(left,si,ri),s,r)
-                                case op : Operation => println("----------"); println(this);(println(e));findLeftPalce(op)(left)
+                                case op : Operation => println("----------"); println(this);(println(e));Exper.findLeftPalce(op)(left)
                                 
                                 case _ => println(this);(println(e));???
                     
 
                 case _ => println(this);(println(e));???
             
-        def conbineRight(e : PhraseElement):Exper =
+            logger.log(s"Exper : l : $this") 
+            logger.log(s"Exper : r : $e")  
+            logger.log(s"Exper : res : $ret")     
+            ret
+
+        def conbineRight(e : PhraseElement)(lowPrio : Char *):Exper =
             val exp = Exper(e)
-            (this,exp) match
+            val ret = (this,exp) match
                 case (Empty,a ) => a
                 case (a,Empty) => a
-                case (Operation,Operation) =>
+                case (a : (Val | Symbol),  Exper.Operation(_,s,r)) => Exper.Operation(a,s,r)
+                case (l : Exper.Operation ,  a:  (Val | Symbol)) => Exper.findRightPalce(l)(a)
+                case ( Operation(l,s,r),  Exper.Operation(Empty,sr,Empty)) => 
+                    if lowPrio.contains(s) && lowPrio.contains(sr) then
+                        r match
+                            case Operation(rl,rop,rr) => 
+                                if lowPrio.contains(rop) then
+                                    Exper.Operation(l,s, Exper.Operation(r,sr,Empty))
+                                else
+                                    Exper.Operation(Exper.Operation(l,s, r),sr,Empty)    
+                            case _ => Exper.Operation(Exper.Operation(l,s, r),sr,Empty) 
+                    else if lowPrio.contains(s) then
+                        Exper.Operation(l,s, Exper.Operation(r,sr,Empty))
+                    else
+                        Exper.Operation(Exper.Operation(l,s, r),sr,Empty)         
                 case (l,Exper.Operation(_,s,r)) => Exper.Operation(l,s,r)
                 case (Exper.Operation(l,s,_),r) => Exper.Operation(l,s,r)
+                case (a,b) => println((a,b));???
         
-
+            logger.log(s"pel : l : $this") 
+            logger.log(s"pel : r : $exp")  
+            logger.log(s"pel : res : $ret")     
+            ret
+        
+        def explain():String=
+            this match 
+                case Val(v) => v.toString
+                case Empty => ""
+                case Symbol(a) => a
+                case Operation(l,op,r) =>  s"(${l.explain()} $op ${r.explain()})"
+                case e:  _ => throw IllegalStateException(s"$e not supported yet")
         def evaluate(using ctx : String => Float):Float = 
             this match 
                 case Val(v) => v.toString.toFloat
                 case Empty => Float.NaN
                 case Symbol(a) => ctx(a)
                 case Operation(l,op,r) =>  Exper.evaluate( l.evaluate ,op ,r.evaluate )
+                case e:  _ => throw IllegalStateException(s"$e not supported yet")
+        def evaluateVal:Float = 
+            this match 
+                case Val(v) => v.toString.toFloat
+                case Empty => Float.NaN
+                case Symbol(a) => throw IllegalStateException(s"can't have symbol during static eval : $a")
+                case Operation(l,op,r) =>  Exper.evaluate( l.evaluateVal ,op ,r.evaluateVal )
                 case e:  _ => throw IllegalStateException(s"$e not supported yet")
 
     
@@ -225,6 +276,27 @@ object Script:
         val `(` :PhraseElement.Symbol = PhraseElement.Symbol(0,'(')
         val `)`  :PhraseElement.Symbol= PhraseElement.Symbol(0,')')
 
+        def findLeftPalce(e : Operation): Exper => Operation = 
+            e.l match
+                case Empty =>
+                     le  =>  e.copy(l= le)
+                case op :  Operation => 
+                    le => e.copy(l=findLeftPalce(op)(le))
+        def findRightPalce(e : Operation): Exper => Operation = 
+            logger.loga("FIND R")
+            logger.loga(s"FIND $e")
+            val ret : Exper => Operation=  e.r match
+                case Empty =>
+                     le  =>  
+                        val  rr : Operation = e.copy(r= le)
+                        logger.loga(rr)
+                        rr
+                case op :  Operation => 
+                    le => e.copy(r=findRightPalce(op)(le))
+                case _ => ???
+
+            logger.loga(s"RET $ret")
+            ret
 
         def evaluate(left : Float,op : Char,right : Float):Float =
             op match 

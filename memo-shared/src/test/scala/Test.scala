@@ -7,20 +7,21 @@ import bon.jo.memo.give.given
 class ExampleSpec extends AnyFlatSpec with should.Matchers {
 
   "A expression" should "be the true" in {
-    /*"1 + 1 ".toExpression.evaluate(using (s) =>0)  should be( 2)
+    "1 + 1 ".toExpression.evaluateVal  should be( 2)
     "1 + (5+4)".toExpression.evaluate(using (s) =>0)  should be( 10)
     "2 * (x+4)".toExpression.evaluate(using (s) =>2)  should be( 12)
     "1+2*2 * 4".toExpression.evaluate(using (s) =>2)  should be( 24)
     "1+2*2 * 4".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 17)
     "1+2*(2) + 4".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 9)
     "1+2*(5-3) + 4".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 9)
-    "1+2*(5-3) - 1  + 4".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 8)*/
-    println("1+2*(5-3) - 3/3  + 4".toExpressionWithAsso)
-    println("----------------------------------------")
-    "1+2*(5-3) - 3/3  + 4".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 8)
-    /*"1+2*2 * 4".toExpressionWithAsso should be(  "1+(2*2 * 4)".toExpression)
+    "1+2*(5-3) - 1  + 4".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 8)
+  
+    "1+2*(5-7) - 10/5  + 4".toExpressionWithAsso.evaluate(using (s) =>2)  should be( -1)
+    println( "(1+2*(5-7) -1  - 10/5  + 4) - (5*7 )".toExpressionWithAsso.explain())
+    "(1+2*(5-7) -1  - 10/5  + 4) - (5*7 )".toExpressionWithAsso.evaluate(using (s) =>2)  should be((1+2*(5-7) -1  - 10/5  + 4) - (5*7 ))
+    "1+2*2 * 4".toExpressionWithAsso should be(  "1+(2*2 * 4)".toExpression)
     "1+2/2 * 4".toExpressionWithAsso should be(  "1+(2/2 * 4)".toExpression)
-     "2 * (x+4)".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 12)*/
+     "(x -1 ) * (x + 1)".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 3)
   }
 
   extension [A <: Product] (p : A)
