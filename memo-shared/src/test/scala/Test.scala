@@ -4,11 +4,19 @@ import flatspec._
 import matchers._
 import bon.jo.memo.Script.*
 import bon.jo.memo.give.given
+import bon.jo.common.TestMacro
 class ExampleSpec extends AnyFlatSpec with should.Matchers {
 
   "A expression" should "be the true" in {
+    println("call inspect")
+    val test = TestMacro.inspect("", 1)
+    println("call inspect")
+     
+    val test2 = TestMacro.inspect("", test)
+    println("call inspect")
+    val test3 = TestMacro.inspect("", 1)
     "1 + 1 ".toExpression.evaluateVal  should be( 2)
-    "1 + (5+4)".toExpression.evaluate(using (s) =>0)  should be( 10)
+  /*  "1 + (5+4)".toExpression.evaluate(using (s) =>0)  should be( 10)
     "2 * (x+4)".toExpression.evaluate(using (s) =>2)  should be( 12)
     "1+2*2 * 4".toExpression.evaluate(using (s) =>2)  should be( 24)
     "1+2*2 * 4".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 17)
@@ -21,7 +29,8 @@ class ExampleSpec extends AnyFlatSpec with should.Matchers {
     "(1+2*(5-7) -1  - 10/5  + 4) - (5*7 )".toExpressionWithAsso.evaluate(using (s) =>2)  should be((1+2*(5-7) -1  - 10/5  + 4) - (5*7 ))
     "1+2*2 * 4".toExpressionWithAsso should be(  "1+(2*2 * 4)".toExpression)
     "1+2/2 * 4".toExpressionWithAsso should be(  "1+(2/2 * 4)".toExpression)
-     "(x -1 ) * (x + 1)".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 3)
+     "(x -1 ) * (x + 1)".toExpressionWithAsso.evaluate(using (s) =>2)  should be( 3)*/
+    TestMacro.inspect("", "toto")
   }
 
   extension [A <: Product] (p : A)

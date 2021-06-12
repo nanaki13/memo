@@ -11,16 +11,19 @@ import bon.jo.memo.Script.PhraseElement
 import Script.*
 import scala.reflect.ClassTag
 import bon.jo.common.ec.*
+import bon.jo.common.log.*
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
-
+import bon.jo.common.TestMacro
+import scala.util.Failure
+import bon.jo.memo.LogConf.given
 package give:
     given OpenCLose = (Exper.`(`,Exper.`)`)
 
 
-object Script:
+object Script extends Logged[Script.type]:
 
-    val logger = SimpleLog[Script.type]
+    //val logger = SimpleLog[Script.type]
     val preDef :Map[String,(()=>Float)] = Map("rand" -> Random.nextFloat)
 
     given [A<:Product,B<:Product](using prefix : List[String]) :  ToFunction[String,(A,B)]  = 
@@ -140,27 +143,8 @@ object Script:
     def dotted(s : String) = s"${s}."  
     def stringFunction[A <: Product] : String => A => Float = s => a => a.nameToProp.find(_._1 == s).map(_._2).get.asInstanceOf[Float]
     
-            
-  
-    trait SimpleLog[T]:
-        val debug = true
-        def log(s : Any) = if debug then println(s)
-        def loga(s : Any) : Unit = 
-            val a : Exec[Unit] = Future(if debug then println(s))
-            SimpleLog.run(a)
-            
-    object SimpleLog:
-        class Impl[T] extends SimpleLog[T]
-       
-        import scala.concurrent.ExecutionContext.Implicits.given
-        def run(e : Exec[Unit]) = e.onComplete{
-            case _ => println("LOG ASYN OK OU KO")
-        }
-        object RootLogger extends SimpleLog[Nothing]
-        val all = collection.mutable.Map[ClassTag[_],SimpleLog[_]]()
-        def apply[T](using ct : ClassTag[T]) : SimpleLog[T]= 
-            println(ct)
-            all.getOrElseUpdate(ct,Impl[T]()).asInstanceOf[SimpleLog[T]]
+   
+    
 
   
     extension (c : Char)
@@ -197,9 +181,10 @@ object Script:
 
                 case _ => println(this);(println(e));???
             
-            logger.log(s"Exper : l : $this") 
-            logger.log(s"Exper : r : $e")  
-            logger.log(s"Exper : res : $ret")     
+            //loga(this) 
+           
+            loga(e)  
+            loga(ret)     
             ret
 
         def conbineRight(e : PhraseElement)(lowPrio : Char *):Exper =
@@ -226,9 +211,9 @@ object Script:
                 case (Exper.Operation(l,s,_),r) => Exper.Operation(l,s,r)
                 case (a,b) => println((a,b));???
         
-            logger.log(s"pel : l : $this") 
-            logger.log(s"pel : r : $exp")  
-            logger.log(s"pel : res : $ret")     
+            loga(this) 
+            loga(exp)  
+            loga(ret)     
             ret
         
         def explain():String=
@@ -283,19 +268,19 @@ object Script:
                 case op :  Operation => 
                     le => e.copy(l=findLeftPalce(op)(le))
         def findRightPalce(e : Operation): Exper => Operation = 
-            logger.loga("FIND R")
-            logger.loga(s"FIND $e")
+          
+          
             val ret : Exper => Operation=  e.r match
                 case Empty =>
                      le  =>  
                         val  rr : Operation = e.copy(r= le)
-                        logger.loga(rr)
+                        
                         rr
                 case op :  Operation => 
                     le => e.copy(r=findRightPalce(op)(le))
                 case _ => ???
 
-            logger.loga(s"RET $ret")
+            
             ret
 
         def evaluate(left : Float,op : Char,right : Float):Float =
@@ -449,3 +434,5 @@ object Script:
         def toNode(using OpenCLose) :Node.Root[PhraseElement] =
             val f :List[PhraseElement] =s.toPhrase 
             Node(f)
+
+
