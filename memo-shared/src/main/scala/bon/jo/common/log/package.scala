@@ -1,8 +1,8 @@
 package bon.jo.common
-import bon.jo.common.ec.*
-import scala.util.Failure
-package  log :
 
+package  log :
+    import bon.jo.common.ec.*
+    import scala.util.Failure
     import scala.reflect.ClassTag
     import scala.concurrent.Future
     trait Logged[A](using ClassTag[A],Map[ClassTag[_],Boolean]):
