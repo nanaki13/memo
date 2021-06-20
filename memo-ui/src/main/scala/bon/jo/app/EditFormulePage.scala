@@ -42,7 +42,7 @@ trait EditFormulePage {
 
 
     def runExp:Unit = 
-            import bon.jo.memo.give.given
+            import bon.jo.common.give.given
             println("phrase = "+formule.textContent.toPhrase)
             println("node = "+formule.textContent.toNode)
             println("expression = "+formule.textContent.toExpression)

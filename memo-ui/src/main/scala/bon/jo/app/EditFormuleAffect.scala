@@ -62,7 +62,7 @@ object EditFormauleAffect:
         val buff = ListBuffer.empty[EditStatWithName[Perso]]
         val List(attCpnt,deffCpnt) =  List(att,deff).map(_.htmlp((summon[Rpg],buff)))
         def runExp:Unit = 
-            import bon.jo.memo.give.given
+            import bon.jo.common.give.given
             import bon.jo.rpg.resolve.Formule.given
             import bon.jo.rpg.stat.BaseState.ImplicitCommon.given
             println("phrase = "+formule.textContent.toPhrase)

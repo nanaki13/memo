@@ -42,7 +42,7 @@ object PersoAttaqueResolve extends  AttaqueResolve{
 }
 trait PersoAttaqueResolve(using formulesMap :  Map[Formule.ID,Formule]) :
     import Formule.given
-    import bon.jo.memo.give.given
+    import bon.jo.common.give.given
     given Affect = Affect.Attaque
   
 

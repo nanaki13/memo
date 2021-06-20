@@ -2,8 +2,8 @@ package bon.jo.rpg.stat
 import bon.jo.common.Affects.AffectOps
 import bon.jo.rpg.stat.BaseState.ImplicitCommon._
 import bon.jo.rpg.stat.raw.StringBaseStat
-import bon.jo.common.Affects.Affect
 import bon.jo.common.Alg
+import bon.jo.common.Affects.:=
 
 import scala.util.Random
 trait AnyRefBaseStat[+A] extends Product:
