@@ -4,3 +4,4 @@ enum FormuleType:
     case Degat
     case ChanceToSuccess
     case Factor
+    case TurnDuration

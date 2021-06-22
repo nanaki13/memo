@@ -4,4 +4,4 @@ package draw:
         inline def draw[R](success  : Float,pres :Float => Unit ,ok :  => R,ko :  => R ) : R =
             val d = r.nextFloat
             pres(d)
-            if r.nextFloat < success then ok else ko
+            if d  <= success then ok else ko

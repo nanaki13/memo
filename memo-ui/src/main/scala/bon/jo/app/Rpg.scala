@@ -29,6 +29,7 @@ import bon.jo.rpg.dao.FormuleJs
 import bon.jo.rpg.resolve.FormuleType
 import bon.jo.rpg.resolve.Formule
 import bon.jo.rpg.resolve.PersoAttaqueResolve
+import bon.jo.rpg.resolve.PersoSlowPersoFactory
 import bon.jo.rpg.dao.FormuleDao
 import org.scalajs.dom.raw.HTMLElement
 import bon.jo.rpg.AffectResolver.AffectFormuleResolver
@@ -94,6 +95,7 @@ trait Rpg extends Ec with ArmesPage with RpgSimu with AffectFormuleResolver:
         given Map[Formule.ID,Formule] =f
         given ResolveContext = new resolve.DefaultResolveContext{
           override def attaqueResolve:AttaqueResolve = (new PersoAttaqueResolve{}).createResolve
+          override def slowResolve:SlowResolve = (new PersoSlowPersoFactory{}).createResolve
         }
         go
 

@@ -49,9 +49,10 @@ trait PersoSlowPersoFactory(using formulesMap :  Map[Formule.ID,Formule]) :
 
     inline def successFormule = AffectResolver.read(FormuleType.ChanceToSuccess)
     inline def facteurFormule = AffectResolver.read(FormuleType.Factor)
+    inline def turnDuration = AffectResolver.read(FormuleType.TurnDuration)
     val successF : ((IntBaseStat,IntBaseStat)) => Float = successFormule.get.formule.toFunction[(IntBaseStat,IntBaseStat)]()
     val facteurF : ((IntBaseStat,IntBaseStat)) => Float = facteurFormule.get.formule.toFunction[(IntBaseStat,IntBaseStat)]()
-    val facteurF : ((IntBaseStat,IntBaseStat)) => Float = facteurFormule.get.formule.toFunction[(IntBaseStat,IntBaseStat)]()
+    val turnDurationF : ((IntBaseStat,IntBaseStat)) => Float = turnDuration.get.formule.toFunction[(IntBaseStat,IntBaseStat)]()
     def createResolve:SlowResolve= 
         new SlowResolve:
             type P = TimedTrait[GameElement]
@@ -63,6 +64,7 @@ trait PersoSlowPersoFactory(using formulesMap :  Map[Formule.ID,Formule]) :
                     
                         val chanceToHit = successF(att.stats,cible.stats).round
                         val factor = facteurF(att.stats,cible.stats).round
+                        val turnDuration = turnDurationF(att.stats,cible.stats).round
                         PlayerUI(s"Chance de succés : ${(chanceToHit*100).round.toInt} %")
                         r.draw(chanceToHit ,
                           e=>  PlayerUI(s"Lancer : ${(e*100).round.toInt} %")
