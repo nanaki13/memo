@@ -65,7 +65,7 @@ trait PersoSlowPersoFactory(using formulesMap :  Map[Formule.ID,Formule]) :
                         val chanceToHit = successF(att.stats,cible.stats).round
                         val factor = facteurF(att.stats,cible.stats).round
                         val turnDuration = turnDurationF(att.stats,cible.stats).round
-                        PlayerUI(s"Chance de succés : ${(chanceToHit*100).round.toInt} %")
+                        PlayerUI(s"Chance de succés : ${(chanceToHit*100)} %")
                         r.draw(chanceToHit ,
                           e=>  PlayerUI(s"Lancer : ${(e*100).round.toInt} %")
                         , 
