@@ -1,6 +1,6 @@
 package bon.jo.rpg.dao
 
-import bon.jo.app.Export.PersoJS
+
 import bon.jo.dao.LocalJsDao
 import bon.jo.dao.LocalJsDao.{MappedDao, MappedDaoImpl}
 import bon.jo.rpg.stat.raw.Perso

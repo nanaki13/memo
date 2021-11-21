@@ -1,13 +1,14 @@
-package bon.jo.app
+package bon.jo.rpg.ui
 
 import bon.jo.html.HTMLDef.{$t, HtmlOps}
 import bon.jo.memo.ui.PopUp
+import bon.jo.rpg.ui.MessageImpl
 import bon.jo.rpg.ui.PlayerMessage
 import org.scalajs.dom.window
 
 trait SimpleMessage extends PlayerMessage:
 
-  override type T = MEsageImpl
+  override type T = MessageImpl
 
   val messageDiv = $t div "" := { d =>
     d.style.color = "white"
@@ -23,11 +24,11 @@ trait SimpleMessage extends PlayerMessage:
 //    }, timeToDisplay)
 //    t
 
-  def message(str: String): MEsageImpl =
-    val ret = MEsageImpl($t div (str))
+  def message(str: String): MessageImpl =
+    val ret = MessageImpl($t div (str))
     ret.str._class = "alert alert-warning"
     messageDiv.appendChild(ret.str)
     ret
 
-  def clear(str: MEsageImpl): Unit =
+  def clear(str: MessageImpl): Unit =
     messageDiv.removeChild(str.str)

@@ -1,6 +1,6 @@
-package bon.jo.app
+package bon.jo.rpg.ui
 
-import bon.jo.app.Export.{PersoJS, WeaponJS}
+import bon.jo.rpg.ui.Export.{PersoJS, WeaponJS}
 import bon.jo.dao.LocalJsDao.MappedDao
 import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
 import bon.jo.html.HTMLDef.{$c, $ref, HtmlOps}
@@ -23,7 +23,7 @@ import scala.collection.mutable.ListBuffer
 import bon.jo.rpg.stat.GameId
 import bon.jo.rpg.AffectResolver.Resolver
 import bon.jo.rpg._
-
+import bon.jo.rpg.ui.page.ArmesPage
 import bon.jo.rpg.resolve.given
 import bon.jo.rpg.dao.FormuleJs
 import bon.jo.rpg.resolve.FormuleType
@@ -34,15 +34,19 @@ import bon.jo.rpg.dao.FormuleDao
 import org.scalajs.dom.raw.HTMLElement
 import bon.jo.rpg.AffectResolver.AffectFormuleResolver
 import bon.jo.dao.Dao
+import bon.jo.rpg.dao.IntMappedDaoType
+import bon.jo.rpg.ui.GameParams.given
+import bon.jo.rpg.ui.TimeLineCpnt
+import bon.jo.rpg.ui.PerCpnt
+import bon.jo.rpg.ui.HtmlUi
+import bon.jo.rpg.ui.page.RpgSimuPage
 
 
 
 
 
 
-
-
-trait Rpg extends Ec with ArmesPage with RpgSimu with AffectFormuleResolver:
+trait Rpg extends Ec with ArmesPage with RpgSimuPage with AffectFormuleResolver:
   def createButton(addRandomButton: Button): Unit
   def init(): HTMLElement
 
@@ -57,7 +61,7 @@ trait Rpg extends Ec with ArmesPage with RpgSimu with AffectFormuleResolver:
 
 
 
-  import GameParams.given
+
   given Timed[GameElement] =bon.jo.rpg.stat.Perso.PeroPero.asInstanceOf[Timed[GameElement]]
   given timeLine: TimeLineOps = TimeLineOps()
   val root = $ref div {
@@ -82,7 +86,8 @@ trait Rpg extends Ec with ArmesPage with RpgSimu with AffectFormuleResolver:
     given Rpg = this
     given HtmlUi = new HtmlUi{}
     given HtmlRep[Perso, PerCpnt] = HtmlUi.PersoRep
-    given HtmlRep[SystemElement, ImuutableHtmlCpnt] = HtmlUi.acctRep
+    
+   
 
     given Dao[bon.jo.rpg.resolve.Formule,(bon.jo.rpg.Affect, bon.jo.rpg.resolve.FormuleType)] =( formuleDao:  Dao[Formule,(Affect,FormuleType)] ) 
 
@@ -105,6 +110,7 @@ trait Rpg extends Ec with ArmesPage with RpgSimu with AffectFormuleResolver:
   
       val linkedUI = new WithUI()
       import linkedUI.given
+      
       cpntMap = timeLine.timedObjs.map{ v =>
         val htmlCpnt = v.value.asInstanceOf[Perso].html
         (v.id,htmlCpnt)

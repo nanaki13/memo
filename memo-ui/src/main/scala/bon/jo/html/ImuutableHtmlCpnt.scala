@@ -1,4 +1,4 @@
-package bon.jo.app
+package bon.jo.html
 
 import bon.jo.html.HtmlRep.HtmlCpnt
 import org.scalajs.dom.raw.HTMLElement

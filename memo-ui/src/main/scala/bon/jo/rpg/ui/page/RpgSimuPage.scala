@@ -1,4 +1,4 @@
-package bon.jo.app
+package bon.jo.rpg.ui.page
 
 import bon.jo.html.HTMLDef.{$c, $ref, $va, HtmlOps}
 import bon.jo.html.HtmlRep.HtmlCpnt
@@ -8,14 +8,15 @@ import bon.jo.rpg.stat.raw.Perso
 import org.scalajs.dom.document
 import org.scalajs.dom.html.Div
 import org.scalajs.dom.raw.{Element, HTMLElement, Node}
-import bon.jo.app.ImuutableHtmlCpnt
-import Experimental._
-import bon.jo.app.HtmlUi.PersoRep
+import bon.jo.html.ImuutableHtmlCpnt
+import bon.jo.html.Experimental._
+import bon.jo.rpg.ui.HtmlUi.PersoRep
 import bon.jo.html.DomShell.ExtendedElement
 import org.scalajs.dom.console
 import scala.language.dynamics
-
-trait RpgSimu:
+import bon.jo.rpg.ui.PerCpnt
+import bon.jo.rpg.ui.Rpg
+trait RpgSimuPage:
     self : Rpg =>
       def simulation() : Unit =
         val enSelButton = SimpleView.bsButton("Start")

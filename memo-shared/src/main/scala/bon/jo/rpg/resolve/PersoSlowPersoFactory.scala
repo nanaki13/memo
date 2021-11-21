@@ -5,12 +5,14 @@ import bon.jo.rpg.stat.raw.IntBaseStat
 import bon.jo.rpg.stat.{GameElement, Perso}
 import bon.jo.rpg.ui.PlayerUI
 import bon.jo.rpg.{Affect, AffectResolver, FactorEffectt, TimedTrait}
-
+import bon.jo.rpg.draw.draw
 import scala.util.Random
-
+import bon.jo.memo.Script.*
+import bon.jo.rpg.resolve.PersoResolveContext.*
 trait PersoSlowPersoFactory(using formulesMap: Map[Formule.ID, Formule]):
 
-  import bon.jo.common.give
+  import Formule.given
+  import bon.jo.common.give.given
 
   given Affect = Affect.Slow
 
@@ -38,13 +40,13 @@ trait PersoSlowPersoFactory(using formulesMap: Map[Formule.ID, Formule]):
             val factor = facteurF(att.stats, cible.stats).round
             val turnDuration = turnDurationF(att.stats, cible.stats).round
             PlayerUI(s"Chance de succés : ${(chanceToHit * 100)} %")
-            r.draw(chanceToHit,
+            r.draw(chanceToHit.toFloat,
               e => PlayerUI(s"Lancer : ${(e * 100).round.toInt} %")
               ,
               ok = {
                 PlayerUI(s"Réussite!")
 
-                val eff: FactorEffectt = FactorEffectt(3, factor, Affect.Slow)
+                val eff: FactorEffectt = FactorEffectt(3, factor.toFloat, Affect.Slow)
                 uiProcess(ciblep.addEffect(eff), eff)
               }
               ,

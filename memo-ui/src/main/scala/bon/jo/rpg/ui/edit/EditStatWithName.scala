@@ -1,7 +1,8 @@
-package bon.jo.app
+package bon.jo.rpg.ui.edit
 
-
-import bon.jo.rpg.ui.SType.Param
+import bon.jo.html.Experimental.*
+import bon.jo.html.Experimental
+import bon.jo.html.ImuutableHtmlCpnt
 import bon.jo.dao.Dao
 import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
 import bon.jo.html.HTMLDef.{$c, $l, $ref, $t, $va, HtmlOps}
@@ -10,23 +11,22 @@ import bon.jo.html.HtmlRep
 import bon.jo.html.HtmlRep.{HtmlRepParam, PrXmlId}
 import bon.jo.memo.ui.SimpleView.{BsModifier, withClose}
 import bon.jo.memo.ui.{PopUp, SimpleView}
+import bon.jo.rpg.{Affect, Commande, SystemElement}
 import bon.jo.rpg.stat.Actor.Weapon
 import bon.jo.rpg.stat.StatsWithName
 import bon.jo.rpg.stat.raw.{IntBaseStat, Perso}
+import bon.jo.rpg.ui.SType.Param
+import bon.jo.rpg.ui.{ SType}
+import bon.jo.rpg.ui.edit.EditStat
 import bon.jo.ui.{ReadableCpnt, UpdatableCpnt}
 import org.scalajs.dom.html.{Div, Input, Span, TextArea}
 import org.scalajs.dom.raw.{HTMLElement, HTMLOptionElement, HTMLSelectElement}
 import org.scalajs.dom.window
-import Experimental.*
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
-import scala.util.{Failure, Success}
 import scala.language.dynamics
-import bon.jo.rpg.SystemElement
-import bon.jo.rpg.Affect
-import bon.jo.rpg.Commande
-import bon.jo.rpg.ui.{EditStat, SType}
+import scala.util.{Failure, Success}
 
 
 abstract class EditStatWithName[A <: StatsWithName](initial: A,val option: Option[Param[A]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends ImuutableHtmlCpnt 

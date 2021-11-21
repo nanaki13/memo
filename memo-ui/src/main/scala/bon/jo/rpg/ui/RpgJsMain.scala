@@ -1,16 +1,17 @@
 package bon.jo.app
 
-
-import bon.jo.app.Export.{PersoJS, WeaponJS}
+import bon.jo.rpg.ui.Export
+import bon.jo.rpg.ui.Export.{PersoJS, WeaponJS}
 import bon.jo.dao.IndexedDB
 import bon.jo.dao.IndexedDB.DBExeception
-import bon.jo.dao.LocalJsDao.{MappedDao, IntMappedDao}
+import bon.jo.dao.LocalJsDao.{MappedDao}
 import bon.jo.dao.LocalJsDao.given
 import bon.jo.html.DomShell.ExtendedElement
 import bon.jo.html.HTMLDef._
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.memo.ui.{PopUp, SimpleView}
 import bon.jo.rpg.dao.PersoDao.PersoDaoJs
+import bon.jo.rpg.dao.IntMappedDao
 import bon.jo.rpg.dao.{PersoDao, WeaponDao}
 import bon.jo.rpg.dao.WeaponDao.WeaponDaoJs
 import bon.jo.rpg.stat.raw.{Perso, Weapon}
@@ -31,9 +32,14 @@ import bon.jo.rpg.resolve.Formule
 import bon.jo.rpg.dao.FormuleDao
 import bon.jo.rpg.Affect
 import bon.jo.rpg.resolve.FormuleType
+import bon.jo.rpg.ui.edit.EditFormauleAffect
+import bon.jo.rpg.ui.page.EditFormulePage
+import bon.jo.rpg.ui.page.ChangeLog
+import bon.jo.rpg.ui.Rpg
 
-
-object AppLoaderExample extends App:
+object RpgJsMain extends App:
+  given  ((Weapon, Int) => Weapon) = _.withId(_) 
+  given  ((Perso, Int) => Perso) = _.withId(_) 
   document.body.classList.add("bg-1")
   object editPage extends EditFormulePage
   given Rpg with
@@ -55,7 +61,7 @@ object AppLoaderExample extends App:
     }
     
     override val weaponDao: MappedDao[WeaponJS, Weapon,Int] with WeaponDao with IntMappedDao[WeaponJS, Weapon]= WeaponDao(weaponJsDao)
-    override val persoDao: MappedDao[Export.PersoJS, Perso,Int] with PersoDao = PersoDao(persoJsDao)
+    override val persoDao: MappedDao[PersoJS, Perso,Int] with PersoDao = PersoDao(persoJsDao)
     override val formuleDao: MappedDao[FormuleJs, Formule,(Affect,FormuleType)] with FormuleDao = FormuleDao(formuleJsDao)
 
     private val fromChild =  $c.a[Anchor]:= (menuLink => {menuLink._class = "nav-item menu-link"})
@@ -86,6 +92,7 @@ object AppLoaderExample extends App:
           val data = JSON.parse(new String(Base64.getDecoder.decode(str), "utf-8"))
           val wJs: js.Array[Weapon] = data.w.asInstanceOf[js.Array[WeaponJS]].flatMap(WeaponJS.unapply)
           val pJs: js.Array[Perso] = data.p.asInstanceOf[js.Array[PersoJS]].flatMap(PersoJS.unapply)
+
           Future.sequence(wJs.map(weaponDao.createOrUpdate).toSeq ++ pJs.map(persoDao.createOrUpdate).toSeq)
       } onComplete{
         case Failure(exception) => PopUp("Import KO")

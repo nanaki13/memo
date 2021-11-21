@@ -1,0 +1,15 @@
+{
+	"folders": [
+		{
+			"path": "..\\phy\\phy-shared"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.watcherExclude": {
+			"**/target": true
+		}
+	}
+}

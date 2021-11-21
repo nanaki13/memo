@@ -1,17 +1,18 @@
-package bon.jo.app
+package  bon.jo.rpg.ui.page
 
 import org.scalajs.dom.raw.HTMLElement
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.html.HTMLDef.$c
 import org.scalajs.dom.html.{Span, Button}
-import bon.jo.app.Experimental.html.$t
-import bon.jo.app.Experimental.html.$
+import bon.jo.html.Experimental.html.$t
+import bon.jo.html.Experimental.html.$
 import $t.*
 import bon.jo.memo.Script._
 import scala.language.dynamics
 import org.scalajs.dom.raw.HTMLInputElement
 import bon.jo.memo.ui.SimpleView
 import bon.jo.html.HTMLDef.HtmlOps
+import bon.jo.html.Experimental
 trait EditFormulePage {
 
     object char :

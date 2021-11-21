@@ -14,7 +14,7 @@ enablePlugins(JavaAppPackaging)
 javacOptions += "-Xmx2G"
 val sharedSettings = Seq(version := mainVersion,
   organization := "bon.jo",
-  scalaVersion := "3.0.0",
+  scalaVersion := "3.1.0",
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.9" % "test",
   scalacOptions ++= Seq("-deprecation", "-feature"
     // ,"-source:3.0-migration"

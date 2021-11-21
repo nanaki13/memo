@@ -1,4 +1,4 @@
-package bon.jo.app
+package bon.jo.html
 
 import bon.jo.html.HTMLDef.HtmlOps
 import bon.jo.html.HTMLDef.$c

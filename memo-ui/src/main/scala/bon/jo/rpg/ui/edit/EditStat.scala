@@ -1,16 +1,16 @@
-package bon.jo.app
+package bon.jo.rpg.ui.edit
 
+import bon.jo.html.Experimental.*
+import bon.jo.html.ImuutableHtmlCpnt
 import bon.jo.common
 import bon.jo.common.Affects
-import bon.jo.html.HTMLDef.{$c, $t, $va,$l, HtmlOps}
+import bon.jo.html.HTMLDef.{$c, $l, $t, $va, HtmlOps}
 import bon.jo.html.HtmlRep
 import bon.jo.memo.ui.SimpleView
-import bon.jo.rpg.stat.raw._
-import bon.jo.app.Experimental._
+import bon.jo.rpg.stat.raw.*
 import bon.jo.ui.{ReadableCpnt, UpdatableCpnt}
 import org.scalajs.dom.html.Input
 import org.scalajs.dom.raw.HTMLElement
-
 
 
 object EditStat extends HtmlRep[IntBaseStat, EditStat]:

@@ -1,40 +1,49 @@
-package bon.jo.app
+package bon.jo.rpg.ui.edit
 
-import bon.jo.html.HTMLDef.{$c, $ref, $va, HtmlOps}
+
 import bon.jo.html.HtmlRep.HtmlCpnt
 import bon.jo.html.{HtmlRep, Selection}
 import bon.jo.memo.ui.SimpleView
+
 import bon.jo.rpg.stat.raw.Perso
 import org.scalajs.dom.document
 import org.scalajs.dom.html.{Div, Span}
 import org.scalajs.dom.raw.{Element, HTMLElement, Node}
-import bon.jo.app.ImuutableHtmlCpnt
-import Experimental._
-import bon.jo.app.HtmlUi.PersoRep
+import bon.jo.html.ImuutableHtmlCpnt
+import bon.jo.html.Experimental.*
+import bon.jo.rpg.ui.Rpg
+import bon.jo.rpg.ui.HtmlUi.PersoRep
 import bon.jo.html.DomShell.ExtendedElement
 import org.scalajs.dom.console
+import bon.jo.rpg.ui.edit.EditPersoCpnt
+import bon.jo.rpg.ui.edit.EditPersoCpnt.given
+import bon.jo.rpg.ui.edit.EditStatWithName
 import scala.language.dynamics
-import bon.jo.app.Experimental.html.$
-import bon.jo.app.Experimental.html.$t
-import bon.jo.app.Experimental.html.$t.*
+import bon.jo.html.Experimental.html.$
+import bon.jo.html.Experimental.html.$t
+import bon.jo.html.Experimental.html.$t.*
 import bon.jo.rpg.Affect
 import org.scalajs.dom.raw.HTMLSelectElement
 import bon.jo.rpg.stat.Actor
 import bon.jo.rpg.stat.AnyRefBaseStat
 import bon.jo.rpg.RandomName
 import bon.jo.html.HtmlRep.PrXmlId
+
 import scala.collection.mutable.ListBuffer
-import bon.jo.memo.Script._
+import bon.jo.memo.Script.*
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.rpg.stat.AnyRefBaseStat
 import bon.jo.rpg.resolve.FormuleType
 import org.scalajs.dom.raw.HTMLOptionElement
 import bon.jo.rpg.resolve.Formule
+
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
 import scala.util.Success
 import scala.util.Failure
 import bon.jo.memo.ui.PopUp
+import bon.jo.rpg.ui.edit.EditStatWithName
+import bon.jo.rpg.ui.Rpg
 object EditFormauleAffect:
       extension (affect : Affect)
 
@@ -44,6 +53,7 @@ object EditFormauleAffect:
           value(affect)
         }
       def simulation(using rpg : Rpg,ec : ExecutionContext) : Unit =
+        
         given HTMLElement = rpg.root
         val dao = rpg.formuleDao
         val result : Div =  $t.div[Div](_class("border-b black-s-on-white"))
@@ -54,12 +64,12 @@ object EditFormauleAffect:
           doOnMe(_.contentEditable="true")
          
         }
-        import EditPersoCpnt.given
 
         val att: Perso = Actor.randomActor(e => new Perso(1, RandomName(),"J'attaque", e))
 
         val deff: Perso = Actor.randomActor(e => new Perso(2, RandomName(),"Je défend", e))
         val buff = ListBuffer.empty[EditStatWithName[Perso]]
+
         val List(attCpnt,deffCpnt) =  List(att,deff).map(_.htmlp((summon[Rpg],buff)))
         def runExp:Unit = 
             import bon.jo.common.give.given

@@ -1,5 +1,5 @@
 package bon.jo.memo.ui
-import bon.jo.app.Experimental._
+import bon.jo.html.Experimental._
 import bon.jo.html.CommonHtml
 import bon.jo.html.DomShell.{ExtendedHTMLCollection, ExtendedNode}
 import bon.jo.html.HTMLDef.$ref.t

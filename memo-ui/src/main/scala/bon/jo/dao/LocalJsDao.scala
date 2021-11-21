@@ -2,7 +2,6 @@ package bon.jo.dao
 
 import bon.jo.dao.Dao.FB
 import bon.jo.rpg.stat.Actor.Id
-import bon.jo.rpg.stat.StatsWithName
 import bon.jo.util.{Ec, Mapper}
 import org.scalajs.dom.raw.{IDBRequest, IDBTransaction}
 import org.scalajs.dom.{console, idb}
@@ -11,6 +10,7 @@ import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.reflect.ClassTag
 import scala.scalajs.js
+import bon.jo.dao.LocalJsDao.MappedDao
 
 
 object LocalJsDao:
@@ -19,23 +19,6 @@ object LocalJsDao:
  // given Conversion[String,js.Any] = e => e
   class MappedDaoImpl[A <: js.Object, B,ID](override val daoJs: LocalJsDao[A,ID])(implicit val executionContext: ExecutionContext,  val mapper: Mapper[B, A]) extends MappedDao[A, B, ID]
 
-  type IntMappedDaoType[A <: js.Object, B] = MappedDao[A, B, Int] with IntMappedDao[A,B] 
-  trait IntMappedDao[A <: js.Object, B]:
-     this : MappedDao[A , B, Int]=>
-        
-      def createOrUpdate[AC <: B with StatsWithName](a: AC)(implicit classTag: ClassTag[AC]): FO =
-        daoJs.fId(mapper.map(a)) match
-          case 0 => {
-            val id= Id[AC]
-
-            create( a.withId(id))
-          }
-          case _ => update(a)
-      def initId(implicit classTag: ClassTag[B]): Future[Unit] =
-        readIds().map {
-          case Nil => List(0)
-          case e => e
-        }.map(_.max).map(Id.init[B](_))
 
 
   trait MappedDao[A <: js.Object, B, ID] extends Dao[B, ID] with Ec:

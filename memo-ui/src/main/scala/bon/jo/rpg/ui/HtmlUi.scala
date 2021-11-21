@@ -1,6 +1,6 @@
-package bon.jo.app
+package bon.jo.rpg.ui
 
-import bon.jo.app.HtmlUi.acctRep
+import bon.jo.rpg.ui.HtmlUi.given
 import bon.jo.html.DomShell.ExtendedElement
 import bon.jo.html.HTMLDef.$c
 import bon.jo.html.HtmlEventDef.ExH
@@ -13,6 +13,7 @@ import bon.jo.rpg.raw._
 import bon.jo.rpg.stat.raw.Perso.PlayerPersoUI
 import bon.jo.rpg.stat.raw._
 import bon.jo.rpg.ui.PlayerUI
+import bon.jo.rpg.ui.PerCpnt
 import bon.jo.ui.UpdatableCpnt
 import org.scalajs.dom.html.Div
 import org.scalajs.dom.raw.{HTMLElement, MouseEvent}
@@ -28,11 +29,14 @@ import bon.jo.rpg.CommandeCtx
 import bon.jo.rpg.Commande
 import bon.jo.rpg.CommandeCtx.CommandeCibled
 import bon.jo.rpg.CommandeCtx.CommandeWithoutCibled
+import bon.jo.html.ImuutableHtmlCpnt
+import bon.jo.rpg.ui.Rpg
+import bon.jo.rpg.ui.SimpleMessage
 object HtmlUi:
   object ActionRep extends HtmlRep[SystemElement, ImuutableHtmlCpnt]:
     override def html(memo: SystemElement): ImuutableHtmlCpnt = () => Some(SimpleView.bsButton(s"${memo.name}"))
 
-  implicit val acctRep: HtmlRep[SystemElement, ImuutableHtmlCpnt] = ActionRep
+  given HtmlRep[SystemElement, ImuutableHtmlCpnt] = ActionRep
 
 
 

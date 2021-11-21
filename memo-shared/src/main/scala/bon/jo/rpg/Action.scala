@@ -87,7 +87,7 @@ enum Commande(val name : String) extends SystemElement:
     new CommandeCibled(this, readCibleRec(cible))
     
 
-open abstract class Effect(val time : Int,val name : Affect):
+abstract class Effect(val time : Int,val name : Affect):
   def -- : Effect 
 case class FactorEffectt(override val time : Int ,factor : Float ,override val name : Affect) extends Effect( time , name ):
   def -- : Effect = copy(time-1)

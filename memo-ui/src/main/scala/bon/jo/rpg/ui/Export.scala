@@ -1,6 +1,6 @@
-package bon.jo.app
+package bon.jo.rpg.ui
 
-import bon.jo.app.Export.StatJS
+import bon.jo.rpg.ui.Export.StatJS
 
 import bon.jo.rpg.stat.Actor.{Lvl, Weapon, WeaponBaseState}
 import bon.jo.rpg.stat.StatsWithName

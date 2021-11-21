@@ -1,4 +1,4 @@
-package bon.jo.app
+package bon.jo.rpg.ui
 
 import bon.jo.rpg.BattleTimeLine.TimeLineParam
 

@@ -1,8 +1,14 @@
-package bon.jo.app
+package bon.jo.rpg.ui.edit
 
-import bon.jo.app.Experimental.*
-import bon.jo.app.SType.ExParam
-import bon.jo.app.Types.Pram
+import bon.jo.html.Experimental.*
+import bon.jo.html.Experimental.html.*
+import bon.jo.html.Experimental.html.$.*
+import bon.jo.rpg.ui.Rpg
+import bon.jo.rpg.ui.SType
+import bon.jo.rpg.ui.SType.*
+import bon.jo.rpg.ui.edit.Types.Pram
+import bon.jo.rpg.ui.edit.EditStatWithName
+import bon.jo.rpg.ui.edit.EditStat
 import bon.jo.dao.Dao
 import bon.jo.html.DomShell.ExtendedElement
 import bon.jo.html.HTMLDef.*
@@ -21,10 +27,7 @@ import scala.concurrent.ExecutionContext
 import bon.jo.rpg.Affect
 import bon.jo.rpg.SystemElement
 import bon.jo.rpg.Commande
-import Experimental.html.$
-import $.*
-import bon.jo.rpg.ui.EditStat
-  
+import bon.jo.rpg.ui.Rpg
            
 object Types:
   type Pram = SType.Param[Perso]

@@ -1,8 +1,9 @@
 package bon.jo.rpg.dao
 
-import bon.jo.app.Export.WeaponJS
+import bon.jo.rpg.ui.Export.WeaponJS
 import bon.jo.dao.LocalJsDao
-import bon.jo.dao.LocalJsDao.{MappedDao, MappedDaoImpl,IntMappedDao}
+import bon.jo.rpg.dao.IntMappedDao
+import bon.jo.dao.LocalJsDao.{MappedDao, MappedDaoImpl}
 import bon.jo.rpg.stat.raw.Weapon
 import bon.jo.util.Mapper
 

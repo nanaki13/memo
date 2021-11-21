@@ -1,10 +1,10 @@
-package bon.jo.app
+package bon.jo.rpg.ui.page
 
 import bon.jo.html.HtmlRep.HtmlCpnt
-import bon.jo.app.Experimental.HtmlDsl
+
 import org.scalajs.dom.raw.HTMLElement
 import scala.language.dynamics
-import bon.jo.app.Experimental.HtmlDsl
+
 import bon.jo.common.Tree
 import scala.annotation.tailrec
 
@@ -14,9 +14,10 @@ import Tree.*
 import Tree.given
 import Tree as t
 import bon.jo.html.HtmlRep.PrXmlId
-import Experimental.*
-import Experimental.html.*
-import Experimental.html.$.*
+import bon.jo.html.Experimental.*
+import bon.jo.html.Experimental.HtmlDsl
+import bon.jo.html.Experimental.html.*
+import bon.jo.html.Experimental.html.$.*
 case class ChangeLog(version : String,date : String,data : Tree[String])
 object ChangeLog extends HtmlCpnt:
  

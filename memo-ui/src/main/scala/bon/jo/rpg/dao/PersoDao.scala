@@ -1,11 +1,11 @@
 package bon.jo.rpg.dao
 
-import bon.jo.app.Export.PersoJS
+import bon.jo.rpg.ui.Export.PersoJS
 import bon.jo.dao.LocalJsDao
-import bon.jo.dao.LocalJsDao.{MappedDao, MappedDaoImpl,IntMappedDao}
+import bon.jo.dao.LocalJsDao.{MappedDao, MappedDaoImpl}
 import bon.jo.rpg.stat.raw.Perso
 import bon.jo.util.Mapper
-
+import bon.jo.rpg.dao.IntMappedDao
 import scala.concurrent.ExecutionContext
 
 trait PersoDao  extends IntMappedDao[PersoJS, Perso]:
