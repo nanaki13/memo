@@ -1,7 +1,7 @@
 package bon.jo.app
 
 
-import bon.jo.app.SType.Param
+import bon.jo.rpg.ui.SType.Param
 import bon.jo.dao.Dao
 import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
 import bon.jo.html.HTMLDef.{$c, $l, $ref, $t, $va, HtmlOps}
@@ -10,7 +10,6 @@ import bon.jo.html.HtmlRep
 import bon.jo.html.HtmlRep.{HtmlRepParam, PrXmlId}
 import bon.jo.memo.ui.SimpleView.{BsModifier, withClose}
 import bon.jo.memo.ui.{PopUp, SimpleView}
-
 import bon.jo.rpg.stat.Actor.Weapon
 import bon.jo.rpg.stat.StatsWithName
 import bon.jo.rpg.stat.raw.{IntBaseStat, Perso}
@@ -18,7 +17,8 @@ import bon.jo.ui.{ReadableCpnt, UpdatableCpnt}
 import org.scalajs.dom.html.{Div, Input, Span, TextArea}
 import org.scalajs.dom.raw.{HTMLElement, HTMLOptionElement, HTMLSelectElement}
 import org.scalajs.dom.window
-import Experimental._
+import Experimental.*
+
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
@@ -26,23 +26,9 @@ import scala.language.dynamics
 import bon.jo.rpg.SystemElement
 import bon.jo.rpg.Affect
 import bon.jo.rpg.Commande
+import bon.jo.rpg.ui.{EditStat, SType}
 
-object SType:
-  type Param[A<: StatsWithName] = (Rpg,mutable.ListBuffer[EditStatWithName[A]])
-  implicit class ExParam[A<: StatsWithName](e : Option[Param[A]]):
-    def rpg: Rpg = e.map(_._1).getOrElse(throw new IllegalStateException())
-  trait EditStatWithDao[A <: StatsWithName]:
-    this : EditStatWithName[A] =>
-      val dao : Dao[A,Int]
-      override def deleteButton(): Option[HTMLElement => HTMLElement] = option.map(_._1.executionContext) map {
-        implicit ec =>
-          SimpleView.withClose(_,{
-            dao.delete(read.id) onComplete{
-              case Success(value) => PopUp("Suppression OK")
-              case Failure(exception) =>   PopUp("Suppression KO")
-            }
-          },"top-right")
-      }
+
 abstract class EditStatWithName[A <: StatsWithName](initial: A,val option: Option[Param[A]])(repStat: HtmlRep[IntBaseStat, EditStat]) extends ImuutableHtmlCpnt 
 with UpdatableCpnt[A] with ReadableCpnt[A] :
 
