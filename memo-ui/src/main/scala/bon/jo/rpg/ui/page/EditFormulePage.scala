@@ -4,15 +4,15 @@ import org.scalajs.dom.raw.HTMLElement
 import bon.jo.html.HtmlEventDef.ExH
 import bon.jo.html.HTMLDef.$c
 import org.scalajs.dom.html.{Span, Button}
-import bon.jo.html.Experimental.html.$t
-import bon.jo.html.Experimental.html.$
+import bon.jo.html.DomBuilder.html.$t
+import bon.jo.html.DomBuilder.html.$
 import $t.*
 import bon.jo.memo.Script._
 import scala.language.dynamics
 import org.scalajs.dom.raw.HTMLInputElement
 import bon.jo.memo.ui.SimpleView
 import bon.jo.html.HTMLDef.HtmlOps
-import bon.jo.html.Experimental
+import bon.jo.html.DomBuilder
 trait EditFormulePage {
 
     object char :
@@ -51,14 +51,14 @@ trait EditFormulePage {
             result.textContent = f(parValue).toString
 
 
-    def initializeEventInmut:Experimental.html.HtmlBuilder[HTMLInputElement]={
+    def initializeEventInmut:DomBuilder.html.HtmlBuilder[HTMLInputElement]={
         val input = summon[HTMLInputElement]
         input.$keyup (_ => runExp)    
         input
     }
     
 
-    def initializeParam:Experimental.html.HtmlBuilder[HTMLInputElement]={
+    def initializeParam:DomBuilder.html.HtmlBuilder[HTMLInputElement]={
         initializeEventInmut
         $t.doOnMe(e => {
            val c =  char.value
@@ -69,7 +69,7 @@ trait EditFormulePage {
  
         })  
     }
-    def initializeValue:Experimental.html.HtmlBuilder[HTMLInputElement]={
+    def initializeValue:DomBuilder.html.HtmlBuilder[HTMLInputElement]={
         initializeEventInmut
         $t.doOnMe(_.value="1")    
     }

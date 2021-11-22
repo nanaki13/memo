@@ -12,7 +12,7 @@ import org.scalajs.dom.raw.HTMLElement
 import org.scalajs.dom.raw.HTMLInputElement
 import org.scalajs.dom.raw.HTMLOptionElement
 
-object Experimental:
+object DomBuilder:
   
 
   trait HtmlDsl{

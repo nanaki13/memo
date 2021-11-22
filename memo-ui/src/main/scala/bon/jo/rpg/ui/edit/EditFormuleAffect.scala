@@ -10,7 +10,7 @@ import org.scalajs.dom.document
 import org.scalajs.dom.html.{Div, Span}
 import org.scalajs.dom.raw.{Element, HTMLElement, Node}
 import bon.jo.html.ImuutableHtmlCpnt
-import bon.jo.html.Experimental.*
+import bon.jo.html.DomBuilder.*
 import bon.jo.rpg.ui.Rpg
 import bon.jo.rpg.ui.HtmlUi.PersoRep
 import bon.jo.html.DomShell.ExtendedElement
@@ -19,9 +19,9 @@ import bon.jo.rpg.ui.edit.EditPersoCpnt
 import bon.jo.rpg.ui.edit.EditPersoCpnt.given
 import bon.jo.rpg.ui.edit.EditStatWithName
 import scala.language.dynamics
-import bon.jo.html.Experimental.html.$
-import bon.jo.html.Experimental.html.$t
-import bon.jo.html.Experimental.html.$t.*
+import bon.jo.html.DomBuilder.html.$
+import bon.jo.html.DomBuilder.html.$t
+import bon.jo.html.DomBuilder.html.$t.*
 import bon.jo.rpg.Affect
 import org.scalajs.dom.raw.HTMLSelectElement
 import bon.jo.rpg.stat.Actor

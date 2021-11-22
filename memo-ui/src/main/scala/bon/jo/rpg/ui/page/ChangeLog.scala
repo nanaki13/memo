@@ -14,10 +14,10 @@ import Tree.*
 import Tree.given
 import Tree as t
 import bon.jo.html.HtmlRep.PrXmlId
-import bon.jo.html.Experimental.*
-import bon.jo.html.Experimental.HtmlDsl
-import bon.jo.html.Experimental.html.*
-import bon.jo.html.Experimental.html.$.*
+import bon.jo.html.DomBuilder.*
+import bon.jo.html.DomBuilder.HtmlDsl
+import bon.jo.html.DomBuilder.html.*
+import bon.jo.html.DomBuilder.html.$.*
 case class ChangeLog(version : String,date : String,data : Tree[String])
 object ChangeLog extends HtmlCpnt:
  

@@ -4,15 +4,15 @@ import bon.jo.html.DomShell.ExtendedElement
 import bon.jo.html.HTMLDef.{$c, $l, $t, $va, HtmlOps}
 import bon.jo.html.HtmlRep.HtmlCpnt
 import bon.jo.memo.ui.SimpleView.row
-import bon.jo.html.Experimental._
+import bon.jo.html.DomBuilder._
 import bon.jo.rpg.stat.AnyRefBaseStat.Impl
 import bon.jo.rpg.stat.raw.{AnyRefBaseStat, IntBaseStat, Perso}
 import bon.jo.ui.UpdatableCpnt
 import org.scalajs.dom.html.Span
 import org.scalajs.dom.raw.{HTMLElement, Node}
-import bon.jo.html.Experimental.*
-import bon.jo.html.Experimental.html.*
-import bon.jo.html.Experimental.html.$.*
+import bon.jo.html.DomBuilder.*
+import bon.jo.html.DomBuilder.html.*
+import bon.jo.html.DomBuilder.html.$.*
 import bon.jo.app.ChildParent
 class Progress:
 

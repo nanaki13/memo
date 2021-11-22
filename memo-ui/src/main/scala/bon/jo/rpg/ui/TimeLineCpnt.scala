@@ -2,7 +2,7 @@ package bon.jo.rpg.ui
 
 import bon.jo.html.HTMLDef.{$c, $t, $va, HtmlOps}
 import bon.jo.rpg.BattleTimeLine
-import bon.jo.html.Experimental._
+import bon.jo.html.DomBuilder._
 import bon.jo.rpg.BattleTimeLine._
 import bon.jo.rpg.raw._
 import bon.jo.rpg.raw

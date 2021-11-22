@@ -1,8 +1,8 @@
 package bon.jo.rpg.ui.edit
 
-import bon.jo.html.Experimental.*
-import bon.jo.html.Experimental.html.*
-import bon.jo.html.Experimental.html.$.*
+import bon.jo.html.DomBuilder.*
+import bon.jo.html.DomBuilder.html.*
+import bon.jo.html.DomBuilder.html.$.*
 import bon.jo.rpg.ui.Rpg
 import bon.jo.rpg.ui.SType
 import bon.jo.rpg.ui.SType.*

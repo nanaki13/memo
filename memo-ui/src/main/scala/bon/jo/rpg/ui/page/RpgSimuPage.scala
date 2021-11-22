@@ -9,7 +9,7 @@ import org.scalajs.dom.document
 import org.scalajs.dom.html.Div
 import org.scalajs.dom.raw.{Element, HTMLElement, Node}
 import bon.jo.html.ImuutableHtmlCpnt
-import bon.jo.html.Experimental._
+import bon.jo.html.DomBuilder._
 import bon.jo.rpg.ui.HtmlUi.PersoRep
 import bon.jo.html.DomShell.ExtendedElement
 import org.scalajs.dom.console

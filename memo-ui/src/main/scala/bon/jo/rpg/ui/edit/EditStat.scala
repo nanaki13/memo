@@ -1,6 +1,6 @@
 package bon.jo.rpg.ui.edit
 
-import bon.jo.html.Experimental.*
+import bon.jo.html.DomBuilder.*
 import bon.jo.html.ImuutableHtmlCpnt
 import bon.jo.common
 import bon.jo.common.Affects

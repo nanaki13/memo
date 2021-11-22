@@ -1,7 +1,7 @@
 package bon.jo.rpg.ui.edit
 
-import bon.jo.html.Experimental.*
-import bon.jo.html.Experimental
+import bon.jo.html.DomBuilder.*
+import bon.jo.html.DomBuilder
 import bon.jo.html.ImuutableHtmlCpnt
 import bon.jo.dao.Dao
 import bon.jo.html.DomShell.{ExtendedElement, ExtendedHTMLCollection}
@@ -127,7 +127,7 @@ with UpdatableCpnt[A] with ReadableCpnt[A] :
     case _ => "Commande"
 
   def mainDiv: HTMLElement = 
-    val t = Experimental.html.$
+    val t = DomBuilder.html.$
     import t.*
     t.div {
      childs( 
